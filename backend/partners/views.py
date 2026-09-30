@@ -18,9 +18,9 @@ def partner_list(request):
 def content_feed(request):
  kind=request.GET.get('kind'); qs=ContentItem.objects.filter(is_published=True)
  if kind:qs=qs.filter(kind=kind)
- now=timezone.now(); qs=qs.filter(Q(kind__in=['notice','community','breed','intro'])|Q(kind='popup',popup_start__isnull=True)|Q(kind='popup',popup_start__lte=now)).filter(Q(kind__in=['notice','community','breed','intro'])|Q(kind='popup',popup_end__isnull=True)|Q(kind='popup',popup_end__gte=now))
+ now=timezone.now(); normal=['notice','community','breed','intro','hero']; qs=qs.filter(Q(kind__in=normal)|Q(kind='popup',popup_start__isnull=True)|Q(kind='popup',popup_start__lte=now)).filter(Q(kind__in=normal)|Q(kind='popup',popup_end__isnull=True)|Q(kind='popup',popup_end__gte=now))
  results=[]
- for x in qs[:100]:results.append({'id':x.id,'kind':x.kind,'title':x.title,'label':x.label,'body':x.body,'image':x.image.url if x.image else '','link':x.link,'created_at':x.created_at.strftime('%Y-%m-%d')})
+ for x in qs[:100]:results.append({'id':x.id,'kind':x.kind,'title':x.title,'label':x.label,'body':x.body,'image':x.image.url if x.image else '','link':x.link,'media_type':x.media_type,'video':x.video.url if x.video else '','video_url':x.video_url,'autoplay':x.autoplay,'muted':x.muted,'loop':x.loop,'sort_order':x.sort_order,'created_at':x.created_at.strftime('%Y-%m-%d')})
  return JsonResponse({'count':len(results),'results':results})
 @staff_member_required
 @require_POST
