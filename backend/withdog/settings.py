@@ -3,7 +3,12 @@ BASE_DIR=Path(__file__).resolve().parent.parent
 SECRET_KEY='dev-change-me'
 DEBUG=True
 ALLOWED_HOSTS=['*']
-CSRF_TRUSTED_ORIGINS=['https://*.app.github.dev']
+CSRF_TRUSTED_ORIGINS=[
+    'https://*.app.github.dev',
+    'https://localhost:8000',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+]
 LOGIN_URL='/dashboard/login/'
 LOGIN_REDIRECT_URL='/dashboard/'
 LOGOUT_REDIRECT_URL='/dashboard/login/'
