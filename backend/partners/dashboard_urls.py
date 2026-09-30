@@ -10,4 +10,5 @@ urlpatterns = [
     path('', dashboard_views.dashboard_home, name='home'),
     path('partners/', dashboard_views.partner_list, name='partners'),
     path('partners/upload/', dashboard_views.partner_upload, name='partner_upload'),
+    path('manage/<slug:section>/', dashboard_views.manage_section, name='manage'),
 ]
