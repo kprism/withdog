@@ -12,8 +12,9 @@ class PartnerBenefit(models.Model):
     partner=models.ForeignKey(Partner,on_delete=models.CASCADE,related_name='benefits'); title=models.CharField(max_length=150); description=models.TextField(blank=True); active=models.BooleanField(default=True)
     def __str__(self): return f'{self.partner} · {self.title}'
 class ContentItem(models.Model):
-    KINDS=[('notice','공지사항'),('community','자유게시판'),('breed','전 세계 견종'),('intro','인트로 갤러리'),('popup','팝업')]
-    kind=models.CharField(max_length=20,choices=KINDS,db_index=True); title=models.CharField(max_length=200); label=models.CharField(max_length=80,blank=True); body=models.TextField(blank=True); image=models.FileField(upload_to='content/%Y/%m/',blank=True); link=models.CharField(max_length=500,blank=True); is_published=models.BooleanField(default=True); sort_order=models.IntegerField(default=0); popup_start=models.DateTimeField(null=True,blank=True); popup_end=models.DateTimeField(null=True,blank=True); created_at=models.DateTimeField(auto_now_add=True); updated_at=models.DateTimeField(auto_now=True)
+    KINDS=[('notice','공지사항'),('community','자유게시판'),('breed','전 세계 견종'),('intro','인트로 갤러리'),('hero','메인 비주얼'),('popup','팝업')]
+    MEDIA_TYPES=[('image','이미지'),('video_file','영상 파일'),('video_url','영상 링크')]
+    kind=models.CharField(max_length=20,choices=KINDS,db_index=True); title=models.CharField(max_length=200); label=models.CharField(max_length=80,blank=True); body=models.TextField(blank=True); image=models.FileField(upload_to='content/%Y/%m/',blank=True); link=models.CharField(max_length=500,blank=True); media_type=models.CharField(max_length=20,choices=MEDIA_TYPES,default='image'); video=models.FileField(upload_to='content/video/%Y/%m/',blank=True); video_url=models.URLField(max_length=1000,blank=True); autoplay=models.BooleanField(default=True); muted=models.BooleanField(default=True); loop=models.BooleanField(default=True); is_published=models.BooleanField(default=True); sort_order=models.IntegerField(default=0); popup_start=models.DateTimeField(null=True,blank=True); popup_end=models.DateTimeField(null=True,blank=True); created_at=models.DateTimeField(auto_now_add=True); updated_at=models.DateTimeField(auto_now=True)
     class Meta: ordering=['sort_order','-created_at']
     def __str__(self): return self.title
 
