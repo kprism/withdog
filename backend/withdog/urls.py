@@ -1,5 +1,6 @@
 from partners import website_views
 from partners import views as partner_views
+from partners import mypage_views
 from pathlib import Path
 
 from django.contrib import admin
@@ -49,6 +50,15 @@ urlpatterns = [
 
     path('api/about-page/', website_views.about_data, name='about_data'),
     path('api/site-settings/', partner_views.site_settings_api, name='site_settings_api'),
+
+    # 일반회원 마이페이지
+    path('mypage/', mypage_views.mypage_home, name='public_mypage'),
+    path(
+        'mypage/membership-card/',
+        mypage_views.membership_card,
+        name='public_membership_card',
+    ),
+
     # 운영자 대시보드
     path('dashboard/', include('partners.dashboard_urls')),
 
