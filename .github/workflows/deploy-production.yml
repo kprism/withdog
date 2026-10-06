@@ -75,7 +75,7 @@ jobs:
             --project=thepetkorea \
             --zone=asia-northeast3-a \
             --quiet \
-            --command="cd /home/mstclma00/withdog/backend && sudo -u mstclma00 .venv/bin/python manage.py collectstatic --noinput && test -s staticfiles/member_dog_stamp.webp && sudo systemctl restart thepetkorea"
+            --command="cd /home/mstclma00/withdog/backend && sudo -u mstclma00 .venv/bin/python manage.py migrate --noinput && sudo -u mstclma00 .venv/bin/python manage.py collectstatic --noinput && test -s staticfiles/member_dog_stamp.webp && sudo systemctl restart thepetkorea"
 
       - name: Verify public endpoints and membership image
         run: |
@@ -87,6 +87,8 @@ jobs:
               ('https://thepetkorea.co.kr/', False),
               ('https://thepetkorea.co.kr/mypage/', False),
               ('https://thepetkorea.co.kr/static/member_dog_stamp.webp', True),
+              ('https://thepetkorea.co.kr/sitemap.xml', True),
+              ('https://thepetkorea.co.kr/robots.txt', True),
           ]
           for url, must_be_200 in checks:
               req = urllib.request.Request(url, method='GET')
