@@ -1,0 +1,303 @@
+<style id="PUBLIC_COMMON_LAYOUT">
+
+/* =========================================================
+   INTRO HEADER / FOOTER COMMON DESIGN
+   ========================================================= */
+
+.public-common-header{
+    box-sizing:border-box;
+    width:100%;
+    min-height:92px;
+    padding:0 5%;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:linear-gradient(90deg,#bb0005,#db2931);
+    color:#fff;
+    font-family:'Noto Sans KR',sans-serif;
+}
+
+.public-common-header *{
+    box-sizing:border-box;
+}
+
+.public-common-header .brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    color:#fff;
+    text-decoration:none;
+}
+
+.public-common-header .brand-dog{
+    width:46px;
+    height:46px;
+    border-radius:50%;
+    background:#fff4e8;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:28px;
+}
+
+.public-common-header .brand b{
+    display:block;
+    font-size:17px;
+    font-weight:800;
+    line-height:1.35;
+}
+
+.public-common-header .brand small{
+    display:block;
+    margin-top:4px;
+    font-size:11px;
+    font-weight:500;
+    opacity:.82;
+}
+
+.public-common-header .header-actions{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.public-common-header .header-actions > a:not(.btn),
+.public-user-name{
+    color:#fff;
+    text-decoration:none;
+    font-size:13px;
+}
+
+.public-common-header .btn{
+    min-width:82px;
+    height:42px;
+    padding:0 18px;
+    border-radius:8px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    font-family:inherit;
+    font-size:14px;
+    font-weight:700;
+    text-decoration:none;
+    cursor:pointer;
+}
+
+.public-common-header .btn-outline{
+    border:1px solid rgba(255,255,255,.65);
+    background:transparent;
+    color:#fff;
+}
+
+.public-common-header .btn-gold{
+    border:1px solid #e7c436;
+    background:#e7c436;
+    color:#181818;
+}
+
+.public-logout-form{
+    margin:0;
+    padding:0;
+}
+
+.public-common-header .mobile-menu{
+    display:none;
+}
+
+.public-common-footer{
+    box-sizing:border-box;
+    width:100%;
+    padding:48px max(5%,calc((100% - 1160px)/2)) 26px;
+    background:#00291c;
+    color:#9bbbad;
+    font-family:'Noto Sans KR',sans-serif;
+}
+
+.public-common-footer *{
+    box-sizing:border-box;
+}
+
+.public-common-footer .footer-top{
+    display:grid;
+    grid-template-columns:minmax(320px,1fr) 1fr;
+    gap:80px;
+    padding-bottom:42px;
+}
+
+.public-common-footer .footer-brand{
+    color:#fff;
+    font-size:16px;
+    margin-bottom:5px;
+}
+
+.public-common-footer small{
+    display:block;
+    margin-bottom:17px;
+}
+
+.public-common-footer p{
+    margin:0;
+    line-height:1.9;
+    font-size:13px;
+}
+
+.public-common-footer p b{
+    color:#a9c8ba;
+}
+
+.public-common-footer ul{
+    margin:24px 0 0;
+    padding:0;
+    list-style:none;
+}
+
+.public-common-footer li{
+    margin:0 0 10px;
+}
+
+.public-common-footer a{
+    color:#9bbbad;
+    text-decoration:none;
+}
+
+.public-common-footer a:hover{
+    color:#fff;
+}
+
+.public-common-footer .footer-bottom{
+    border-top:1px solid rgba(255,255,255,.12);
+    padding-top:24px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:30px;
+    font-size:12px;
+}
+
+.public-common-footer .footer-bottom nav{
+    display:flex;
+    gap:5px;
+}
+
+.public-common-footer .footer-bottom nav a + a:before{
+    content:'|';
+    margin-right:5px;
+    opacity:.45;
+}
+
+@media(max-width:760px){
+
+    .public-common-header{
+        min-height:72px;
+        padding:0 18px;
+    }
+
+    .public-common-header .brand small{
+        display:none;
+    }
+
+    .public-common-header .brand b{
+        font-size:15px;
+    }
+
+    .public-common-header .header-actions{
+        gap:7px;
+    }
+
+    .public-common-header .header-actions > a:not(.btn),
+    .public-user-name{
+        display:none;
+    }
+
+    .public-common-header .btn{
+        min-width:auto;
+        height:36px;
+        padding:0 11px;
+        font-size:12px;
+    }
+
+    .public-common-footer{
+        padding:38px 20px 24px;
+    }
+
+    .public-common-footer .footer-top{
+        grid-template-columns:1fr;
+        gap:34px;
+    }
+
+    .public-common-footer .footer-bottom{
+        align-items:flex-start;
+        flex-direction:column;
+        gap:15px;
+    }
+}
+
+</style>
+
+<style id="PUBLIC_HEADER_INTRO_LOGO_SYNC">
+
+/* INTRO HEADER LOGO EXACT SYNC */
+
+.public-common-header .brand{
+    min-width:0;
+    flex:0 1 auto;
+}
+
+.public-common-header .brand-dog{
+    flex:0 0 48px;
+    width:48px;
+    height:48px;
+    min-width:48px;
+    min-height:48px;
+    overflow:hidden;
+    border-radius:50%;
+    background:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:29px;
+}
+
+.public-common-header .brand-dog img{
+    display:block;
+    width:100% !important;
+    height:100% !important;
+    max-width:100%;
+    max-height:100%;
+    object-fit:contain !important;
+    object-position:center;
+    border-radius:50%;
+    background:#fff;
+}
+
+.public-common-header .brand > span:last-child{
+    min-width:0;
+    white-space:nowrap;
+}
+
+.public-common-header .brand b,
+.public-common-header .brand small{
+    white-space:nowrap;
+}
+
+@media(max-width:560px){
+
+    .public-common-header .brand-dog{
+        flex-basis:42px;
+        width:42px;
+        height:42px;
+        min-width:42px;
+        min-height:42px;
+    }
+
+    .public-common-header .brand b{
+        font-size:14px;
+    }
+
+    .public-common-header .brand small{
+        font-size:10px;
+        margin-top:5px;
+    }
+}
+
+</style>

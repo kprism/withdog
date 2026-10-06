@@ -1,0 +1,969 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+>
+<title>{{ post.title }} | 경상남도 반려견 협회</title>
+
+<link
+    rel="stylesheet"
+    href="/assets/css/style.css"
+>
+<link
+    rel="stylesheet"
+    href="/assets/css/sub.css"
+>
+
+<style>
+.community-detail-wrap{
+    max-width:1000px;
+    margin:0 auto;
+    padding:48px 20px 80px;
+}
+
+.community-back{
+    display:inline-flex;
+    margin-bottom:20px;
+    color:#666;
+    text-decoration:none;
+    font-size:14px;
+}
+
+.community-article{
+    border-top:2px solid #222;
+    border-bottom:1px solid #ddd;
+    background:#fff;
+}
+
+.community-article-head{
+    padding:28px 22px 22px;
+    border-bottom:1px solid #eee;
+}
+
+.community-category{
+    display:inline-block;
+    margin-bottom:10px;
+    padding:5px 10px;
+    border-radius:999px;
+    background:#f6eeee;
+    color:#b82227;
+    font-size:12px;
+    font-weight:700;
+}
+
+.community-title{
+    margin:0 0 14px;
+    font-size:27px;
+    line-height:1.4;
+    word-break:break-word;
+}
+
+.community-meta{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px 18px;
+    color:#777;
+    font-size:13px;
+}
+
+.community-body{
+    min-height:220px;
+    padding:34px 22px 42px;
+    font-size:16px;
+    line-height:1.8;
+    overflow-wrap:anywhere;
+}
+
+.community-body img{
+    max-width:100%;
+    height:auto;
+}
+
+.community-attachments{
+    padding:20px 22px;
+    border-top:1px solid #eee;
+    background:#fafafa;
+}
+
+.community-attachments h3{
+    margin:0 0 12px;
+    font-size:14px;
+}
+
+.community-file{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin:7px 0;
+    color:#333;
+    text-decoration:none;
+    font-size:14px;
+}
+
+.community-actions{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:space-between;
+    gap:12px;
+    padding:20px 0 34px;
+}
+
+.community-action-left,
+.community-action-right{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+}
+
+.community-btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-height:40px;
+    padding:0 16px;
+    border:1px solid #ddd;
+    border-radius:8px;
+    background:#fff;
+    color:#333;
+    text-decoration:none;
+    cursor:pointer;
+    font-weight:700;
+}
+
+.community-btn-primary{
+    border-color:#d2292d;
+    background:#d2292d;
+    color:#fff;
+}
+
+.community-btn-liked{
+    border-color:#d2292d;
+    color:#d2292d;
+    background:#fff7f7;
+}
+
+.community-btn-danger{
+    color:#a52226;
+}
+
+.community-comments{
+    margin-top:20px;
+}
+
+.community-comments-title{
+    margin-bottom:16px;
+    font-size:20px;
+}
+
+.comment-form{
+    padding:18px;
+    border:1px solid #ddd;
+    border-radius:12px;
+    background:#fff;
+}
+
+.comment-form textarea{
+    width:100%;
+    min-height:100px;
+    box-sizing:border-box;
+    resize:vertical;
+    padding:13px;
+    border:1px solid #ddd;
+    border-radius:8px;
+    font:inherit;
+}
+
+.comment-form-bottom{
+    display:flex;
+    justify-content:flex-end;
+    margin-top:9px;
+}
+
+.comment-login{
+    padding:20px;
+    border:1px solid #eee;
+    border-radius:10px;
+    background:#fafafa;
+    text-align:center;
+    color:#666;
+}
+
+.comment-list{
+    margin-top:22px;
+}
+
+.comment-item{
+    padding:20px 4px;
+    border-bottom:1px solid #eee;
+}
+
+.comment-head{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:space-between;
+    gap:8px;
+    margin-bottom:9px;
+}
+
+.comment-author{
+    font-weight:800;
+}
+
+.comment-date{
+    margin-left:8px;
+    color:#999;
+    font-size:12px;
+}
+
+.comment-body{
+    line-height:1.65;
+    white-space:pre-wrap;
+    word-break:break-word;
+}
+
+.comment-tools{
+    display:flex;
+    gap:10px;
+    margin-top:10px;
+}
+
+.comment-link{
+    padding:0;
+    border:0;
+    background:none;
+    color:#777;
+    cursor:pointer;
+    font-size:12px;
+}
+
+.reply-box{
+    display:none;
+    margin-top:12px;
+}
+
+.reply-item{
+    margin:14px 0 0 28px;
+    padding:15px 18px;
+    border-radius:10px;
+    background:#f8f8f8;
+}
+
+.deleted-comment{
+    color:#999;
+    font-style:italic;
+}
+
+.report-box{
+    display:none;
+    width:100%;
+    margin-top:10px;
+    padding:16px;
+    box-sizing:border-box;
+    border:1px solid #eee;
+    border-radius:10px;
+    background:#fafafa;
+}
+
+.report-box select,
+.report-box textarea{
+    width:100%;
+    box-sizing:border-box;
+    margin-bottom:8px;
+    padding:10px;
+    border:1px solid #ddd;
+    border-radius:7px;
+    background:#fff;
+}
+
+.report-box textarea{
+    min-height:80px;
+    resize:vertical;
+}
+
+.empty-comments{
+    padding:35px 10px;
+    color:#999;
+    text-align:center;
+}
+
+@media(max-width:700px){
+    .community-title{
+        font-size:22px;
+    }
+
+    .community-article-head,
+    .community-body{
+        padding-left:16px;
+        padding-right:16px;
+    }
+
+    .community-actions{
+        flex-direction:column;
+    }
+
+    .community-action-right{
+        justify-content:flex-end;
+    }
+
+    .reply-item{
+        margin-left:14px;
+    }
+}
+</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+{% include "website/includes/public_layout_css.html" %}
+</head>
+
+
+<body>
+
+{% include "website/includes/public_header.html" %}
+
+
+<section class="sub-hero">
+    <div>
+        <p>GYEONGNAM PET DOG ASSOCIATION</p>
+        <h1>자유게시판</h1>
+        <span>
+            회원들과 반려견 이야기를 자유롭게 나누는 공간입니다.
+        </span>
+    </div>
+</section>
+
+
+<main class="community-detail-wrap">
+
+    <a
+        class="community-back"
+        href="{% url 'public_community_list' %}"
+    >
+        ← 목록으로
+    </a>
+
+
+    <article class="community-article">
+
+        <header class="community-article-head">
+
+            {% if post.category %}
+            <span class="community-category">
+                {{ post.category.name }}
+            </span>
+            {% endif %}
+
+            <h2 class="community-title">
+                {{ post.title }}
+            </h2>
+
+            <div class="community-meta">
+
+                <span>
+                    작성자
+                    {% if post.author %}
+                        {{ post.author.get_username }}
+                    {% else %}
+                        탈퇴회원
+                    {% endif %}
+                </span>
+
+                <span>
+                    {{ post.created_at|date:"Y.m.d H:i" }}
+                </span>
+
+                <span>
+                    조회 {{ post.view_count }}
+                </span>
+
+                <span>
+                    좋아요
+                    <strong id="likeCount">
+                        {{ like_count }}
+                    </strong>
+                </span>
+
+            </div>
+
+        </header>
+
+
+        <div class="community-body">
+            {{ post.body|safe }}
+        </div>
+
+
+        {% if attachments %}
+        <section class="community-attachments">
+
+            <h3>
+                📎 첨부파일
+            </h3>
+
+            {% for attachment in attachments %}
+
+                {% if attachment.file %}
+                <a
+                    class="community-file"
+                    href="{{ attachment.file.url }}"
+                    target="_blank"
+                    rel="noopener"
+                    download
+                >
+                    📄
+                    {% if attachment.original_name %}
+                        {{ attachment.original_name }}
+                    {% else %}
+                        첨부파일 {{ forloop.counter }}
+                    {% endif %}
+                </a>
+                {% endif %}
+
+            {% endfor %}
+
+        </section>
+        {% endif %}
+
+    </article>
+
+
+    <section class="community-actions">
+
+        <div class="community-action-left">
+
+            {% if user.is_authenticated %}
+
+            <button
+                type="button"
+                id="likeButton"
+                class="community-btn {% if user_liked %}community-btn-liked{% endif %}"
+                data-url="{% url 'public_community_like_toggle' post.pk %}"
+            >
+                ♥ 좋아요
+            </button>
+
+            {% else %}
+
+            <a
+                class="community-btn"
+                href="/dashboard/login/?next={{ request.path|urlencode }}"
+            >
+                ♥ 좋아요
+            </a>
+
+            {% endif %}
+
+        </div>
+
+
+        <div class="community-action-right">
+
+            {% if user.is_authenticated %}
+
+                {% if post.author_id == user.id or user.is_staff or user.is_superuser %}
+
+                <a
+                    class="community-btn"
+                    href="{% url 'public_community_update' post.pk %}"
+                >
+                    수정
+                </a>
+
+                <form
+                    method="post"
+                    action="{% url 'public_community_delete' post.pk %}"
+                    onsubmit="return confirm('게시글을 삭제하시겠습니까?');"
+                >
+                    {% csrf_token %}
+
+                    <button
+                        type="submit"
+                        class="community-btn community-btn-danger"
+                    >
+                        삭제
+                    </button>
+                </form>
+
+                {% else %}
+
+                <button
+                    type="button"
+                    class="community-btn"
+                    id="reportToggle"
+                >
+                    신고
+                </button>
+
+                {% endif %}
+
+            {% endif %}
+
+        </div>
+
+
+        {% if user.is_authenticated and post.author_id != user.id %}
+
+        <div
+            class="report-box"
+            id="reportBox"
+        >
+
+            <form
+                method="post"
+                action="{% url 'public_community_report' post.pk %}"
+            >
+                {% csrf_token %}
+
+                <select
+                    name="reason"
+                    required
+                >
+                    <option value="">
+                        신고 사유 선택
+                    </option>
+                    <option value="spam">
+                        도배·스팸
+                    </option>
+                    <option value="abuse">
+                        욕설·비방
+                    </option>
+                    <option value="illegal">
+                        불법·유해정보
+                    </option>
+                    <option value="privacy">
+                        개인정보 노출
+                    </option>
+                    <option value="commercial">
+                        부적절한 광고·홍보
+                    </option>
+                    <option value="other">
+                        기타
+                    </option>
+                </select>
+
+                <textarea
+                    name="detail"
+                    placeholder="신고 내용을 입력해주세요."
+                ></textarea>
+
+                <button
+                    type="submit"
+                    class="community-btn community-btn-primary"
+                >
+                    신고 접수
+                </button>
+
+            </form>
+
+        </div>
+        {% endif %}
+
+    </section>
+
+
+    <section class="community-comments">
+
+        <h3 class="community-comments-title">
+            댓글
+        </h3>
+
+
+        {% if post.allow_comments %}
+
+            {% if user.is_authenticated %}
+
+            <form
+                method="post"
+                action="{% url 'public_community_comment_create' post.pk %}"
+                class="comment-form"
+            >
+                {% csrf_token %}
+
+                <textarea
+                    name="body"
+                    required
+                    maxlength="3000"
+                    placeholder="댓글을 입력해주세요."
+                ></textarea>
+
+                <div class="comment-form-bottom">
+                    <button
+                        type="submit"
+                        class="community-btn community-btn-primary"
+                    >
+                        댓글 등록
+                    </button>
+                </div>
+
+            </form>
+
+            {% else %}
+
+            <div class="comment-login">
+                댓글을 작성하려면
+                <a
+                    href="/dashboard/login/?next={{ request.path|urlencode }}"
+                >
+                    로그인
+                </a>
+                해주세요.
+            </div>
+
+            {% endif %}
+
+        {% endif %}
+
+
+        <div class="comment-list">
+
+            {% for comment in comments %}
+
+            <article class="comment-item">
+
+                <div class="comment-head">
+
+                    <div>
+                        <span class="comment-author">
+                            {% if comment.author %}
+                                {{ comment.author.get_username }}
+                            {% else %}
+                                탈퇴회원
+                            {% endif %}
+                        </span>
+
+                        <span class="comment-date">
+                            {{ comment.created_at|date:"Y.m.d H:i" }}
+                        </span>
+                    </div>
+
+                </div>
+
+
+                {% if comment.is_hidden %}
+
+                <div class="comment-body deleted-comment">
+                    삭제된 댓글입니다.
+                </div>
+
+                {% else %}
+
+                <div class="comment-body">
+                    {{ comment.body }}
+                </div>
+
+                {% endif %}
+
+
+                <div class="comment-tools">
+
+                    {% if user.is_authenticated and not comment.is_hidden %}
+
+                    <button
+                        type="button"
+                        class="comment-link reply-toggle"
+                        data-target="reply-{{ comment.pk }}"
+                    >
+                        답글
+                    </button>
+
+                    {% endif %}
+
+
+                    {% if user.is_authenticated %}
+
+                        {% if comment.author_id == user.id or user.is_staff or user.is_superuser %}
+
+                        <form
+                            method="post"
+                            action="{% url 'public_community_comment_delete' post.pk comment.pk %}"
+                            onsubmit="return confirm('댓글을 삭제하시겠습니까?');"
+                        >
+                            {% csrf_token %}
+
+                            <button
+                                type="submit"
+                                class="comment-link"
+                            >
+                                삭제
+                            </button>
+
+                        </form>
+
+                        {% endif %}
+
+                    {% endif %}
+
+                </div>
+
+
+                {% if user.is_authenticated and not comment.is_hidden %}
+
+                <div
+                    class="reply-box"
+                    id="reply-{{ comment.pk }}"
+                >
+
+                    <form
+                        method="post"
+                        action="{% url 'public_community_comment_create' post.pk %}"
+                        class="comment-form"
+                    >
+                        {% csrf_token %}
+
+                        <input
+                            type="hidden"
+                            name="parent"
+                            value="{{ comment.pk }}"
+                        >
+
+                        <textarea
+                            name="body"
+                            required
+                            maxlength="3000"
+                            placeholder="답글을 입력해주세요."
+                        ></textarea>
+
+                        <div class="comment-form-bottom">
+                            <button
+                                type="submit"
+                                class="community-btn community-btn-primary"
+                            >
+                                답글 등록
+                            </button>
+                        </div>
+
+                    </form>
+
+                </div>
+
+                {% endif %}
+
+
+                {% for reply in comment.replies.all %}
+
+                <article class="reply-item">
+
+                    <div class="comment-head">
+
+                        <div>
+                            <span class="comment-author">
+                                ↳
+                                {% if reply.author %}
+                                    {{ reply.author.get_username }}
+                                {% else %}
+                                    탈퇴회원
+                                {% endif %}
+                            </span>
+
+                            <span class="comment-date">
+                                {{ reply.created_at|date:"Y.m.d H:i" }}
+                            </span>
+                        </div>
+
+                    </div>
+
+
+                    {% if reply.is_hidden %}
+
+                    <div class="comment-body deleted-comment">
+                        삭제된 댓글입니다.
+                    </div>
+
+                    {% else %}
+
+                    <div class="comment-body">
+                        {{ reply.body }}
+                    </div>
+
+                    {% endif %}
+
+
+                    {% if user.is_authenticated %}
+
+                        {% if reply.author_id == user.id or user.is_staff or user.is_superuser %}
+
+                        <div class="comment-tools">
+
+                            <form
+                                method="post"
+                                action="{% url 'public_community_comment_delete' post.pk reply.pk %}"
+                                onsubmit="return confirm('답글을 삭제하시겠습니까?');"
+                            >
+                                {% csrf_token %}
+
+                                <button
+                                    type="submit"
+                                    class="comment-link"
+                                >
+                                    삭제
+                                </button>
+
+                            </form>
+
+                        </div>
+
+                        {% endif %}
+
+                    {% endif %}
+
+                </article>
+
+                {% endfor %}
+
+            </article>
+
+            {% empty %}
+
+            <div class="empty-comments">
+                아직 댓글이 없습니다.<br>
+                첫 이야기를 남겨보세요.
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+    </section>
+
+</main>
+
+
+{% include "website/includes/public_footer.html" %}
+
+
+<script>
+(function(){
+
+    const csrfInput = document.querySelector(
+        'input[name="csrfmiddlewaretoken"]'
+    );
+
+    const csrfToken = csrfInput
+        ? csrfInput.value
+        : '';
+
+    const likeButton = document.getElementById(
+        'likeButton'
+    );
+
+    if(likeButton){
+
+        likeButton.addEventListener(
+            'click',
+            async function(){
+
+                this.disabled = true;
+
+                try{
+
+                    const response = await fetch(
+                        this.dataset.url,
+                        {
+                            method:'POST',
+                            headers:{
+                                'X-CSRFToken':csrfToken,
+                                'X-Requested-With':'XMLHttpRequest'
+                            }
+                        }
+                    );
+
+                    if(
+                        response.status === 401
+                        || response.status === 403
+                    ){
+                        window.location.href =
+                            '/dashboard/login/?next='
+                            + encodeURIComponent(
+                                window.location.pathname
+                            );
+
+                        return;
+                    }
+
+                    const data = await response.json();
+
+                    if(data.ok){
+
+                        document.getElementById(
+                            'likeCount'
+                        ).textContent = data.count;
+
+                        this.classList.toggle(
+                            'community-btn-liked',
+                            data.liked
+                        );
+                    }
+
+                }catch(error){
+
+                    console.error(error);
+                    alert(
+                        '좋아요 처리 중 오류가 발생했습니다.'
+                    );
+
+                }finally{
+
+                    this.disabled = false;
+
+                }
+            }
+        );
+    }
+
+
+    document.querySelectorAll(
+        '.reply-toggle'
+    ).forEach(function(button){
+
+        button.addEventListener(
+            'click',
+            function(){
+
+                const box = document.getElementById(
+                    this.dataset.target
+                );
+
+                if(!box){
+                    return;
+                }
+
+                box.style.display =
+                    box.style.display === 'block'
+                    ? 'none'
+                    : 'block';
+            }
+        );
+    });
+
+
+    const reportToggle = document.getElementById(
+        'reportToggle'
+    );
+
+    const reportBox = document.getElementById(
+        'reportBox'
+    );
+
+    if(reportToggle && reportBox){
+
+        reportToggle.addEventListener(
+            'click',
+            function(){
+
+                reportBox.style.display =
+                    reportBox.style.display === 'block'
+                    ? 'none'
+                    : 'block';
+            }
+        );
+    }
+
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,494 @@
+{% load static %}
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+>
+<title>{{ breed.name_ko }} | 전 세계 견종</title>
+
+<link
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet"
+>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+    margin:0;
+    background:#f7f7f7;
+    color:#242424;
+    font-family:'Noto Sans KR',sans-serif;
+}
+
+a{
+    color:inherit;
+    text-decoration:none;
+}
+
+.detail-wrap{
+    width:min(1100px,calc(100% - 40px));
+    margin:auto;
+    padding:45px 0 90px;
+}
+
+.back{
+    display:inline-flex;
+    margin-bottom:22px;
+    color:#8f1f25;
+    font-weight:800;
+    font-size:14px;
+}
+
+.hero{
+    overflow:hidden;
+    display:grid;
+    grid-template-columns:
+        minmax(0,1.05fr)
+        minmax(0,.95fr);
+    background:#fff;
+    border:1px solid #e6e6e6;
+    border-radius:24px;
+    box-shadow:0 15px 50px rgba(0,0,0,.06);
+}
+
+.hero-image{
+    min-height:460px;
+    background:#eee;
+}
+
+.hero-image img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+}
+
+.hero-placeholder{
+    width:100%;
+    height:100%;
+    min-height:460px;
+    display:grid;
+    place-items:center;
+    font-size:80px;
+    background:linear-gradient(135deg,#f4eeee,#e9e4e4);
+}
+
+.hero-copy{
+    padding:48px 42px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+}
+
+.group{
+    color:#a41f26;
+    font-size:12px;
+    font-weight:900;
+    letter-spacing:1px;
+}
+
+.hero-copy h1{
+    margin:10px 0 4px;
+    font-size:39px;
+    letter-spacing:-1.8px;
+}
+
+.english{
+    color:#888;
+    font-size:16px;
+    margin-bottom:27px;
+}
+
+.fact-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+}
+
+.fact{
+    padding:13px;
+    border-radius:11px;
+    background:#f8f8f8;
+}
+
+.fact small{
+    display:block;
+    color:#999;
+    margin-bottom:4px;
+}
+
+.fact strong{
+    font-size:14px;
+}
+
+.sections{
+    display:grid;
+    gap:15px;
+    margin-top:24px;
+}
+
+.section{
+    padding:27px 30px;
+    background:#fff;
+    border:1px solid #e8e8e8;
+    border-radius:17px;
+}
+
+.section h2{
+    margin:0 0 13px;
+    font-size:19px;
+    color:#8f1e24;
+}
+
+.section p{
+    margin:0;
+    white-space:pre-line;
+    line-height:1.9;
+    color:#555;
+    font-size:14px;
+}
+
+.source{
+    margin-top:24px;
+    padding:18px 22px;
+    border-radius:13px;
+    background:#eee;
+    color:#777;
+    font-size:12px;
+    line-height:1.7;
+}
+
+.related{
+    margin-top:48px;
+}
+
+.related h2{
+    font-size:25px;
+}
+
+.related-grid{
+    display:grid;
+    grid-template-columns:
+        repeat(4,minmax(0,1fr));
+    gap:13px;
+}
+
+.related-card{
+    padding:17px;
+    background:#fff;
+    border:1px solid #e5e5e5;
+    border-radius:13px;
+    transition:.2s ease;
+}
+
+.related-card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 10px 25px rgba(0,0,0,.08);
+}
+
+.related-card strong{
+    display:block;
+}
+
+.related-card span{
+    display:block;
+    margin-top:5px;
+    color:#999;
+    font-size:11px;
+}
+
+@media(max-width:760px){
+    .detail-wrap{
+        width:min(100% - 24px,1100px);
+        padding-top:25px;
+    }
+
+    .hero{
+        grid-template-columns:1fr;
+    }
+
+    .hero-image,
+    .hero-placeholder{
+        min-height:300px;
+    }
+
+    .hero-copy{
+        padding:30px 23px;
+    }
+
+    .hero-copy h1{
+        font-size:31px;
+    }
+
+    .fact-grid{
+        grid-template-columns:1fr;
+    }
+
+    .section{
+        padding:22px;
+    }
+
+    .related-grid{
+        grid-template-columns:1fr 1fr;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<main class="detail-wrap">
+
+<a class="back" href="{% url 'public_breed_list' %}">
+    ← 전 세계 견종
+</a>
+
+<section class="hero">
+
+    <div class="hero-image">
+
+        {% if breed.image %}
+        <img
+            src="{{ breed.image.url }}"
+            alt="{{ breed.name_ko }}"
+        >
+        {% elif breed.image_url %}
+        <img
+            src="{{ breed.image_url }}"
+            alt="{{ breed.name_ko }}"
+        >
+        {% else %}
+        <div class="hero-placeholder">
+            🐾
+        </div>
+        {% endif %}
+
+    </div>
+
+    <div class="hero-copy">
+
+        {% if breed.fci_group %}
+        <div class="group">
+            FCI GROUP {{ breed.fci_group }}
+        </div>
+        {% endif %}
+
+        <h1>{{ breed.name_ko }}</h1>
+
+        <div class="english">
+            {{ breed.name_en }}
+        </div>
+
+        <div class="fact-grid">
+
+            {% if breed.origin %}
+            <div class="fact">
+                <small>원산지</small>
+                <strong>{{ breed.origin }}</strong>
+            </div>
+            {% endif %}
+
+            {% if breed.fci_standard_no %}
+            <div class="fact">
+                <small>FCI 표준번호</small>
+                <strong>{{ breed.fci_standard_no }}</strong>
+            </div>
+            {% endif %}
+
+            {% if breed.height_male %}
+            <div class="fact">
+                <small>수컷 체고</small>
+                <strong>{{ breed.height_male }}</strong>
+            </div>
+            {% endif %}
+
+            {% if breed.height_female %}
+            <div class="fact">
+                <small>암컷 체고</small>
+                <strong>{{ breed.height_female }}</strong>
+            </div>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<div class="sections">
+
+{% if breed.summary %}
+<section class="section">
+    <h2>견종 소개</h2>
+    <p>{{ breed.summary }}</p>
+</section>
+{% endif %}
+
+{% if breed.history %}
+<section class="section">
+    <h2>역사</h2>
+    <p>{{ breed.history }}</p>
+</section>
+{% endif %}
+
+{% if breed.appearance %}
+<section class="section">
+    <h2>전체적인 외형</h2>
+    <p>{{ breed.appearance }}</p>
+</section>
+{% endif %}
+
+{% if breed.temperament %}
+<section class="section">
+    <h2>행동과 기질</h2>
+    <p>{{ breed.temperament }}</p>
+</section>
+{% endif %}
+
+{% if breed.use %}
+<section class="section">
+    <h2>용도</h2>
+    <p>{{ breed.use }}</p>
+</section>
+{% endif %}
+
+{% if breed.classification %}
+<section class="section">
+    <h2>FCI 분류</h2>
+    <p>{{ breed.classification }}</p>
+</section>
+{% endif %}
+
+{% if breed.head %}
+<section class="section">
+    <h2>머리</h2>
+    <p>{{ breed.head }}</p>
+</section>
+{% endif %}
+
+{% if breed.neck %}
+<section class="section">
+    <h2>목</h2>
+    <p>{{ breed.neck }}</p>
+</section>
+{% endif %}
+
+{% if breed.body %}
+<section class="section">
+    <h2>몸통</h2>
+    <p>{{ breed.body }}</p>
+</section>
+{% endif %}
+
+{% if breed.tail %}
+<section class="section">
+    <h2>꼬리</h2>
+    <p>{{ breed.tail }}</p>
+</section>
+{% endif %}
+
+{% if breed.limbs %}
+<section class="section">
+    <h2>사지</h2>
+    <p>{{ breed.limbs }}</p>
+</section>
+{% endif %}
+
+{% if breed.gait %}
+<section class="section">
+    <h2>걸음걸이</h2>
+    <p>{{ breed.gait }}</p>
+</section>
+{% endif %}
+
+{% if breed.coat %}
+<section class="section">
+    <h2>피모</h2>
+    <p>{{ breed.coat }}</p>
+</section>
+{% endif %}
+
+{% if breed.size_detail %}
+<section class="section">
+    <h2>크기 및 체중</h2>
+    <p>{{ breed.size_detail }}</p>
+</section>
+{% endif %}
+
+{% if breed.faults %}
+<section class="section">
+    <h2>결점</h2>
+    <p>{{ breed.faults }}</p>
+</section>
+{% endif %}
+
+{% if breed.disqualification %}
+<section class="section">
+    <h2>실격 사항</h2>
+    <p>{{ breed.disqualification }}</p>
+</section>
+{% endif %}
+
+</div>
+
+
+{% if breed.source_name or breed.source_url %}
+<div class="source">
+    <strong>자료 출처</strong><br>
+
+    {{ breed.source_name|default:"견종 표준 자료" }}
+
+    {% if breed.source_url %}
+    ·
+    <a
+        href="{{ breed.source_url }}"
+        target="_blank"
+        rel="noopener noreferrer"
+    >
+        원문 보기
+    </a>
+    {% endif %}
+</div>
+{% endif %}
+
+
+{% if related_breeds %}
+<section class="related">
+
+    <h2>
+        같은 FCI 그룹의 다른 견종
+    </h2>
+
+    <div class="related-grid">
+
+        {% for item in related_breeds %}
+
+        <a
+            class="related-card"
+            href="{% url 'public_breed_detail' item.slug %}"
+        >
+            <strong>
+                {{ item.name_ko }}
+            </strong>
+
+            <span>
+                {{ item.name_en }}
+            </span>
+        </a>
+
+        {% endfor %}
+
+    </div>
+
+</section>
+{% endif %}
+
+</main>
+
+</body>
+</html>

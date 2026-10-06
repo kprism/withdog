@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+
+<meta charset="utf-8">
+
+<meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+>
+
+<title>
+{% if mode == 'update' %}
+게시글 수정
+{% else %}
+게시글 작성
+{% endif %}
+</title>
+
+<link
+    rel="stylesheet"
+    href="/assets/css/style.css"
+>
+
+<link
+    rel="stylesheet"
+    href="/assets/css/sub.css"
+>
+
+<style>
+
+.community-editor{
+    max-width:1000px;
+    margin:60px auto;
+    padding:0 30px;
+}
+
+.community-editor h1{
+    margin-bottom:30px;
+}
+
+.editor-field{
+    margin-bottom:22px;
+}
+
+.editor-field label{
+    display:block;
+    margin-bottom:9px;
+    font-weight:700;
+}
+
+.editor-field input,
+.editor-field select,
+.editor-field textarea{
+    width:100%;
+    box-sizing:border-box;
+    border:1px solid #ddd;
+    border-radius:8px;
+    background:#fff;
+    font:inherit;
+}
+
+.editor-field input,
+.editor-field select{
+    height:48px;
+    padding:0 14px;
+}
+
+.editor-field textarea{
+    min-height:360px;
+    padding:16px;
+    line-height:1.7;
+    resize:vertical;
+}
+
+.editor-help{
+    margin-top:7px;
+    color:#888;
+    font-size:13px;
+}
+
+.existing-files{
+    margin-top:12px;
+    padding:15px;
+    border:1px solid #eee;
+    border-radius:8px;
+}
+
+.existing-file{
+    padding:7px 0;
+}
+
+.editor-actions{
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+}
+
+.editor-btn{
+    min-height:46px;
+    padding:0 22px;
+    border:1px solid #ddd;
+    border-radius:7px;
+    background:#fff;
+    cursor:pointer;
+    font-weight:700;
+}
+
+.editor-btn.primary{
+    border-color:#d2292d;
+    background:#d2292d;
+    color:#fff;
+}
+
+</style>
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+{% include "website/includes/public_layout_css.html" %}
+</head>
+
+
+<body>
+
+{% include "website/includes/public_header.html" %}
+
+
+<main class="community-editor">
+
+<h1>
+{% if mode == 'update' %}
+게시글 수정
+{% else %}
+게시글 작성
+{% endif %}
+</h1>
+
+
+<form
+    method="post"
+    enctype="multipart/form-data"
+>
+
+{% csrf_token %}
+
+
+<div class="editor-field">
+
+<label>
+카테고리
+</label>
+
+<select name="category">
+
+<option value="">
+카테고리 선택
+</option>
+
+{% for category in categories %}
+
+<option
+    value="{{ category.pk }}"
+    {% if post and post.category_id == category.pk %}selected{% endif %}
+>
+{{ category.name }}
+</option>
+
+{% endfor %}
+
+</select>
+
+</div>
+
+
+<div class="editor-field">
+
+<label>
+제목
+</label>
+
+<input
+    type="text"
+    name="title"
+    maxlength="200"
+    required
+    value="{{ post.title|default:'' }}"
+>
+
+</div>
+
+
+<div class="editor-field">
+
+<label>
+내용
+</label>
+
+<textarea
+    name="body"
+    required
+>{{ post.body|default:'' }}</textarea>
+
+<div class="editor-help">
+다음 단계에서 이미지 삽입·서식·링크 등을 지원하는
+고급 에디터로 확장합니다.
+</div>
+
+</div>
+
+
+<div class="editor-field">
+
+<label>
+사진 및 파일 첨부
+</label>
+
+<input
+    type="file"
+    name="attachments"
+    multiple
+>
+
+<div class="editor-help">
+여러 개의 사진과 파일을 동시에 선택할 수 있습니다.
+</div>
+
+
+{% if post and post.attachments.all %}
+
+<div class="existing-files">
+
+<strong>
+기존 첨부파일
+</strong>
+
+{% for attachment in post.attachments.all %}
+
+<div class="existing-file">
+
+<label>
+
+<input
+    type="checkbox"
+    name="delete_attachment"
+    value="{{ attachment.pk }}"
+>
+
+삭제
+
+</label>
+
+&nbsp;
+
+<a
+    href="{{ attachment.file.url }}"
+    target="_blank"
+>
+{{ attachment.original_name|default:attachment.file.name }}
+</a>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+{% endif %}
+
+</div>
+
+
+<div class="editor-actions">
+
+<a
+    href="{% if post %}{% url 'public_community_detail' post.pk %}{% else %}/community.html{% endif %}"
+    class="editor-btn"
+    style="
+        display:inline-flex;
+        align-items:center;
+        text-decoration:none;
+        color:#222;
+    "
+>
+취소
+</a>
+
+<button
+    type="submit"
+    class="editor-btn primary"
+>
+{% if mode == 'update' %}
+수정 완료
+{% else %}
+등록
+{% endif %}
+</button>
+
+</div>
+
+</form>
+
+</main>
+
+</body>
+</html>

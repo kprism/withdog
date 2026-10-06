@@ -1,1 +1,504 @@
-(()=>{const old=document.getElementById('botButton');if(!old)return;const btn=old.cloneNode(true);old.replaceWith(btn);const panel=document.createElement('section');panel.className='association-chatbot';panel.innerHTML=`<header><div class="chat-brand"><span>🐶</span><div><b>경상남도 반려견 협회 챗봇</b><small>무엇이든 물어보세요 🐾</small></div></div><button class="chat-close">×</button></header><div class="chat-body"><div class="chat-msg bot">안녕하세요! 경상남도 반려견 협회 챗봇입니다.<br>협회 정보, 반려견 등록·예방접종·법령 등 무엇이든 물어보세요!</div><div class="chat-quick"><button data-q="협회소개">🏢<b>협회소개</b></button><button data-q="반려견등록">🐾<b>반려견등록</b></button><button data-q="동물병원 찾기">🏥<b>동물병원 찾기</b></button><button data-q="회원가입">💳<b>회원가입</b></button></div></div><form class="chat-input"><input aria-label="챗봇 질문" placeholder="궁금한 내용을 입력하세요"><button>➤</button></form>`;document.body.appendChild(panel);const body=panel.querySelector('.chat-body'),input=panel.querySelector('input');function open(){panel.classList.add('open');input.focus()}function close(){panel.classList.remove('open')}function reply(q){const u=document.createElement('div');u.className='chat-msg user';u.textContent=q;body.appendChild(u);const b=document.createElement('div');b.className='chat-msg bot';const key=q.replace(/\s/g,'');if(key.includes('협회'))b.innerHTML='경상남도 반려견 협회는 반려견 등록, 의료·제휴업체 정보, 회원 혜택과 반려생활 정보를 제공합니다.<br><a href="about.html">협회 소개 보기 →</a>';else if(key.includes('병원'))b.innerHTML='지역별 제휴·등록 동물병원을 확인할 수 있습니다.<br><a href="partners.html">동물병원 찾기 →</a>';else if(key.includes('등록'))b.innerHTML='반려견 등록과 회원 등록을 도와드릴게요. 회원가입 후 반려견 정보를 등록할 수 있습니다.<br><a href="#join">회원등록 시작 →</a>';else if(key.includes('회원가입'))b.innerHTML='홈페이지 상단 회원가입 버튼에서 신청할 수 있습니다. 정회원 신청 시 회원증과 제휴 혜택을 이용할 수 있습니다.';else b.textContent='문의 내용을 확인했습니다. 현재는 홈페이지 안내형 챗봇으로 운영 중이며, 협회소개·반려견등록·동물병원 찾기·회원가입을 바로 안내해 드릴 수 있습니다.';body.appendChild(b);body.scrollTop=body.scrollHeight}btn.addEventListener('click',open);panel.querySelector('.chat-close').addEventListener('click',close);panel.querySelectorAll('[data-q]').forEach(x=>x.onclick=()=>reply(x.dataset.q));panel.querySelector('form').addEventListener('submit',e=>{e.preventDefault();const q=input.value.trim();if(!q)return;input.value='';reply(q)});})();
+(()=>{
+'use strict';
+
+const oldButton = document.getElementById('botButton');
+
+if(!oldButton){
+    return;
+}
+
+let config = null;
+let busy = false;
+
+
+/* ------------------------------------------------------------
+   CSRF
+------------------------------------------------------------ */
+
+function getCookie(name){
+
+    const cookies = document.cookie
+        ? document.cookie.split(';')
+        : [];
+
+    for(const item of cookies){
+
+        const cookie = item.trim();
+
+        if(cookie.startsWith(name + '=')){
+            return decodeURIComponent(
+                cookie.substring(name.length + 1)
+            );
+        }
+    }
+
+    return '';
+}
+
+
+/* ------------------------------------------------------------
+   ESCAPE
+------------------------------------------------------------ */
+
+function escapeHtml(value){
+
+    const div = document.createElement('div');
+
+    div.textContent = value || '';
+
+    return div.innerHTML;
+}
+
+
+/* ------------------------------------------------------------
+   PHONE
+------------------------------------------------------------ */
+
+function cleanPhone(value){
+
+    return String(value || '')
+        .replace(/[^0-9+]/g, '');
+}
+
+
+/* ------------------------------------------------------------
+   LOAD CONFIG
+------------------------------------------------------------ */
+
+async function loadConfig(){
+
+    const response = await fetch(
+        '/api/chatbot/config/',
+        {
+            credentials:'same-origin',
+            cache:'no-store'
+        }
+    );
+
+    if(!response.ok){
+        throw new Error('CONFIG');
+    }
+
+    return await response.json();
+}
+
+
+/* ------------------------------------------------------------
+   BOOT
+------------------------------------------------------------ */
+
+async function boot(){
+
+    try{
+        config = await loadConfig();
+    }catch(error){
+        console.error(
+            'Chatbot configuration load failed.'
+        );
+        return;
+    }
+
+    if(!config.enabled){
+
+        const floatBox = oldButton.closest(
+            '.bot-float'
+        );
+
+        if(floatBox){
+            floatBox.style.display = 'none';
+        }
+
+        return;
+    }
+
+
+    /* --------------------------------------------------------
+       VIDEO BUTTON
+    -------------------------------------------------------- */
+
+    oldButton.innerHTML = '';
+
+    if(config.video_url){
+
+        const video = document.createElement('video');
+
+        video.src = config.video_url;
+        video.autoplay = true;
+        video.loop = true;
+        video.muted = true;
+        video.playsInline = true;
+
+        video.setAttribute(
+            'aria-hidden',
+            'true'
+        );
+
+        Object.assign(
+            video.style,
+            {
+                width:'100%',
+                height:'100%',
+                objectFit:'cover',
+                borderRadius:'50%',
+                display:'block',
+                pointerEvents:'none'
+            }
+        );
+
+        oldButton.appendChild(video);
+
+        video.play().catch(()=>{});
+
+    }else{
+
+        oldButton.textContent = '🐕';
+    }
+
+
+    oldButton.setAttribute(
+        'aria-label',
+        config.bot_name || '챗봇 열기'
+    );
+
+
+    /* --------------------------------------------------------
+       PANEL
+    -------------------------------------------------------- */
+
+    const panel = document.createElement('section');
+
+    panel.className = 'association-chatbot';
+
+    panel.innerHTML = `
+        <header>
+            <div class="chat-brand">
+                <span class="chat-brand-icon">🐶</span>
+
+                <div>
+                    <b>${escapeHtml(
+                        config.bot_name ||
+                        '경상남도 반려견 협회 챗봇'
+                    )}</b>
+
+                    <small>
+                        무엇이든 물어보세요 🐾
+                    </small>
+                </div>
+            </div>
+
+            <button
+                type="button"
+                class="chat-close"
+                aria-label="챗봇 닫기"
+            >×</button>
+        </header>
+
+        <div class="chat-body">
+
+            <div class="chat-msg bot">
+                ${escapeHtml(
+                    config.greeting || ''
+                ).replace(/\n/g,'<br>')}
+            </div>
+
+            <div class="chat-quick">
+                <button
+                    type="button"
+                    data-q="협회 소개를 알려주세요"
+                >
+                    🏢
+                    <b>협회소개</b>
+                </button>
+
+                <button
+                    type="button"
+                    data-q="반려견 등록 방법을 알려주세요"
+                >
+                    🐾
+                    <b>반려견등록</b>
+                </button>
+
+                <button
+                    type="button"
+                    data-q="동물병원 정보를 알려주세요"
+                >
+                    🏥
+                    <b>동물병원 찾기</b>
+                </button>
+
+                <button
+                    type="button"
+                    data-q="회원가입 방법을 알려주세요"
+                >
+                    💳
+                    <b>회원가입</b>
+                </button>
+            </div>
+
+        </div>
+
+        <form class="chat-input">
+
+            <input
+                aria-label="챗봇 질문"
+                maxlength="1500"
+                autocomplete="off"
+                placeholder="궁금한 내용을 입력하세요"
+            >
+
+            <button
+                type="submit"
+                aria-label="질문 보내기"
+            >➤</button>
+
+        </form>
+    `;
+
+    document.body.appendChild(panel);
+
+
+    const body = panel.querySelector(
+        '.chat-body'
+    );
+
+    const input = panel.querySelector(
+        'input'
+    );
+
+    const submitButton = panel.querySelector(
+        '.chat-input button'
+    );
+
+
+    /* --------------------------------------------------------
+       CONTACT BUTTON
+       ALWAYS appended after bot answers.
+    -------------------------------------------------------- */
+
+    function addContactButton(){
+
+        const wrap = document.createElement('div');
+
+        wrap.className = 'chat-contact-wrap';
+
+        const link = document.createElement('a');
+
+        link.className = 'chat-contact-button';
+
+        link.href = (
+            'tel:' +
+            cleanPhone(config.contact_phone)
+        );
+
+        link.textContent = (
+            config.contact_button_text ||
+            '☎ 협회 문의하기'
+        );
+
+        wrap.appendChild(link);
+        body.appendChild(wrap);
+    }
+
+
+    /* 첫 인사말에도 문의 버튼 고정 */
+    addContactButton();
+
+
+    function scrollBottom(){
+
+        body.scrollTop = body.scrollHeight;
+    }
+
+
+    function addUserMessage(text){
+
+        const node = document.createElement('div');
+
+        node.className = 'chat-msg user';
+        node.textContent = text;
+
+        body.appendChild(node);
+
+        scrollBottom();
+    }
+
+
+    function addBotMessage(text){
+
+        const node = document.createElement('div');
+
+        node.className = 'chat-msg bot';
+        node.textContent = text;
+
+        body.appendChild(node);
+
+        /*
+         * AI 답변 내용과 무관하게
+         * 문의 버튼은 UI가 강제로 붙인다.
+         */
+        addContactButton();
+
+        scrollBottom();
+    }
+
+
+    function addThinking(){
+
+        const node = document.createElement('div');
+
+        node.className = 'chat-msg bot chat-thinking';
+        node.textContent = '답변을 준비하고 있어요...';
+
+        body.appendChild(node);
+
+        scrollBottom();
+
+        return node;
+    }
+
+
+    async function ask(question){
+
+        if(busy){
+            return;
+        }
+
+        busy = true;
+
+        input.disabled = true;
+        submitButton.disabled = true;
+
+        addUserMessage(question);
+
+        const thinking = addThinking();
+
+        try{
+
+            const response = await fetch(
+                '/api/chatbot/message/',
+                {
+                    method:'POST',
+
+                    credentials:'same-origin',
+
+                    headers:{
+                        'Content-Type':
+                            'application/json',
+
+                        'X-CSRFToken':
+                            getCookie('csrftoken')
+                    },
+
+                    body:JSON.stringify({
+                        message:question
+                    })
+                }
+            );
+
+            const data = await response.json();
+
+            thinking.remove();
+
+            if(
+                !response.ok ||
+                !data.ok
+            ){
+                addBotMessage(
+                    data.error ||
+                    '답변을 불러오지 못했습니다.'
+                );
+            }else{
+                addBotMessage(
+                    data.answer ||
+                    '답변을 생성하지 못했습니다.'
+                );
+            }
+
+        }catch(error){
+
+            thinking.remove();
+
+            addBotMessage(
+                '서버와 연결하지 못했습니다. 잠시 후 다시 이용해주세요.'
+            );
+
+        }finally{
+
+            busy = false;
+
+            input.disabled = false;
+            submitButton.disabled = false;
+
+            input.focus();
+        }
+    }
+
+
+    /* --------------------------------------------------------
+       EVENTS
+    -------------------------------------------------------- */
+
+    oldButton.addEventListener(
+        'click',
+        ()=>{
+            panel.classList.add('open');
+
+            setTimeout(
+                ()=>input.focus(),
+                50
+            );
+        }
+    );
+
+
+    panel.querySelector(
+        '.chat-close'
+    ).addEventListener(
+        'click',
+        ()=>{
+            panel.classList.remove('open');
+        }
+    );
+
+
+    panel.querySelectorAll(
+        '[data-q]'
+    ).forEach(
+        button=>{
+            button.addEventListener(
+                'click',
+                ()=>{
+                    ask(
+                        button.dataset.q
+                    );
+                }
+            );
+        }
+    );
+
+
+    panel.querySelector(
+        'form'
+    ).addEventListener(
+        'submit',
+        event=>{
+
+            event.preventDefault();
+
+            const question = input.value.trim();
+
+            if(!question){
+                return;
+            }
+
+            input.value = '';
+
+            ask(question);
+        }
+    );
+}
+
+
+boot();
+
+})();

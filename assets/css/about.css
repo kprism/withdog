@@ -1,1 +1,288 @@
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:'Noto Sans KR',sans-serif;color:#111}header{height:88px;background:linear-gradient(90deg,#a90000,#d1262c);display:flex;align-items:center;justify-content:space-between;padding:0 20px;color:#fff}.brand{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;font-size:34px}.brand span b,.brand span small{display:block}.brand span b{font-size:18px}.brand span small{font-size:12px;margin-top:7px;font-weight:400}header nav{display:flex;align-items:center;gap:12px}header nav a{color:#fff;text-decoration:none;font-size:14px}.login,.join{padding:12px 24px;border-radius:7px;font-weight:800}.login{border:1px solid #fff8}.join{background:#d6b13d;color:#111!important}.overview{height:284px;position:relative;overflow:hidden;background:linear-gradient(110deg,#381a0e 0,#30170d 58%,#4e2117 100%);color:#fff}.overview:before{content:'';position:absolute;left:0;top:0;width:190px;height:100%;background:url('https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=500&q=80') center/cover;opacity:.8;border-radius:0 55% 0 0}.overview-copy{position:absolute;left:15%;top:38px}.overview-copy p{font-size:31px;font-weight:900;line-height:1.45;transform:rotate(-3deg);margin:0}.overview-copy h1{color:#e4a42b;font-size:34px;margin:5px 0 0 180px}.overview-copy span{position:absolute;left:15px;top:135px;width:90px;background:#49140f;border:1px solid #fff;padding:14px;font-size:12px;transform:rotate(-8deg)}.circle-dog{position:absolute;left:57%;top:-20px;width:285px;height:285px;border-radius:50%;background:url('https://images.unsplash.com/photo-1558788353-f76d92427f16?auto=format&fit=crop&w=600&q=85') center/cover;border:1px solid #d9c8a0}.contact-mini{position:absolute;right:0;top:72px;width:25%;line-height:2;padding:8px 25px;text-align:right}.contact-mini b{display:block;background:#6d2019;margin:45px -25px 0;padding:12px 25px}.sound{position:absolute;right:0;bottom:9px;border:0;border-radius:18px 0 0 18px;background:#ef0b68;color:#fff;padding:8px 15px;font-weight:800}.greeting{display:grid;grid-template-columns:48% 52%;min-height:520px;padding:0 28px}.portrait{position:relative}.portrait img{width:100%;height:100%;max-height:802px;object-fit:cover;object-position:center top}.portrait>b{position:absolute;left:25px;bottom:-20px;background:#d1282d;color:#fff;padding:12px 25px;border-radius:28px}.greet-copy{padding:72px 7%}.eyebrow{color:#d1282d;letter-spacing:4px;font-size:13px;font-weight:900}.greet-copy h2,.history h2,.org h2,.membership h2{font-size:38px;margin:12px 0}.greet-copy i,.history i,.org i,.membership i{display:block;width:55px;height:3px;background:#d1282d;margin:20px 0 35px}.letter{font-size:17px;line-height:2.1;margin-bottom:25px}.greet-copy small{display:block;color:#999;margin-top:5px}.mission{background:#10245f;color:#fff;padding:90px 32px}.mission .eyebrow{color:#b7c3dd}.mission h2{font-size:38px;margin:12px 0}.mission>i{display:block;width:55px;height:3px;background:#d6b22d;margin:20px 0 35px}.mission-desc{font-size:17px;line-height:2;max-width:1000px}.values{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;margin-top:55px}.values article{border:1px solid #ffffff30;background:#ffffff0c;border-radius:15px;padding:42px 28px;min-height:240px;font-size:28px}.values h3{font-size:17px}.values p{font-size:14px;line-height:1.8;color:#e1e6f2}.history{display:grid;grid-template-columns:1fr 1fr;gap:65px;padding:90px 28px}.history img{width:100%;height:375px;object-fit:cover}.history ol{list-style:none;border-left:3px solid #efd6d6;margin:0;padding:5px 0 0 24px}.history li{position:relative;margin-bottom:36px}.history li:before{content:'◎';position:absolute;left:-38px;top:-4px;color:#d1282d;font-size:25px;background:#fff}.history li b{display:block;color:#d1282d;margin-bottom:8px}.history li span{font-size:16px}.org{background:#061c0f;color:#fff;display:grid;grid-template-columns:1.05fr .95fr;gap:70px;padding:70px 28px}.org .eyebrow{color:#aab5a7}.org-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:45px}.org-grid span{height:92px;border:1px solid #ffffff18;background:#ffffff0b;border-radius:12px;text-align:center;padding:22px 5px;color:#9eb5ab}.org-grid b{display:block;color:#fff;margin-bottom:5px}.org img{width:100%;height:390px;object-fit:cover}.contact-box{background:#ffffff0b;border:1px solid #ffffff18;border-radius:15px;padding:25px 30px;line-height:2}.membership{padding:70px 28px}.samples{display:grid;grid-template-columns:36% 64%;gap:50px;max-width:1100px;margin:auto}.card>b,.sticker>b{display:block;margin-bottom:18px}.member-card{border:10px solid #dfbd5a;border-radius:28px;background:#fffdf6;text-align:center;padding:28px 25px;min-height:600px}.member-card>small{display:block;color:#aaa;margin-bottom:15px}.member-card>strong{display:block;background:#292929;color:#fff;border-radius:30px;padding:11px}.member-card h3{font-size:20px}.member-card h3 em{color:#ff6b6b;font-style:normal}.member-card p{line-height:1.7}.member-card p span{color:#188f53;font-weight:800}.medal{font-size:75px;margin:35px 0}.sticker-art{min-height:650px;border:8px solid #ecd394;border-radius:45px;background:linear-gradient(135deg,#fff8e8,#fffdf7);text-align:center;padding:45px 30px;box-shadow:0 15px 40px #0002}.sticker-art>small{font-size:25px}.sticker-art h3{background:#a60f1c;color:#fff;padding:15px;border-radius:50%;font-size:28px}.dog-round{width:170px;height:170px;margin:20px auto;border-radius:50%;background:#ead9a7;display:grid;place-items:center;font-size:100px;border:8px solid #cba64b}.sticker-art h2{font-size:50px;color:#8e0c15;margin:20px}.sticker-art p{background:#e4bd54;padding:10px;font-size:20px}.sticker-art strong{display:inline-block;background:#a60f1c;color:#fff;border-radius:30px;padding:12px 35px;font-size:20px}footer{background:#061c0f;color:#7f978b;padding:55px 28px;display:grid;grid-template-columns:1fr 1fr;gap:40px;line-height:1.9}footer b{color:#fff}footer small{display:block}.bot{position:fixed;right:35px;bottom:100px;z-index:10}.bot span{display:block;background:#fff;padding:13px 17px;border-radius:18px;box-shadow:0 5px 20px #0002;font-size:13px;font-weight:700}.bot button{width:80px;height:80px;border-radius:50%;border:3px solid #fff;background:#f7e7e7;font-size:35px;margin:10px 0 0 55px}.top{position:fixed;right:37px;bottom:27px;width:56px;height:56px;border:0;border-radius:50%;background:#d1282d;color:#fff}@media(max-width:760px){header{height:70px}.brand{font-size:28px}.brand span b{font-size:14px}.brand span small,header nav>a:first-child{display:none}.login,.join{padding:9px 11px}.overview{height:240px}.overview-copy{left:20px;top:40px}.overview-copy p{font-size:22px}.overview-copy h1{font-size:27px;margin-left:80px}.overview:before,.contact-mini{display:none}.circle-dog{left:auto;right:-80px;width:240px;height:240px}.greeting,.history,.org{grid-template-columns:1fr;padding-left:18px;padding-right:18px}.portrait img{max-height:none}.greet-copy{padding:60px 5px}.values{grid-template-columns:1fr 1fr}.history{gap:45px}.history ol{margin-left:10px}.org-grid{grid-template-columns:repeat(2,1fr)}.samples{grid-template-columns:1fr}.membership{padding:60px 18px}.sticker-art h2{font-size:34px}.sticker-art h3{font-size:20px}.bot{right:16px}footer{grid-template-columns:1fr;padding:40px 18px}}
+/* ABOUT_MEDIA_RESPONSIVE_FINAL */
+#about-title-fullmedia{overflow:hidden!important;background:transparent!important}
+#about-title-fullmedia img,#about-title-fullmedia video{display:block!important;width:100%!important;height:100%!important;object-fit:contain!important;object-position:center!important;background:transparent!important}
+#about-overview.has-fullmedia{height:auto!important;min-height:0!important;background:transparent!important}
+#about-overview.has-fullmedia:before{display:none!important}
+#about-overview.has-fullmedia>#about-title-fullmedia{position:relative!important;inset:auto!important;width:100%!important;height:auto!important;margin:0!important}
+#about-overview.has-fullmedia>.overview-copy,#about-overview.has-fullmedia>.circle-dog,#about-overview.has-fullmedia>.contact-mini{display:none!important}
+#about-greeting-media{position:relative;align-self:start;overflow:hidden;background:#f5f5f5}
+#about-greeting-media>img,#about-greeting-media>video{display:block!important;width:100%!important;height:100%!important;aspect-ratio:3/4;object-position:center top}
+#about-history img,#about-history video,#about-org img,#about-org video{display:block!important;width:100%!important;max-width:100%!important;object-position:center!important}
+@media(max-width:760px){#about-title-fullmedia,#about-title-fullmedia img,#about-title-fullmedia video,#about-greeting-media,#about-history img,#about-history video,#about-org img,#about-org video{width:100%!important}}
+
+
+/* ABOUT_PORTRAIT_34_FINAL_20261001 */
+
+/* -------------------------------------------------------
+   대표 인사말 레이아웃
+------------------------------------------------------- */
+
+#about-greeting{
+    align-items:start;
+}
+
+/*
+ 대표사진의 부모 자체를 3:4 세로 프레임으로 만든다.
+ 배지가 프레임 밖으로 나가므로 overflow는 visible.
+*/
+#about-greeting-media{
+    position:relative !important;
+    width:100% !important;
+    height:auto !important;
+    aspect-ratio:3 / 4 !important;
+    align-self:start !important;
+    overflow:visible !important;
+    background:transparent !important;
+    border-radius:0 !important;
+}
+
+/*
+ 사진/영상이 3:4 프레임을 정확히 사용한다.
+ object-fit 값은 JS에서 contain/cover 선택값을 적용한다.
+*/
+#about-greeting-media > img,
+#about-greeting-media > video{
+    display:block !important;
+    width:100% !important;
+    height:100% !important;
+    max-height:none !important;
+    aspect-ratio:auto !important;
+    object-position:center top !important;
+}
+
+/*
+ 기존 .portrait>b 규칙을 명시적으로 덮는다.
+ 사진 하단에 살짝 걸치되 절대로 잘리지 않는다.
+*/
+#about-greeting-media > b{
+    position:absolute !important;
+    z-index:20 !important;
+    left:25px !important;
+    bottom:-20px !important;
+    display:inline-block !important;
+    width:auto !important;
+    max-width:calc(100% - 50px) !important;
+    white-space:nowrap !important;
+    margin:0 !important;
+}
+
+/*
+ 배지가 아래로 20px 돌출되므로
+ 다음 콘텐츠와 숨 쉴 공간 확보.
+*/
+#about-greeting{
+    padding-bottom:32px !important;
+}
+
+
+/* -------------------------------------------------------
+   연혁 / 조직구성 미디어
+   표시방식 선택 없이 자동 전체표시
+------------------------------------------------------- */
+
+#about-history img,
+#about-history video,
+#about-org img,
+#about-org video{
+    display:block !important;
+    width:100% !important;
+    max-width:100% !important;
+    height:auto !important;
+    object-fit:contain !important;
+    object-position:center !important;
+}
+
+
+/* -------------------------------------------------------
+   모바일
+------------------------------------------------------- */
+
+@media(max-width:760px){
+
+    #about-greeting{
+        grid-template-columns:1fr !important;
+        padding-bottom:38px !important;
+    }
+
+    #about-greeting-media{
+        width:100% !important;
+        height:auto !important;
+        aspect-ratio:3 / 4 !important;
+        overflow:visible !important;
+        margin-bottom:28px !important;
+    }
+
+    #about-greeting-media > img,
+    #about-greeting-media > video{
+        width:100% !important;
+        height:100% !important;
+        max-height:none !important;
+    }
+
+    #about-greeting-media > b{
+        left:18px !important;
+        bottom:-18px !important;
+        max-width:calc(100% - 36px) !important;
+    }
+}
+
+
+/* ABOUT_FRAME_RESTORE_20261001 */
+
+/*
+   대표 인사말
+   부모 프레임은 3:4.
+   배지는 부모 밖으로 나갈 수 있으므로 overflow visible.
+*/
+#about-greeting-media{
+    position:relative !important;
+    width:100% !important;
+    height:auto !important;
+    aspect-ratio:3 / 4 !important;
+    align-self:start !important;
+    overflow:visible !important;
+    background:transparent !important;
+}
+
+#about-greeting-media > img,
+#about-greeting-media > video{
+    display:block !important;
+    width:100% !important;
+    height:100% !important;
+    max-height:none !important;
+    object-position:center top !important;
+}
+
+/*
+   연혁은 원래 디자인의 375px 프레임 유지.
+   이미지 자체 크기가 아니라 프레임 크기에 맞춰 표시한다.
+*/
+#about-history img,
+#about-history video{
+    display:block !important;
+    width:100% !important;
+    max-width:100% !important;
+    height:375px !important;
+    object-fit:contain !important;
+    object-position:center center !important;
+}
+
+/*
+   조직구성은 원래 디자인의 390px 프레임 유지.
+*/
+#about-org img,
+#about-org video{
+    display:block !important;
+    width:100% !important;
+    max-width:100% !important;
+    height:390px !important;
+    object-fit:contain !important;
+    object-position:center center !important;
+}
+
+@media(max-width:760px){
+    #about-greeting-media{
+        aspect-ratio:3 / 4 !important;
+        margin-bottom:32px !important;
+    }
+
+    #about-history img,
+    #about-history video,
+    #about-org img,
+    #about-org video{
+        width:100% !important;
+        height:auto !important;
+        max-height:none !important;
+        object-fit:contain !important;
+    }
+}
+
+
+/* ABOUT_HISTORY_ORG_FRAME_FINAL_20261001 */
+
+#about-history img,
+#about-history video{
+    display:block !important;
+    width:100% !important;
+    height:375px !important;
+    max-width:100% !important;
+    object-fit:contain !important;
+    object-position:center center !important;
+}
+
+#about-org img,
+#about-org video{
+    display:block !important;
+    width:100% !important;
+    height:390px !important;
+    max-width:100% !important;
+    object-fit:contain !important;
+    object-position:center center !important;
+}
+
+/*
+ 모바일에서는 고정 높이를 풀어서
+ 화면 폭에 자연스럽게 맞춘다.
+*/
+@media(max-width:760px){
+    #about-history img,
+    #about-history video,
+    #about-org img,
+    #about-org video{
+        width:100% !important;
+        height:auto !important;
+        max-height:none !important;
+        object-fit:contain !important;
+    }
+}
+
+/* ABOUT_SECTION_MEDIA_CONTAINER_20261001 */
+
+#about-history-media,
+#about-org-media{
+    display:block;
+    width:100%;
+    overflow:hidden;
+}
+
+#about-history-media{
+    height:375px;
+}
+
+#about-org-media{
+    height:390px;
+}
+
+#about-history-media img,
+#about-history-media video{
+    display:block !important;
+    width:100% !important;
+    height:375px !important;
+    object-fit:contain !important;
+    object-position:center center !important;
+}
+
+#about-org-media img,
+#about-org-media video{
+    display:block !important;
+    width:100% !important;
+    height:390px !important;
+    object-fit:contain !important;
+    object-position:center center !important;
+}
+
+@media(max-width:760px){
+    #about-history-media,
+    #about-org-media{
+        height:auto;
+    }
+
+    #about-history-media img,
+    #about-history-media video,
+    #about-org-media img,
+    #about-org-media video{
+        width:100% !important;
+        height:auto !important;
+    }
+}

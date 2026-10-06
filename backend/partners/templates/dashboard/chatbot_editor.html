@@ -1,0 +1,210 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}챗봇 관리{% endblock %}
+{% block header %}홈페이지 편집 · 챗봇{% endblock %}
+
+{% block content %}
+
+<div class="hero">
+    <div>
+        <div class="eyebrow">AI CHATBOT</div>
+        <h2>챗봇 관리</h2>
+        <div class="muted">
+            홈페이지 AI 챗봇의 기본 설정과 문의 정보를 관리합니다.
+        </div>
+    </div>
+</div>
+
+<form
+    class="panel"
+    method="post"
+    enctype="multipart/form-data"
+>
+{% csrf_token %}
+
+<div class="form-grid">
+
+    <div class="field">
+        <label>챗봇 사용</label>
+        <label style="font-weight:500">
+            <input
+                type="checkbox"
+                name="enabled"
+                style="width:auto"
+                {% if setting.enabled %}checked{% endif %}
+            >
+            홈페이지에 챗봇 표시
+        </label>
+    </div>
+
+    <div class="field">
+        <label>OpenAI 사용</label>
+        <label style="font-weight:500">
+            <input
+                type="checkbox"
+                name="ai_enabled"
+                style="width:auto"
+                {% if setting.ai_enabled %}checked{% endif %}
+            >
+            AI 답변 활성화
+        </label>
+    </div>
+
+    <div class="field">
+        <label>챗봇 이름</label>
+        <input
+            name="bot_name"
+            value="{{ setting.bot_name }}"
+        >
+    </div>
+
+    <div class="field">
+        <label>OpenAI 모델</label>
+        <input
+            name="model_name"
+            value="{{ setting.model_name }}"
+            placeholder="예: gpt-5-mini"
+        >
+    </div>
+
+    <div class="field" style="grid-column:1/-1">
+        <label>OpenAI API Key</label>
+
+        <input
+            type="password"
+            name="api_key"
+            autocomplete="new-password"
+            placeholder="{% if masked_key %}{{ masked_key }} · 변경할 경우에만 새 키 입력{% else %}sk-...{% endif %}"
+        >
+
+        <div class="muted" style="margin-top:7px">
+            기존 키가 저장되어 있으면 빈칸으로 저장해도 유지됩니다.
+        </div>
+    </div>
+
+    <div class="field" style="grid-column:1/-1">
+        <label>첫 인사말</label>
+
+        <textarea
+            name="greeting"
+            rows="4"
+            style="width:100%;padding:12px;border:1px solid #ddd;border-radius:8px"
+        >{{ setting.greeting }}</textarea>
+    </div>
+
+    <div class="field" style="grid-column:1/-1">
+        <label>AI 시스템 지침</label>
+
+        <textarea
+            name="system_prompt"
+            rows="7"
+            style="width:100%;padding:12px;border:1px solid #ddd;border-radius:8px"
+        >{{ setting.system_prompt }}</textarea>
+
+        <div class="muted" style="margin-top:7px">
+            협회 챗봇이 답변할 때 따르는 기본 원칙입니다.
+        </div>
+    </div>
+
+    <div class="field">
+        <label>문의 버튼 문구</label>
+
+        <input
+            name="contact_button_text"
+            value="{{ setting.contact_button_text }}"
+        >
+    </div>
+
+    <div class="field">
+        <label>협회 문의 전화번호</label>
+
+        <input
+            name="contact_phone"
+            value="{{ setting.contact_phone }}"
+            placeholder="010-0000-0000"
+        >
+
+        <div class="muted" style="margin-top:7px">
+            문의 버튼을 누르면 이 번호로 전화 연결됩니다.
+        </div>
+    </div>
+
+    <div class="field" style="grid-column:1/-1">
+        <label>챗봇 아이콘 영상</label>
+
+        <input
+            type="file"
+            name="bot_video"
+            accept="video/mp4,video/webm"
+        >
+
+        {% if setting.bot_video %}
+        <div style="margin-top:16px">
+
+            <video
+                src="{{ setting.bot_video.url }}"
+                autoplay
+                muted
+                loop
+                playsinline
+                style="
+                    width:110px;
+                    height:110px;
+                    object-fit:cover;
+                    border-radius:50%;
+                    border:3px solid #efb4b4;
+                "
+            ></video>
+
+            <div class="muted" style="margin-top:7px">
+                현재 영상: {{ setting.bot_video.name }}
+            </div>
+
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+
+<div style="
+    margin-top:25px;
+    padding:18px;
+    background:#fff8f8;
+    border:1px solid #f3d5d5;
+    border-radius:12px;
+">
+    <b>☎ 협회 문의하기 고정 정책</b>
+
+    <div
+        class="muted"
+        style="margin-top:7px;line-height:1.7"
+    >
+        AI 답변 내용과 관계없이 실제 챗봇에서는
+        모든 답변 마지막에 협회 문의 버튼을 항상 표시합니다.
+        버튼 클릭 시 위 전화번호로 바로 연결되도록 구성합니다.
+    </div>
+</div>
+
+
+<div style="
+    margin-top:22px;
+    display:flex;
+    gap:10px;
+">
+    <button class="btn" type="submit">
+        저장
+    </button>
+
+    <a
+        class="btn ghost"
+        href="/"
+        target="_blank"
+    >
+        홈페이지 보기
+    </a>
+</div>
+
+</form>
+
+{% endblock %}

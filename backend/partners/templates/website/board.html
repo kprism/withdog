@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+
+    <title>공지 및 소식 | 경상남도 반려견 협회</title>
+
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <link rel="stylesheet" href="/assets/css/sub.css">
+
+    <style>
+        .board-row{
+            display:grid;
+            grid-template-columns:80px minmax(0,1fr) 110px;
+            align-items:center;
+            gap:16px;
+        }
+
+        .board-row a{
+            min-width:0;
+            overflow:hidden;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+        }
+
+        .board-row.pinned{
+            background:#fffafa;
+        }
+
+        .board-title-flags{
+            display:inline-flex;
+            gap:5px;
+            margin-right:7px;
+        }
+
+        .board-mini-flag{
+            display:inline-flex;
+            align-items:center;
+            height:20px;
+            padding:0 6px;
+            border-radius:5px;
+            background:#d2292d;
+            color:#fff;
+            font-size:11px;
+            font-weight:700;
+            vertical-align:middle;
+        }
+
+        .board-empty{
+            padding:70px 20px;
+            border-top:1px solid #eee;
+            border-bottom:1px solid #eee;
+            color:#888;
+            text-align:center;
+        }
+
+        .pagination a,
+        .pagination span{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            min-width:38px;
+            height:38px;
+            padding:0 10px;
+            border:1px solid #e2e2e2;
+            border-radius:7px;
+            background:#fff;
+            color:#444;
+            text-decoration:none;
+        }
+
+        .pagination .current{
+            border-color:#d2292d;
+            background:#d2292d;
+            color:#fff;
+        }
+
+        @media(max-width:700px){
+            .board-row{
+                grid-template-columns:65px minmax(0,1fr);
+            }
+
+            .board-row time{
+                grid-column:2;
+                font-size:12px;
+            }
+        }
+    </style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+{% include "website/includes/public_layout_css.html" %}
+</head>
+
+
+<body>
+
+{% include "website/includes/public_header.html" %}
+
+
+<section class="sub-hero">
+    <div>
+        <p>GYEONGNAM PET DOG ASSOCIATION</p>
+        <h1>공지 및 소식</h1>
+        <span>
+            협회의 새로운 소식과 반려견 관련 정보를 전해드립니다.
+        </span>
+    </div>
+</section>
+
+
+<main class="sub-container">
+
+    <form method="get" class="board-tools">
+
+        <div class="tabs">
+
+            <a
+                class="tab {% if not selected_category %}active{% endif %}"
+                href="/board.html?tab=notice"
+            >
+                전체
+            </a>
+
+            {% for category in categories %}
+                <a
+                    class="tab {% if selected_category == category.slug %}active{% endif %}"
+                    href="/board.html?tab=notice&category={{ category.slug|urlencode }}"
+                >
+                    {{ category.name }}
+                </a>
+            {% endfor %}
+
+        </div>
+
+        <div class="search">
+
+            <input
+                name="q"
+                type="search"
+                value="{{ keyword }}"
+                placeholder="검색어를 입력하세요"
+            >
+
+            {% if selected_category %}
+                <input
+                    type="hidden"
+                    name="category"
+                    value="{{ selected_category }}"
+                >
+            {% endif %}
+
+            <input
+                type="hidden"
+                name="tab"
+                value="notice"
+            >
+
+            <button type="submit">
+                검색
+            </button>
+
+        </div>
+
+    </form>
+
+
+    <div class="board-count">
+        총 <b>{{ page_obj.paginator.count }}</b>건
+    </div>
+
+
+    <div class="board-list">
+
+        {% for post in page_obj %}
+
+            <article
+                class="board-row {% if post.is_pinned %}pinned{% endif %}"
+            >
+
+                <span class="badge {% if post.category.slug == 'notice' %}notice{% else %}news{% endif %}">
+                    {% if post.category %}
+                        {{ post.category.name }}
+                    {% else %}
+                        공지
+                    {% endif %}
+                </span>
+
+                <a href="{% url 'public_board_detail' post.pk %}">
+
+                    {% if post.is_pinned or post.is_important %}
+                        <span class="board-title-flags">
+
+                            {% if post.is_pinned %}
+                                <span class="board-mini-flag">
+                                    고정
+                                </span>
+                            {% endif %}
+
+                            {% if post.is_important %}
+                                <span class="board-mini-flag">
+                                    중요
+                                </span>
+                            {% endif %}
+
+                        </span>
+                    {% endif %}
+
+                    {{ post.title }}
+
+                </a>
+
+                <time>
+                    {{ post.created_at|date:"Y.m.d" }}
+                </time>
+
+            </article>
+
+        {% empty %}
+
+            <div class="board-empty">
+                등록된 게시글이 없습니다.
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+
+    {% if page_obj.paginator.num_pages > 1 %}
+
+        <div class="pagination">
+
+            {% if page_obj.has_previous %}
+                <a href="?tab=notice&q={{ keyword|urlencode }}&category={{ selected_category|urlencode }}&page={{ page_obj.previous_page_number }}">
+                    ‹
+                </a>
+            {% else %}
+                <span>‹</span>
+            {% endif %}
+
+
+            {% for number in page_obj.paginator.page_range %}
+
+                {% if number == page_obj.number %}
+
+                    <span class="current">
+                        {{ number }}
+                    </span>
+
+                {% elif number >= page_obj.number|add:"-2" and number <= page_obj.number|add:"2" %}
+
+                    <a href="?tab=notice&q={{ keyword|urlencode }}&category={{ selected_category|urlencode }}&page={{ number }}">
+                        {{ number }}
+                    </a>
+
+                {% endif %}
+
+            {% endfor %}
+
+
+            {% if page_obj.has_next %}
+                <a href="?tab=notice&q={{ keyword|urlencode }}&category={{ selected_category|urlencode }}&page={{ page_obj.next_page_number }}">
+                    ›
+                </a>
+            {% else %}
+                <span>›</span>
+            {% endif %}
+
+        </div>
+
+    {% endif %}
+
+</main>
+
+
+{% include "website/includes/public_footer.html" %}
+
+</body>
+</html>

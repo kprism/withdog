@@ -1,0 +1,384 @@
+{% load static %}
+<!doctype html>
+<html lang="ko">
+
+<head>
+<meta charset="utf-8">
+<meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+>
+<title>자유게시판 | 경상남도 반려견 협회</title>
+
+<link
+    rel="stylesheet"
+    href="/assets/css/style.css"
+>
+<link
+    rel="stylesheet"
+    href="/assets/css/sub.css"
+>
+
+<style>
+
+.community-write-wrap{
+    display:flex;
+    justify-content:flex-end;
+    margin-top:22px;
+}
+
+.community-write-btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:92px;
+    height:48px;
+    padding:0 22px;
+    border:0;
+    border-radius:7px;
+    background:#d2292d;
+    color:#fff;
+    font-weight:700;
+    text-decoration:none;
+}
+
+.community-meta{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-left:auto;
+    color:#888;
+    font-size:13px;
+}
+
+.community-author{
+    min-width:80px;
+}
+
+.board-row{
+    gap:20px;
+}
+
+.board-row > a{
+    flex:1;
+}
+
+@media(max-width:700px){
+
+    .community-author{
+        display:none;
+    }
+
+    .community-meta{
+        gap:5px;
+    }
+
+}
+
+
+/* COMMUNITY LIST META LAYOUT FIX */
+.board-row{
+    grid-template-columns:80px minmax(0, 1fr) 280px;
+}
+
+.board-row > a{
+    min-width:0;
+}
+
+.community-meta{
+    width:280px;
+    margin-left:0;
+    display:grid;
+    grid-template-columns:90px 70px 100px;
+    align-items:center;
+    gap:10px;
+    white-space:nowrap;
+}
+
+.community-author{
+    min-width:0;
+}
+
+.community-meta span:nth-child(2){
+    text-align:center;
+}
+
+.community-meta time{
+    text-align:right;
+}
+
+@media(max-width:700px){
+
+    .board-row{
+        grid-template-columns:60px minmax(0, 1fr);
+    }
+
+    .community-meta{
+        grid-column:2;
+        width:auto;
+        margin-left:0;
+        display:flex;
+        gap:12px;
+        margin-top:-12px;
+        white-space:nowrap;
+    }
+
+    .community-author{
+        display:none;
+    }
+
+    .community-meta time{
+        text-align:left;
+    }
+}
+
+</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+{% include "website/includes/public_layout_css.html" %}
+</head>
+
+
+<body>
+
+{% include "website/includes/public_header.html" %}
+
+
+<section class="sub-hero">
+
+<div>
+
+<p>
+GYEONGNAM PET DOG ASSOCIATION
+</p>
+
+<h1>
+자유게시판
+</h1>
+
+<span>
+회원들과 반려견 이야기를 자유롭게 나누는 공간입니다.
+</span>
+
+</div>
+
+</section>
+
+
+<main class="sub-container">
+
+<form
+    method="get"
+    class="board-tools"
+>
+
+<div class="tabs">
+
+<a
+    href="/community.html"
+    class="tab {% if not selected_category %}active{% endif %}"
+>
+전체글
+</a>
+
+{% for category in categories %}
+
+<a
+    href="?category={{ category.slug }}"
+    class="tab {% if selected_category == category.slug %}active{% endif %}"
+>
+{{ category.name }}
+</a>
+
+{% endfor %}
+
+</div>
+
+
+<div class="search">
+
+<input
+    type="search"
+    name="q"
+    value="{{ keyword }}"
+    placeholder="게시글을 검색하세요"
+>
+
+{% if selected_category %}
+<input
+    type="hidden"
+    name="category"
+    value="{{ selected_category }}"
+>
+{% endif %}
+
+<button type="submit">
+검색
+</button>
+
+</div>
+
+</form>
+
+
+<div class="board-count">
+총
+<b>
+{{ page_obj.paginator.count }}
+</b>
+건
+</div>
+
+
+<div class="board-list">
+
+{% for post in page_obj %}
+
+<article class="board-row">
+
+<span class="badge news">
+
+{% if post.category %}
+{{ post.category.name }}
+{% else %}
+자유
+{% endif %}
+
+</span>
+
+<a
+    href="{% url 'public_community_detail' post.pk %}"
+>
+
+{% if post.is_pinned %}
+[고정]
+{% endif %}
+
+{% if post.is_important %}
+[중요]
+{% endif %}
+
+{{ post.title }}
+
+</a>
+
+<div class="community-meta">
+
+<span class="community-author">
+{% if post.author %}
+{{ post.author.username }}
+{% else %}
+-
+{% endif %}
+</span>
+
+<span>
+조회 {{ post.view_count }}
+</span>
+
+<time>
+{{ post.created_at|date:"Y.m.d" }}
+</time>
+
+</div>
+
+</article>
+
+{% empty %}
+
+<div
+    style="
+        padding:70px 20px;
+        text-align:center;
+        color:#888;
+        border-bottom:1px solid #eee;
+    "
+>
+등록된 게시글이 없습니다.
+</div>
+
+{% endfor %}
+
+</div>
+
+
+<div class="community-write-wrap">
+
+{% if request.user.is_authenticated %}
+
+<a
+    class="community-write-btn"
+    href="{% url 'public_community_create' %}"
+>
+글쓰기
+</a>
+
+{% else %}
+
+<a
+    class="community-write-btn"
+    href="/dashboard/login/?next=/community/write/"
+>
+로그인 후 글쓰기
+</a>
+
+{% endif %}
+
+</div>
+
+
+{% if page_obj.paginator.num_pages > 1 %}
+
+<div class="pagination">
+
+{% if page_obj.has_previous %}
+
+<a
+    href="?category={{ selected_category }}&q={{ keyword|urlencode }}&page={{ page_obj.previous_page_number }}"
+>
+‹
+</a>
+
+{% else %}
+
+<button disabled>
+‹
+</button>
+
+{% endif %}
+
+
+<span class="current">
+{{ page_obj.number }}
+</span>
+
+
+{% if page_obj.has_next %}
+
+<a
+    href="?category={{ selected_category }}&q={{ keyword|urlencode }}&page={{ page_obj.next_page_number }}"
+>
+›
+</a>
+
+{% else %}
+
+<button disabled>
+›
+</button>
+
+{% endif %}
+
+</div>
+
+{% endif %}
+
+</main>
+
+
+{% include "website/includes/public_footer.html" %}
+
+</body>
+</html>

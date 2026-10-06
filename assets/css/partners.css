@@ -1,1 +1,1054 @@
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:'Noto Sans KR',sans-serif;color:#111;background:#fff}header{height:88px;background:linear-gradient(100deg,#ad0505,#d5292d);display:flex;align-items:center;justify-content:space-between;padding:0 20px;color:#fff}.brand{display:flex;align-items:center;gap:12px;color:#fff;text-decoration:none}.brand:first-letter{font-size:40px}.brand span{display:flex;flex-direction:column}.brand b{font-size:18px}.brand small{font-size:12px;font-weight:400;margin-top:7px}nav{display:flex;align-items:center;gap:10px}nav a{color:#fff;text-decoration:none;padding:11px 17px;font-weight:700}.login{border:1px solid #fff;border-radius:8px}.join{background:#ddb63c;color:#111;border-radius:8px}.hero{height:282px;position:relative;display:flex;align-items:center;justify-content:center;color:#fff;overflow:hidden;background:linear-gradient(#0005,#0005),url('https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1800&q=85') center/cover}.hero>span{position:absolute;left:38px;top:28px;font-size:30px;text-shadow:0 1px 3px #000}.hero h1{font-size:64px;margin:0;font-weight:900}.hero button{position:absolute;right:0;bottom:12px;border:0;border-radius:20px 0 0 20px;background:#f50061;color:#fff;padding:8px 15px;font-weight:700}.partners,.region,.near{padding:68px 30px 0;max-width:1380px;margin:auto}.eyebrow{color:#c92125;letter-spacing:4px;font-weight:800}.partners h2,.region h2,.near h2{font-size:28px;margin:8px 0}.partners .sub{color:#888}.partners>i{display:block;width:50px;height:4px;background:#d32b2f;margin:35px 0 40px}.tabs{display:flex;gap:24px;border-bottom:1px solid #ddd;overflow:auto}.tabs button{white-space:nowrap;border:0;background:none;padding:14px 20px;font-size:17px;font-weight:700;color:#777;cursor:pointer;transition:.18s transform,.18s color,.18s background}.tabs button:hover{transform:translateY(-4px);color:#d12226;background:#fff5f5}.tabs .active{color:#d12226;border-bottom:3px solid #d12226}.search{display:flex;margin:30px 0 12px}.search input{height:53px;flex:1;border:1px solid #aaa;border-radius:5px 0 0 5px;padding:0 20px;font-size:17px}.search button{width:136px;border:0;background:#d2292d;color:#fff;font-size:20px;border-radius:0 8px 8px 0;cursor:pointer}#kakaoMap{height:450px;border-radius:15px;border:1px solid #d9e2dd;overflow:hidden;background:#eef5ef}.count{margin:34px 0 20px;color:#777}.count b{color:#d3292d}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}.cards article{border:1px solid #e4e4e4;border-radius:15px;padding:22px;box-shadow:0 4px 16px #00000008;animation:cardIn .32s cubic-bezier(.2,.9,.25,1) both;transition:.2s transform,.2s box-shadow}.cards article:hover{transform:translateY(-7px);box-shadow:0 14px 32px #00000016}.cards article:nth-child(2n){animation-delay:.04s}.cards article:nth-child(3n){animation-delay:.08s}@keyframes cardIn{from{opacity:0;transform:translateY(22px) scale(.97)}to{opacity:1;transform:none}}.cards h3{color:#d12226;margin:0}.cards h3 span{color:#aaa;background:#f1f1f1;border-radius:50%;padding:3px 9px;margin-right:8px}.cards em{font-size:12px;background:#d12226;color:#fff;padding:5px 9px;border-radius:14px;font-style:normal;margin-left:7px}.cards p{color:#777}.cards a{color:#00a84f;font-weight:700;text-decoration:none}.empty{grid-column:1/-1;padding:40px;text-align:center;color:#999}.region{padding-top:75px}.region h2,.near h2{border-left:6px solid #d2292d;padding-left:10px;font-size:23px}.region>div{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:28px}.region button{height:52px;background:#fff;border:1px solid #e5e5e5;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;transition:.18s}.region button:hover{transform:translateY(-3px);border-color:#d2292d;color:#d2292d;box-shadow:0 7px 18px #0001}.near{padding-bottom:70px}.near>div{border:1px solid #ffb6b6;background:#fff5f5;border-radius:15px;text-align:center;padding:26px}.near button,.admin-import button{background:#d2292d;color:#fff;border:0;border-radius:8px;padding:13px 24px;font-weight:800;cursor:pointer}.near p{color:#999}.admin-import{margin:12px 0 20px;border:1px dashed #ddd;border-radius:10px;padding:12px 15px;color:#777}.admin-import summary{cursor:pointer;font-weight:700}.admin-import form{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding-top:12px}footer{background:#071d10;color:#8ca395;padding:55px 30px;display:grid;grid-template-columns:1fr 1.5fr;gap:60px;margin-top:10px}footer b{color:#fff}footer small{display:block;margin:8px 0}footer p{line-height:1.9}.footer-links{display:flex;flex-direction:column;align-items:flex-start}.footer-links a{color:#8ca395;text-decoration:none;transition:.18s}.footer-links a:hover{color:#fff;transform:translateX(4px)}.bot{position:fixed;right:35px;bottom:90px;z-index:10;display:flex;flex-direction:column;align-items:center}.bot span{background:#fff;padding:12px 18px;border-radius:20px;box-shadow:0 5px 25px #0002;font-size:13px;font-weight:700}.bot button{margin-top:10px;width:76px;height:76px;border-radius:50%;border:4px solid #f1b5b5;background:#fff;font-size:32px}.top{position:fixed;right:38px;bottom:28px;width:58px;height:58px;border:0;border-radius:50%;background:#d9292d;color:#fff;font-size:22px}@media(max-width:900px){header{height:auto;padding:12px 14px}.brand b{font-size:14px}.brand small{display:none}nav>a:first-child{display:none}nav a{padding:9px}.hero{height:210px}.hero h1{font-size:36px}.hero>span{font-size:21px}.partners,.region,.near{padding-left:16px;padding-right:16px}.cards{grid-template-columns:1fr}.region>div{grid-template-columns:repeat(3,1fr)}#kakaoMap{height:300px}footer{grid-template-columns:1fr}.bot{right:12px}.top{right:18px}}@media(max-width:520px){.hero h1{font-size:27px}.tabs{gap:4px}.region>div{grid-template-columns:repeat(2,1fr)}.search button{width:70px}.partners h2{font-size:24px}}
+
+/* ==========================================================
+   DB PARTNER CARD / REGION FILTER
+   ========================================================== */
+
+.region-filter{
+    max-width:1400px;
+    margin:0 auto 28px;
+    padding:0 20px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+}
+
+.region-filter button{
+    border:1px solid #ddd;
+    background:#fff;
+    border-radius:999px;
+    padding:9px 15px;
+    cursor:pointer;
+    font-weight:700;
+}
+
+.region-filter button.active,
+.region-filter button:hover{
+    background:#d6242a;
+    border-color:#d6242a;
+    color:#fff;
+}
+
+.cards{
+    display:grid;
+    grid-template-columns:
+        repeat(auto-fill,minmax(280px,1fr));
+    gap:16px;
+}
+
+.partner-card{
+    position:relative;
+    background:#fff;
+    border:1px solid #e6e6e6;
+    border-radius:14px;
+    padding:22px;
+    min-height:190px;
+    transition:.18s ease;
+}
+
+.partner-card:hover{
+    transform:translateY(-2px);
+    box-shadow:0 10px 28px rgba(0,0,0,.08);
+}
+
+.partner-card.partner-ad{
+    border-color:#efb7b9;
+}
+
+.partner-ad-label{
+    position:absolute;
+    top:12px;
+    left:12px;
+    font-size:10px;
+    font-weight:900;
+    letter-spacing:1px;
+    color:#d6242a;
+    opacity:.65;
+}
+
+.partner-category{
+    color:#d6242a;
+    font-size:12px;
+    font-weight:800;
+    margin-bottom:9px;
+}
+
+.partner-card h3{
+    margin:0 0 12px;
+    font-size:20px;
+}
+
+.partner-city{
+    font-weight:800;
+    margin:0 0 7px;
+}
+
+.partner-address,
+.partner-phone{
+    margin:5px 0;
+    color:#666;
+    line-height:1.6;
+}
+
+#kakaoMap{
+    width:100%;
+    height:430px;
+    border-radius:15px;
+    overflow:hidden;
+}
+
+@media(max-width:760px){
+    #kakaoMap{
+        height:330px;
+    }
+
+    .cards{
+        grid-template-columns:1fr;
+    }
+}
+
+
+/* ============================================================
+   PARTNER CARD UI FINAL
+   2026-10-01
+   ============================================================ */
+
+.partner-card{
+    position:relative;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    min-height:245px;
+    padding:22px;
+    border:1px solid #ececec;
+    border-radius:18px;
+    background:#fff;
+    box-shadow:
+        0 7px 22px rgba(0,0,0,.045);
+    transition:
+        transform .2s ease,
+        box-shadow .2s ease;
+}
+
+.partner-card:hover{
+    transform:translateY(-2px);
+    box-shadow:
+        0 10px 28px rgba(0,0,0,.07);
+}
+
+
+/* 상단 카테고리 + 지역 */
+
+.partner-card-top{
+    position:relative;
+    z-index:2;
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:18px;
+}
+
+.partner-category-line{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    min-width:0;
+}
+
+.partner-category{
+    color:#777;
+    font-size:13px;
+    font-weight:700;
+}
+
+.partner-city{
+    flex:0 0 auto;
+    padding:5px 9px;
+    border-radius:999px;
+    background:#f5f5f3;
+    color:#777;
+    font-size:11px;
+    font-weight:700;
+}
+
+
+/* 업체 정보 */
+
+.partner-name{
+    position:relative;
+    z-index:2;
+    margin:0 0 13px;
+    color:#d32027;
+    font-size:20px;
+    font-weight:900;
+    line-height:1.3;
+}
+
+.partner-address{
+    position:relative;
+    z-index:2;
+    margin:0 0 7px;
+    color:#555;
+    font-size:13px;
+    line-height:1.65;
+}
+
+.partner-phone{
+    position:relative;
+    z-index:2;
+    margin:0;
+    color:#666;
+    font-size:13px;
+    line-height:1.6;
+}
+
+
+/* 하단 액션 */
+
+.partner-actions{
+    position:relative;
+    z-index:3;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:9px;
+    margin-top:auto;
+    padding-top:19px;
+}
+
+.partner-action{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:38px;
+    padding:9px 12px;
+    border-radius:11px;
+    text-decoration:none;
+    color:#555;
+    font-size:12px;
+    font-weight:800;
+    transition:
+        transform .15s ease,
+        filter .15s ease,
+        border-color .15s ease;
+}
+
+.partner-action:hover{
+    transform:translateY(-1px);
+    filter:brightness(.98);
+}
+
+.partner-action-place{
+    background:#fbf5e9;
+    border:1px solid #f0e5d1;
+}
+
+.partner-action-route{
+    background:#edf8f2;
+    border:1px solid #dcefe4;
+}
+
+
+/* ============================================================
+   AFFILIATED / ADVERTISING PARTNER
+   ============================================================ */
+
+.partner-affiliated-badge{
+    display:inline-flex;
+    align-items:center;
+    padding:4px 7px;
+    border-radius:999px;
+    background:#fff3f1;
+    color:#b94b45;
+    font-size:9px;
+    font-weight:900;
+    letter-spacing:.03em;
+}
+
+
+/*
+ * 협력업체는 카드 외곽을 따라 은은한 빛이 흐른다.
+ * 내부에 ::after 흰색 레이어를 두어
+ * conic-gradient가 테두리 부분에만 보이게 한다.
+ */
+
+.partner-card-affiliated{
+    border-color:transparent;
+    isolation:isolate;
+}
+
+.partner-card-affiliated::before{
+    content:"";
+    position:absolute;
+    z-index:0;
+    inset:-55%;
+    background:
+        conic-gradient(
+            from 0deg,
+            transparent 0deg,
+            transparent 255deg,
+            rgba(214,58,58,.08) 280deg,
+            rgba(221,166,83,.55) 305deg,
+            rgba(255,224,154,.92) 322deg,
+            rgba(214,58,58,.28) 340deg,
+            transparent 360deg
+        );
+    animation:
+        partner-border-light 4.8s linear infinite;
+}
+
+.partner-card-affiliated::after{
+    content:"";
+    position:absolute;
+    z-index:1;
+    inset:2px;
+    border-radius:16px;
+    background:#fff;
+    pointer-events:none;
+}
+
+@keyframes partner-border-light{
+    to{
+        transform:rotate(360deg);
+    }
+}
+
+
+/*
+ * 사용자가 OS에서 애니메이션 최소화를 선택한 경우
+ * 움직임을 제거한다.
+ */
+
+@media (prefers-reduced-motion:reduce){
+    .partner-card-affiliated::before{
+        animation:none;
+    }
+
+    .partner-card,
+    .partner-action{
+        transition:none;
+    }
+}
+
+
+/* 모바일 */
+
+@media(max-width:760px){
+
+    .partner-card{
+        min-height:225px;
+        padding:19px;
+        border-radius:16px;
+    }
+
+    .partner-card-affiliated::after{
+        border-radius:14px;
+    }
+
+    .partner-name{
+        font-size:19px;
+    }
+
+    .partner-actions{
+        padding-top:16px;
+    }
+
+    .partner-action{
+        min-height:40px;
+        font-size:12px;
+    }
+}
+
+
+
+/* ============================================================
+   PARTNER CARD UI FINAL
+   2026-10-01
+   ============================================================ */
+
+.partner-card{
+    position:relative;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    min-height:245px;
+    padding:22px;
+    border:1px solid #ececec;
+    border-radius:18px;
+    background:#fff;
+    box-shadow:
+        0 7px 22px rgba(0,0,0,.045);
+    transition:
+        transform .2s ease,
+        box-shadow .2s ease;
+}
+
+.partner-card:hover{
+    transform:translateY(-2px);
+    box-shadow:
+        0 10px 28px rgba(0,0,0,.07);
+}
+
+
+/* 상단 카테고리 + 지역 */
+
+.partner-card-top{
+    position:relative;
+    z-index:2;
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:18px;
+}
+
+.partner-category-line{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    min-width:0;
+}
+
+.partner-category{
+    color:#777;
+    font-size:13px;
+    font-weight:700;
+}
+
+.partner-city{
+    flex:0 0 auto;
+    padding:5px 9px;
+    border-radius:999px;
+    background:#f5f5f3;
+    color:#777;
+    font-size:11px;
+    font-weight:700;
+}
+
+
+/* 업체 정보 */
+
+.partner-name{
+    position:relative;
+    z-index:2;
+    margin:0 0 13px;
+    color:#d32027;
+    font-size:20px;
+    font-weight:900;
+    line-height:1.3;
+}
+
+.partner-address{
+    position:relative;
+    z-index:2;
+    margin:0 0 7px;
+    color:#555;
+    font-size:13px;
+    line-height:1.65;
+}
+
+.partner-phone{
+    position:relative;
+    z-index:2;
+    margin:0;
+    color:#666;
+    font-size:13px;
+    line-height:1.6;
+}
+
+
+/* 하단 액션 */
+
+.partner-actions{
+    position:relative;
+    z-index:3;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:9px;
+    margin-top:auto;
+    padding-top:19px;
+}
+
+.partner-action{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:38px;
+    padding:9px 12px;
+    border-radius:11px;
+    text-decoration:none;
+    color:#555;
+    font-size:12px;
+    font-weight:800;
+    transition:
+        transform .15s ease,
+        filter .15s ease,
+        border-color .15s ease;
+}
+
+.partner-action:hover{
+    transform:translateY(-1px);
+    filter:brightness(.98);
+}
+
+.partner-action-place{
+    background:#fbf5e9;
+    border:1px solid #f0e5d1;
+}
+
+.partner-action-route{
+    background:#edf8f2;
+    border:1px solid #dcefe4;
+}
+
+
+/* ============================================================
+   AFFILIATED / ADVERTISING PARTNER
+   ============================================================ */
+
+.partner-affiliated-badge{
+    display:inline-flex;
+    align-items:center;
+    padding:4px 7px;
+    border-radius:999px;
+    background:#fff3f1;
+    color:#b94b45;
+    font-size:9px;
+    font-weight:900;
+    letter-spacing:.03em;
+}
+
+
+/*
+ * 협력업체는 카드 외곽을 따라 은은한 빛이 흐른다.
+ * 내부에 ::after 흰색 레이어를 두어
+ * conic-gradient가 테두리 부분에만 보이게 한다.
+ */
+
+.partner-card-affiliated{
+    border-color:transparent;
+    isolation:isolate;
+}
+
+.partner-card-affiliated::before{
+    content:"";
+    position:absolute;
+    z-index:0;
+    inset:-55%;
+    background:
+        conic-gradient(
+            from 0deg,
+            transparent 0deg,
+            transparent 255deg,
+            rgba(214,58,58,.08) 280deg,
+            rgba(221,166,83,.55) 305deg,
+            rgba(255,224,154,.92) 322deg,
+            rgba(214,58,58,.28) 340deg,
+            transparent 360deg
+        );
+    animation:
+        partner-border-light 4.8s linear infinite;
+}
+
+.partner-card-affiliated::after{
+    content:"";
+    position:absolute;
+    z-index:1;
+    inset:2px;
+    border-radius:16px;
+    background:#fff;
+    pointer-events:none;
+}
+
+@keyframes partner-border-light{
+    to{
+        transform:rotate(360deg);
+    }
+}
+
+
+/*
+ * 사용자가 OS에서 애니메이션 최소화를 선택한 경우
+ * 움직임을 제거한다.
+ */
+
+@media (prefers-reduced-motion:reduce){
+    .partner-card-affiliated::before{
+        animation:none;
+    }
+
+    .partner-card,
+    .partner-action{
+        transition:none;
+    }
+}
+
+
+/* 모바일 */
+
+@media(max-width:760px){
+
+    .partner-card{
+        min-height:225px;
+        padding:19px;
+        border-radius:16px;
+    }
+
+    .partner-card-affiliated::after{
+        border-radius:14px;
+    }
+
+    .partner-name{
+        font-size:19px;
+    }
+
+    .partner-actions{
+        padding-top:16px;
+    }
+
+    .partner-action{
+        min-height:40px;
+        font-size:12px;
+    }
+}
+
+
+
+/* ============================================================
+   PARTNER CARD UI FINAL
+   2026-10-01
+   ============================================================ */
+
+.partner-card{
+    position:relative;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    min-height:245px;
+    padding:22px;
+    border:1px solid #ececec;
+    border-radius:18px;
+    background:#fff;
+    box-shadow:
+        0 7px 22px rgba(0,0,0,.045);
+    transition:
+        transform .2s ease,
+        box-shadow .2s ease;
+}
+
+.partner-card:hover{
+    transform:translateY(-2px);
+    box-shadow:
+        0 10px 28px rgba(0,0,0,.07);
+}
+
+
+/* 상단 카테고리 + 지역 */
+
+.partner-card-top{
+    position:relative;
+    z-index:2;
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:18px;
+}
+
+.partner-category-line{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    min-width:0;
+}
+
+.partner-category{
+    color:#777;
+    font-size:13px;
+    font-weight:700;
+}
+
+.partner-city{
+    flex:0 0 auto;
+    padding:5px 9px;
+    border-radius:999px;
+    background:#f5f5f3;
+    color:#777;
+    font-size:11px;
+    font-weight:700;
+}
+
+
+/* 업체 정보 */
+
+.partner-name{
+    position:relative;
+    z-index:2;
+    margin:0 0 13px;
+    color:#d32027;
+    font-size:20px;
+    font-weight:900;
+    line-height:1.3;
+}
+
+.partner-address{
+    position:relative;
+    z-index:2;
+    margin:0 0 7px;
+    color:#555;
+    font-size:13px;
+    line-height:1.65;
+}
+
+.partner-phone{
+    position:relative;
+    z-index:2;
+    margin:0;
+    color:#666;
+    font-size:13px;
+    line-height:1.6;
+}
+
+
+/* 하단 액션 */
+
+.partner-actions{
+    position:relative;
+    z-index:3;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:9px;
+    margin-top:auto;
+    padding-top:19px;
+}
+
+.partner-action{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:38px;
+    padding:9px 12px;
+    border-radius:11px;
+    text-decoration:none;
+    color:#555;
+    font-size:12px;
+    font-weight:800;
+    transition:
+        transform .15s ease,
+        filter .15s ease,
+        border-color .15s ease;
+}
+
+.partner-action:hover{
+    transform:translateY(-1px);
+    filter:brightness(.98);
+}
+
+.partner-action-place{
+    background:#fbf5e9;
+    border:1px solid #f0e5d1;
+}
+
+.partner-action-route{
+    background:#edf8f2;
+    border:1px solid #dcefe4;
+}
+
+
+/* ============================================================
+   AFFILIATED / ADVERTISING PARTNER
+   ============================================================ */
+
+.partner-affiliated-badge{
+    display:inline-flex;
+    align-items:center;
+    padding:4px 7px;
+    border-radius:999px;
+    background:#fff3f1;
+    color:#b94b45;
+    font-size:9px;
+    font-weight:900;
+    letter-spacing:.03em;
+}
+
+
+/*
+ * 협력업체는 카드 외곽을 따라 은은한 빛이 흐른다.
+ * 내부에 ::after 흰색 레이어를 두어
+ * conic-gradient가 테두리 부분에만 보이게 한다.
+ */
+
+.partner-card-affiliated{
+    border-color:transparent;
+    isolation:isolate;
+}
+
+.partner-card-affiliated::before{
+    content:"";
+    position:absolute;
+    z-index:0;
+    inset:-55%;
+    background:
+        conic-gradient(
+            from 0deg,
+            transparent 0deg,
+            transparent 255deg,
+            rgba(214,58,58,.08) 280deg,
+            rgba(221,166,83,.55) 305deg,
+            rgba(255,224,154,.92) 322deg,
+            rgba(214,58,58,.28) 340deg,
+            transparent 360deg
+        );
+    animation:
+        partner-border-light 4.8s linear infinite;
+}
+
+.partner-card-affiliated::after{
+    content:"";
+    position:absolute;
+    z-index:1;
+    inset:2px;
+    border-radius:16px;
+    background:#fff;
+    pointer-events:none;
+}
+
+@keyframes partner-border-light{
+    to{
+        transform:rotate(360deg);
+    }
+}
+
+
+/*
+ * 사용자가 OS에서 애니메이션 최소화를 선택한 경우
+ * 움직임을 제거한다.
+ */
+
+@media (prefers-reduced-motion:reduce){
+    .partner-card-affiliated::before{
+        animation:none;
+    }
+
+    .partner-card,
+    .partner-action{
+        transition:none;
+    }
+}
+
+
+/* 모바일 */
+
+@media(max-width:760px){
+
+    .partner-card{
+        min-height:225px;
+        padding:19px;
+        border-radius:16px;
+    }
+
+    .partner-card-affiliated::after{
+        border-radius:14px;
+    }
+
+    .partner-name{
+        font-size:19px;
+    }
+
+    .partner-actions{
+        padding-top:16px;
+    }
+
+    .partner-action{
+        min-height:40px;
+        font-size:12px;
+    }
+}
+
+
+
+/* ============================================================
+   PARTNER CARD COMPACT FINAL
+   업체명 남색 / 카드 높이 축소 / 협력업체 광택 강화
+   ============================================================ */
+
+.partner-card{
+    min-height:190px !important;
+    padding:17px 18px !important;
+    border-radius:15px !important;
+}
+
+/* 상단 카테고리 / 지역 */
+.partner-card-top{
+    margin-bottom:10px !important;
+}
+
+.partner-category{
+    font-size:12px !important;
+    line-height:1.25 !important;
+}
+
+.partner-city{
+    padding:4px 8px !important;
+    font-size:10px !important;
+    line-height:1.2 !important;
+}
+
+/* 업체명 */
+.partner-name{
+    margin:0 0 7px !important;
+    color:#183153 !important;
+    font-size:18px !important;
+    line-height:1.25 !important;
+}
+
+/* 주소 */
+.partner-address{
+    margin:0 0 3px !important;
+    font-size:12px !important;
+    line-height:1.4 !important;
+}
+
+/* 전화번호 */
+.partner-phone{
+    margin:0 !important;
+    font-size:12px !important;
+    line-height:1.35 !important;
+}
+
+/* 하단 버튼 */
+.partner-actions{
+    gap:7px !important;
+    padding-top:11px !important;
+}
+
+.partner-action{
+    min-height:33px !important;
+    padding:6px 10px !important;
+    border-radius:9px !important;
+    font-size:11px !important;
+}
+
+/* 협력업체 배지 */
+.partner-affiliated-badge{
+    padding:3px 6px !important;
+    font-size:8px !important;
+}
+
+
+/* ------------------------------------------------------------
+   협력업체 광택
+   기존보다 조금 더 보이도록 하되 네온처럼 과하지 않게
+   ------------------------------------------------------------ */
+
+.partner-card-affiliated{
+    border:1px solid transparent !important;
+    box-shadow:
+        0 5px 18px rgba(0,0,0,.05),
+        0 0 0 1px rgba(201,31,38,.06) !important;
+}
+
+.partner-card-affiliated::before{
+    inset:-65% !important;
+
+    background:
+        conic-gradient(
+            from 0deg,
+            transparent 0deg,
+            transparent 245deg,
+            rgba(190,38,48,.10) 270deg,
+            rgba(224,164,67,.70) 300deg,
+            rgba(255,226,151,1) 320deg,
+            rgba(203,43,54,.55) 342deg,
+            transparent 360deg
+        ) !important;
+
+    animation:
+        partner-border-light 3.6s linear infinite !important;
+}
+
+.partner-card-affiliated::after{
+    inset:2px !important;
+    border-radius:12px !important;
+}
+
+
+/* 모바일은 더 촘촘하게 */
+@media(max-width:760px){
+
+    .partner-card{
+        min-height:178px !important;
+        padding:15px 16px !important;
+    }
+
+    .partner-card-top{
+        margin-bottom:8px !important;
+    }
+
+    .partner-name{
+        margin-bottom:6px !important;
+        font-size:17px !important;
+    }
+
+    .partner-address,
+    .partner-phone{
+        font-size:11.5px !important;
+    }
+
+    .partner-actions{
+        padding-top:10px !important;
+    }
+
+    .partner-action{
+        min-height:32px !important;
+    }
+}
+
+
+
+/* ============================================================
+   KAKAO STORE BUTTON FINAL
+   상세 URL 없는 업체는 매장안내 비활성
+   ============================================================ */
+
+.partner-action-disabled{
+    background:#f4f4f4 !important;
+    border:1px solid #e7e7e7 !important;
+    color:#aaa !important;
+    cursor:default !important;
+    pointer-events:none !important;
+    user-select:none !important;
+    transform:none !important;
+    filter:none !important;
+}
+
+.partner-action-disabled:hover{
+    transform:none !important;
+    filter:none !important;
+}
+
+
+/* 관리자 카카오 상세 URL */
+
+.kakao-place-cell{
+    min-width:230px;
+}
+
+.kakao-place-input{
+    width:100%;
+    min-width:215px;
+    height:38px;
+    padding:7px 10px;
+    border:1px solid #ddd;
+    border-radius:8px;
+    background:#fff;
+    font-size:12px;
+    box-sizing:border-box;
+}
+
+.kakao-place-input:focus{
+    outline:none;
+    border-color:#d8a6a6;
+    box-shadow:0 0 0 3px rgba(201,31,38,.06);
+}
+
