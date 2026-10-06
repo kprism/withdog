@@ -27,6 +27,7 @@ urlpatterns=[
  path('website/partners/category/<int:pk>/delete/',v.partner_category_delete,name='partner_category_delete'),
  path('website/partners/<int:pk>/advertising/',v.partner_ad_update,name='partner_ad_update'),
  path('website/',w.site_settings,name='website_settings'),
+ path('site-settings/',w.seo_site_settings,name='seo_site_settings'),
  path('website/about/',w.about_editor,name='about_editor'),
  path('login/',auth_views.LoginView.as_view(template_name='dashboard/login.html',redirect_authenticated_user=True),name='login'),path('logout/',auth_views.LogoutView.as_view(next_page='/dashboard/login/'),name='logout'),path('',v.dashboard_home,name='home'),
  path('partners/',v.partner_list,name='partners'),path('partners/new/',v.partner_edit,name='partner_new'),path('partners/<int:pk>/edit/',v.partner_edit,name='partner_edit'),path('partners/<int:pk>/delete/',v.partner_delete,name='partner_delete'),path('partners/upload/',v.partner_upload,name='partner_upload'),
