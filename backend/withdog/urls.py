@@ -8,6 +8,7 @@ from django.urls import include, path, re_path
 from django.views.static import serve
 from django.conf import settings
 from django.http import HttpResponse
+from django.utils.html import escape
 from django.views.decorators.cache import never_cache
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -16,17 +17,55 @@ ROOT = Path(__file__).resolve().parents[2]
 @never_cache
 def public_home(request):
     """Serve the live homepage without allowing stale HTML to mask deployed UI fixes."""
-    response = HttpResponse(
-        (ROOT / 'index.html').read_text(encoding='utf-8'),
-        content_type='text/html; charset=utf-8',
-    )
+    from partners.models import SiteSetting
+    s=SiteSetting.get_solo()
+    html=(ROOT / 'index.html').read_text(encoding='utf-8')
+    title=escape(s.site_name or '경상남도 반려견 협회')
+    desc=escape(s.meta_description or s.site_subtitle or '')
+    canonical=escape(s.canonical_url or request.build_absolute_uri('/'))
+    tags=[
+        f'<title>{title}</title>',
+        f'<meta name="description" content="{desc}">',
+        f'<link rel="canonical" href="{canonical}">',
+        f'<meta property="og:title" content="{escape(s.og_title or s.site_name or "")}">',
+        f'<meta property="og:description" content="{escape(s.og_description or s.meta_description or s.site_subtitle or "")}">',
+        f'<meta property="og:url" content="{canonical}">',
+        '<meta property="og:type" content="website">',
+    ]
+    if s.meta_keywords: tags.append(f'<meta name="keywords" content="{escape(s.meta_keywords)}">')
+    if s.naver_site_verification: tags.append(f'<meta name="naver-site-verification" content="{escape(s.naver_site_verification)}">')
+    if s.google_site_verification: tags.append(f'<meta name="google-site-verification" content="{escape(s.google_site_verification)}">')
+    if s.og_image_url: tags.append(f'<meta property="og:image" content="{escape(s.og_image_url)}">')
+    if s.favicon:
+        try: tags.append(f'<link rel="icon" href="{escape(s.favicon.url)}">')
+        except ValueError: pass
+    seo='\n'.join(tags)
+    pos=html.lower().find('</head>')
+    if pos >= 0: html=html[:pos]+seo+'\n'+html[pos:]
+    response = HttpResponse(html, content_type='text/html; charset=utf-8')
     response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
     response['Pragma'] = 'no-cache'
     response['Expires'] = '0'
     return response
 
 
+
+def sitemap_xml(request):
+    from partners.models import ContentItem, DogBreed
+    base=request.build_absolute_uri('/').rstrip('/')
+    urls=['/','/about.html','/benefits.html','/partners.html','/board.html','/community.html','/breeds/']
+    urls += [f'/board/{x.pk}/' for x in ContentItem.objects.filter(kind='notice',is_published=True).only('pk')]
+    urls += [f'/breeds/{x.slug}/' for x in DogBreed.objects.filter(is_published=True).only('slug')]
+    body='<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + ''.join(f'<url><loc>{escape(base+p)}</loc></url>' for p in urls) + '</urlset>'
+    return HttpResponse(body,content_type='application/xml; charset=utf-8')
+
+def robots_txt(request):
+    sitemap=request.build_absolute_uri('/sitemap.xml')
+    return HttpResponse(f'User-agent: *\nAllow: /\nDisallow: /dashboard/\nDisallow: /admin/\nSitemap: {sitemap}\n',content_type='text/plain; charset=utf-8')
+
 urlpatterns = [
+    path('sitemap.xml', sitemap_xml, name='sitemap_xml'),
+    path('robots.txt', robots_txt, name='robots_txt'),
     path(
         'api/intro-news/',
         website_views.public_intro_news_api,
