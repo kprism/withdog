@@ -30,6 +30,11 @@ jobs:
       - name: Django checks
         working-directory: backend
         run: python manage.py check
+      - name: Collect and verify static assets
+        working-directory: backend
+        run: |
+          python manage.py collectstatic --noinput
+          test -s staticfiles/member_dog_stamp.webp
 
   deploy:
     needs: test
@@ -64,24 +69,28 @@ jobs:
             --quiet \
             --command="sudo /usr/local/sbin/deploy-thepetkorea ${DEPLOY_SHA}"
 
-      - name: Verify public endpoints
+      - name: Verify public endpoints and membership image
         run: |
           python - <<'PY'
           import urllib.error
           import urllib.request
 
-          for url in [
-              'https://thepetkorea.co.kr/',
-              'https://thepetkorea.co.kr/mypage/',
-          ]:
+          checks = [
+              ('https://thepetkorea.co.kr/', False),
+              ('https://thepetkorea.co.kr/mypage/', False),
+              ('https://thepetkorea.co.kr/static/member_dog_stamp.webp', True),
+          ]
+          for url, must_be_200 in checks:
               req = urllib.request.Request(url, method='GET')
               try:
                   with urllib.request.urlopen(req, timeout=20) as response:
-                      print(url, response.status)
+                      print(url, response.status, response.headers.get('Content-Type'))
+                      if must_be_200 and response.status != 200:
+                          raise SystemExit(1)
                       if response.status >= 500:
                           raise SystemExit(1)
               except urllib.error.HTTPError as exc:
                   print(url, exc.code)
-                  if exc.code >= 500:
+                  if must_be_200 or exc.code >= 500:
                       raise
           PY
