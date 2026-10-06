@@ -44,6 +44,7 @@ def membership_card(request):
         'website/mypage.html',
         {
             'member_name': profile.name or request.user.get_username(),
+            'member_no': f'GN-{profile.pk:05d}',
             'joined_date': joined_date.strftime('%Y.%m.%d'),
             'expiry_date': expiry_date.strftime('%Y.%m.%d'),
             'membership_label': membership_label,
