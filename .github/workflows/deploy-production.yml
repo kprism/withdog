@@ -46,6 +46,14 @@ jobs:
 
       - uses: google-github-actions/setup-gcloud@v2
 
+      - name: Prepare production repository trust
+        run: |
+          gcloud compute ssh thepetkorea-main-vm \
+            --project=thepetkorea \
+            --zone=asia-northeast3-a \
+            --quiet \
+            --command="sudo git config --global --add safe.directory /home/mstclma00/withdog"
+
       - name: Deploy exact tested commit to GCE
         env:
           DEPLOY_SHA: ${{ github.sha }}
