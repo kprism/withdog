@@ -84,6 +84,14 @@ urlpatterns = [
     # API
     path('api/', include('partners.urls')),
 
+    # collectstatic으로 수집한 정적 파일. 운영 nginx 설정과 무관하게
+    # Django가 /static/ 요청을 확실히 처리하도록 명시한다.
+    re_path(
+        r'^static/(?P<path>.*)$',
+        serve,
+        {'document_root': settings.STATIC_ROOT},
+    ),
+
     # 업로드 파일
     re_path(
         r'^media/(?P<path>.*)$',
