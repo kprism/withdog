@@ -15,9 +15,15 @@
                 {{ request.user.username }}
             </span>
 
-            <a class="btn btn-outline" href="/dashboard/">
-                마이페이지
-            </a>
+            {% if request.user.is_staff %}
+                <a class="btn btn-outline" href="/dashboard/">
+                    운영자 페이지
+                </a>
+            {% else %}
+                <a class="btn btn-outline" href="/mypage/">
+                    마이페이지
+                </a>
+            {% endif %}
 
             <form
                 method="post"
