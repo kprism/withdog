@@ -7,8 +7,24 @@ from django.contrib import admin
 from django.urls import include, path, re_path
 from django.views.static import serve
 from django.conf import settings
+from django.http import HttpResponse
+from django.views.decorators.cache import never_cache
 
 ROOT = Path(__file__).resolve().parents[2]
+
+
+@never_cache
+def public_home(request):
+    """Serve the live homepage without allowing stale HTML to mask deployed UI fixes."""
+    response = HttpResponse(
+        (ROOT / 'index.html').read_text(encoding='utf-8'),
+        content_type='text/html; charset=utf-8',
+    )
+    response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
+    return response
+
 
 urlpatterns = [
     path(
@@ -75,16 +91,9 @@ urlpatterns = [
         {'document_root': settings.MEDIA_ROOT},
     ),
 
-    # 홈페이지 첫 화면
-    path(
-        '',
-        serve,
-        {
-            'document_root': ROOT,
-            'path': 'index.html',
-        },
-        name='home',
-    ),
+    # 홈페이지 첫 화면: / 와 /index.html 모두 최신 HTML을 즉시 제공
+    path('', public_home, name='home'),
+    path('index.html', public_home, name='home_index'),
 
     # 전 세계 견종 데이터베이스
     path(
