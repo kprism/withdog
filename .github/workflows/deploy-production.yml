@@ -11,6 +11,7 @@ concurrency:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   test:
@@ -36,10 +37,15 @@ jobs:
     environment: production
     steps:
       - uses: actions/checkout@v4
-      - uses: google-github-actions/auth@v2
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
         with:
-          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+          workload_identity_provider: projects/819578664210/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+          service_account: github-deployer@thepetkorea.iam.gserviceaccount.com
+
       - uses: google-github-actions/setup-gcloud@v2
+
       - name: Deploy exact tested commit to GCE
         env:
           DEPLOY_SHA: ${{ github.sha }}
@@ -49,20 +55,25 @@ jobs:
             --zone=asia-northeast3-a \
             --quiet \
             --command="sudo /usr/local/sbin/deploy-thepetkorea ${DEPLOY_SHA}"
+
       - name: Verify public endpoints
         run: |
           python - <<'PY'
+          import urllib.error
           import urllib.request
-          for url in ['https://thepetkorea.co.kr/', 'https://thepetkorea.co.kr/mypage/']:
+
+          for url in [
+              'https://thepetkorea.co.kr/',
+              'https://thepetkorea.co.kr/mypage/',
+          ]:
               req = urllib.request.Request(url, method='GET')
               try:
-                  with urllib.request.urlopen(req, timeout=20) as r:
-                      print(url, r.status)
-                      if r.status >= 500:
+                  with urllib.request.urlopen(req, timeout=20) as response:
+                      print(url, response.status)
+                      if response.status >= 500:
                           raise SystemExit(1)
-              except urllib.error.HTTPError as e:
-                  # /mypage/ may redirect/auth-gate; only server errors fail deploy verification.
-                  print(url, e.code)
-                  if e.code >= 500:
+              except urllib.error.HTTPError as exc:
+                  print(url, exc.code)
+                  if exc.code >= 500:
                       raise
           PY
