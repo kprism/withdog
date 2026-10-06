@@ -179,6 +179,16 @@ class SiteSetting(models.Model):
         verbose_name='카카오 REST API 키',
     )
 
+    favicon = models.ImageField(upload_to='site/favicon/', blank=True)
+    meta_description = models.CharField(max_length=320, blank=True, default='')
+    meta_keywords = models.CharField(max_length=500, blank=True, default='')
+    canonical_url = models.URLField(max_length=500, blank=True, default='https://thepetkorea.co.kr/')
+    naver_site_verification = models.CharField(max_length=255, blank=True, default='')
+    google_site_verification = models.CharField(max_length=255, blank=True, default='')
+    og_title = models.CharField(max_length=200, blank=True, default='')
+    og_description = models.CharField(max_length=320, blank=True, default='')
+    og_image_url = models.URLField(max_length=1000, blank=True, default='')
+
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
