@@ -131,6 +131,37 @@ def site_settings(request):
     return render(request,'dashboard/website_settings.html',{'setting':setting,'hero_items':hero_items,'selected_pk':selected_pk})
 
 
+
+@staff_member_required
+def seo_site_settings(request):
+    import re
+    s=SiteSetting.get_solo()
+    def verification_value(value):
+        value=(value or '').strip()
+        match=re.search(r'''content=["']([^"']+)["']''', value, re.I)
+        return match.group(1).strip() if match else value
+    if request.method=='POST':
+        s.site_name=request.POST.get('site_name','').strip() or s.site_name
+        s.canonical_url=request.POST.get('canonical_url','').strip() or 'https://thepetkorea.co.kr/'
+        s.meta_description=request.POST.get('meta_description','').strip()
+        s.meta_keywords=request.POST.get('meta_keywords','').strip()
+        s.naver_site_verification=verification_value(request.POST.get('naver_site_verification',''))
+        s.google_site_verification=verification_value(request.POST.get('google_site_verification',''))
+        s.og_title=request.POST.get('og_title','').strip()
+        s.og_description=request.POST.get('og_description','').strip()
+        s.og_image_url=request.POST.get('og_image_url','').strip()
+        if request.POST.get('delete_favicon')=='1' and s.favicon:
+            _delete_file(s.favicon); s.favicon=''
+        if request.FILES.get('favicon'):
+            if s.favicon: _delete_file(s.favicon)
+            s.favicon=request.FILES['favicon']
+        s.save()
+        messages.success(request,'사이트 설정과 검색엔진 SEO 정보가 저장되었습니다.')
+        return redirect('operator_dashboard:seo_site_settings')
+    origin=(s.canonical_url or 'https://thepetkorea.co.kr/').rstrip('/')
+    return render(request,'dashboard/seo_site_settings.html',{'s':s,'origin':origin})
+
+
 # === ABOUT PAGE EDITOR ===
 def _replace_media(obj, prefix, request):
     media_type=request.POST.get(prefix+'_media_type','image')
