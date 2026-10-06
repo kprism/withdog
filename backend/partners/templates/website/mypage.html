@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>마이페이지 | 경상남도 반려견 협회</title>
+    {% include 'website/includes/public_layout_css.html' %}
+    <style>
+        body{background:#f6f7f9;color:#172033}.mypage-shell{max-width:1180px;margin:0 auto;padding:52px 24px 80px}.mypage-title{margin:0 0 8px;font-size:34px}.mypage-sub{margin:0 0 30px;color:#687386}.mypage-grid{display:grid;grid-template-columns:230px minmax(0,1fr);gap:28px}.mypage-nav,.mypage-panel{background:#fff;border:1px solid #e6e9ee;border-radius:18px;box-shadow:0 10px 32px rgba(20,30,50,.06)}.mypage-nav{padding:14px;height:max-content}.mypage-nav a{display:block;padding:14px 16px;border-radius:12px;color:#344054;text-decoration:none;font-weight:700}.mypage-nav a.active{background:#172033;color:#fff}.mypage-panel{padding:30px}.member-card-wrap{display:flex;justify-content:center;padding:10px 0 18px}.member-card{position:relative;width:min(100%,720px);aspect-ratio:1.72/1;overflow:hidden;border-radius:26px;background:linear-gradient(135deg,#122d27 0%,#174b3d 58%,#d4a955 58.2%,#f1d99b 100%);box-shadow:0 22px 48px rgba(17,40,34,.22);color:#fff}.member-card:before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 18% 16%,rgba(255,255,255,.16),transparent 32%)}.card-copy{position:absolute;left:7%;top:10%;width:58%;z-index:2}.card-kicker{font-size:12px;letter-spacing:.16em;color:#f2dca3;font-weight:800}.card-title{font-size:27px;margin:7px 0 30px}.card-name{font-size:30px;font-weight:900;margin-bottom:24px}.card-info{display:grid;grid-template-columns:74px 1fr;gap:8px 12px;font-size:15px}.card-info dt{color:#c9d7d2}.card-info dd{margin:0;font-weight:700}.dog-mark{position:absolute;right:3%;bottom:3%;width:34%;height:54%;display:flex;align-items:flex-end;justify-content:center;font-size:86px;filter:drop-shadow(0 8px 10px rgba(0,0,0,.18))}.card-note{max-width:720px;margin:0 auto;color:#687386;font-size:14px;line-height:1.7}@media(max-width:760px){.mypage-shell{padding:30px 16px 60px}.mypage-grid{grid-template-columns:1fr}.mypage-nav{display:flex;overflow:auto}.mypage-nav a{white-space:nowrap}.mypage-panel{padding:18px}.card-title{font-size:18px;margin-bottom:15px}.card-name{font-size:22px;margin-bottom:14px}.card-info{font-size:12px;grid-template-columns:58px 1fr;gap:5px 8px}.dog-mark{font-size:58px}.mypage-title{font-size:28px}}
+    </style>
+</head>
+<body>
+{% include 'website/includes/public_header.html' %}
+<main class="mypage-shell">
+    <h1 class="mypage-title">마이페이지</h1>
+    <p class="mypage-sub">회원 정보와 협회 회원증을 확인할 수 있습니다.</p>
+    <div class="mypage-grid">
+        <nav class="mypage-nav" aria-label="마이페이지 메뉴">
+            <a href="/mypage/">회원정보</a>
+            <a class="active" href="/mypage/membership-card/">회원증 확인</a>
+        </nav>
+        <section class="mypage-panel">
+            <h2>회원증 확인</h2>
+            <div class="member-card-wrap">
+                <article class="member-card" aria-label="경상남도 반려견 협회 회원증">
+                    <div class="card-copy">
+                        <div class="card-kicker">GYEONGNAM PET DOG ASSOCIATION</div>
+                        <div class="card-title">경상남도 반려견 협회 회원증</div>
+                        <div class="card-name">{{ member_name }}</div>
+                        <dl class="card-info">
+                            <dt>가입일</dt><dd>{{ joined_date }}</dd>
+                            <dt>유효기간</dt><dd>{{ expiry_date }}</dd>
+                            <dt>회원구분</dt><dd>{{ membership_label }}</dd>
+                        </dl>
+                    </div>
+                    <div class="dog-mark" aria-hidden="true">🐶</div>
+                </article>
+            </div>
+            <p class="card-note">회원증의 이름과 가입일은 로그인한 회원 정보를 기준으로 자동 표시되며, 유효기간은 가입일로부터 1년입니다. 최종 강아지 캐릭터 원본이 저장소에 추가되면 현재 임시 강아지 표식을 해당 이미지로 교체합니다.</p>
+        </section>
+    </div>
+</main>
+{% include 'website/includes/public_footer.html' %}
+</body>
+</html>
