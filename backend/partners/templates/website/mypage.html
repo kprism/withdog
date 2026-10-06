@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="ko">
 <head>
+{% load static %}
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>회원증 | 경상남도 반려견 협회</title>
 {% include 'website/includes/public_layout_css.html' %}
@@ -19,7 +20,7 @@ body{background:#f7f7f7;color:#222}.mypage-shell{max-width:1180px;margin:auto;pa
 <div class="member-message">반려견과 <span class="pink">함께</span>, <span class="gold">정회원</span> <span class="blue">인증</span> <span class="purple">완료!</span></div>
 <div class="member-name">{{ member_name }}님, 오늘부터</div><div class="association-line">경상남도 반려견협회</div><div class="member-line">정회원으로 함께합니다!</div>
 <div class="validity">유효기간 {{ joined_date }} ~ {{ expiry_date }}</div>
-<img class="dog-stamp" src="/static/member_dog_stamp.webp" alt="검은 프렌치불독이 오른쪽 앞발로 협회 도장을 찍는 모습">
+<img class="dog-stamp" src="{% static 'member_dog_stamp.webp' %}" alt="검은 프렌치불독이 오른쪽 앞발로 협회 도장을 찍는 모습">
 <div class="association-name">경상남도 반려견협회</div><div class="association-en">Gyeongnam Pet Dog Association</div><div class="member-kind">{{ membership_label }}</div>
 </article></div><p class="card-note">로그인한 본인의 이름과 가입일을 기준으로 표시되며, 유효기간은 가입일로부터 1년입니다.</p></section></div>
 </main>{% include 'website/includes/public_footer.html' %}
