@@ -1,0 +1,25 @@
+{% extends 'dashboard/base.html' %}
+{% block header %}사이트 설정{% endblock %}
+{% block content %}
+<div class="hero"><div><div class="eyebrow">SEO & SEARCH</div><h2>사이트 설정</h2><div class="muted">네이버·구글 소유권 인증, 검색 노출 정보, 파비콘과 사이트맵을 관리합니다.</div></div><a class="btn ghost" href="/" target="_blank">↗ 실제 홈페이지 보기</a></div>
+<form method="post" enctype="multipart/form-data">{% csrf_token %}
+<div class="panel"><h3>기본 검색 정보</h3><div class="form-grid">
+<div class="field"><label>사이트명</label><input name="site_name" value="{{ s.site_name }}"></div>
+<div class="field"><label>대표 주소 (Canonical URL)</label><input type="url" name="canonical_url" value="{{ s.canonical_url }}"></div>
+<div class="field" style="grid-column:1/-1"><label>사이트 설명 (Meta Description)</label><input name="meta_description" value="{{ s.meta_description }}" maxlength="320"></div>
+<div class="field" style="grid-column:1/-1"><label>검색 키워드</label><input name="meta_keywords" value="{{ s.meta_keywords }}"></div>
+</div></div>
+<div class="panel"><h3>네이버·구글 소유권 인증</h3><p class="muted">포털에서 받은 meta 태그 전체 또는 content 안의 인증값만 입력할 수 있습니다.</p><div class="form-grid">
+<div class="field"><label>네이버 사이트 소유확인 값</label><input name="naver_site_verification" value="{{ s.naver_site_verification }}"></div>
+<div class="field"><label>Google 사이트 소유확인 값</label><input name="google_site_verification" value="{{ s.google_site_verification }}"></div>
+</div></div>
+<div class="panel"><h3>파비콘</h3><div class="field"><label>파비콘 이미지</label><input type="file" name="favicon" accept="image/*,.ico">{% if s.favicon %}<p><img src="{{ s.favicon.url }}" alt="현재 파비콘" style="width:48px;height:48px;object-fit:contain;border:1px solid #ddd;border-radius:8px"> 현재 파비콘 <label style="margin-left:15px"><input type="checkbox" name="delete_favicon" value="1"> 삭제</label></p>{% endif %}</div></div>
+<div class="panel"><h3>검색·SNS 공유 정보</h3><div class="form-grid">
+<div class="field"><label>OG 제목</label><input name="og_title" value="{{ s.og_title }}" placeholder="비워두면 사이트명 사용"></div>
+<div class="field"><label>OG 대표 이미지 URL</label><input type="url" name="og_image_url" value="{{ s.og_image_url }}"></div>
+<div class="field" style="grid-column:1/-1"><label>OG 설명</label><input name="og_description" value="{{ s.og_description }}" placeholder="비워두면 사이트 설명 사용"></div>
+</div></div>
+<div class="panel"><h3>검색엔진 제출 주소</h3><table class="table"><tr><th>항목</th><th>주소</th></tr><tr><td>사이트맵</td><td><a href="/sitemap.xml" target="_blank">{{ origin }}/sitemap.xml</a></td></tr><tr><td>robots.txt</td><td><a href="/robots.txt" target="_blank">{{ origin }}/robots.txt</a></td></tr></table><p class="muted">네이버 서치어드바이저와 Google Search Console에 사이트맵 주소를 제출하세요.</p></div>
+<div style="margin-top:18px"><button class="btn" type="submit">저장하고 즉시 반영</button></div>
+</form>
+{% endblock %}
