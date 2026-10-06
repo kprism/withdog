@@ -69,6 +69,14 @@ jobs:
             --quiet \
             --command="sudo /usr/local/sbin/deploy-thepetkorea ${DEPLOY_SHA}"
 
+      - name: Collect static assets on production
+        run: |
+          gcloud compute ssh thepetkorea-main-vm \
+            --project=thepetkorea \
+            --zone=asia-northeast3-a \
+            --quiet \
+            --command="cd /home/mstclma00/withdog/backend && sudo -u mstclma00 .venv/bin/python manage.py collectstatic --noinput && test -s staticfiles/member_dog_stamp.webp && sudo systemctl restart thepetkorea"
+
       - name: Verify public endpoints and membership image
         run: |
           python - <<'PY'
