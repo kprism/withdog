@@ -41,9 +41,10 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           p=Path('partners/templates/website/mypage.html').read_text(encoding='utf-8')
-          assert "member_dog_stamp.webp'?" not in p
-          assert 'member_dog_stamp.webp' in p
+          assert '/static/member_dog_stamp.webp?v=approved-clean-20261007-b0' in p
           assert 'member_card_dog_image' not in p
+          from withdog.urls import _render_public_shell
+          assert callable(_render_public_shell)
           PY
 
   deploy:
@@ -109,14 +110,16 @@ jobs:
                   print(url, exc.code)
                   if must_be_200 or exc.code >= 500:
                       raise
-          # Validate that public subpages actually carry the same intro shell.
-          for url in ['https://thepetkorea.co.kr/about.html','https://thepetkorea.co.kr/benefits.html','https://thepetkorea.co.kr/partners.html']:
+          # Validate that public pages use the canonical authenticated-aware shell.
+          for url in ['https://thepetkorea.co.kr/','https://thepetkorea.co.kr/about.html','https://thepetkorea.co.kr/benefits.html','https://thepetkorea.co.kr/partners.html']:
               with urllib.request.urlopen(url, timeout=20) as response:
                   html=response.read().decode('utf-8','replace')
                   if 'class="site-header"' not in html or 'class="footer"' not in html:
                       raise SystemExit(f'Public shell validation failed: {url}')
                   if 'Gyeongnam Pet Dog Association' not in html:
-                      raise SystemExit(f'Intro footer/header content missing: {url}')
+                      raise SystemExit(f'Canonical footer/header content missing: {url}')
+                  if '/dashboard/login/' not in html or '/join.html' not in html:
+                      raise SystemExit(f'Canonical public auth controls missing: {url}')
 
           # Validate Googlebot-visible homepage and sitemap, not just HTTP 200.
           googlebot = {'User-Agent': 'Googlebot'}
