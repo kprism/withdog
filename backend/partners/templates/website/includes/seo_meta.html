@@ -16,5 +16,5 @@
 {% if seo.image %}<meta name="twitter:image" content="{{ seo.image }}">{% endif %}
 {% if seo.naver_verification %}<meta name="naver-site-verification" content="{{ seo.naver_verification }}">{% endif %}
 {% if seo.google_verification %}<meta name="google-site-verification" content="{{ seo.google_verification }}">{% endif %}
-{% if seo.favicon %}<link rel="icon" href="{{ seo.favicon }}">{% endif %}
+{% if seo.favicon %}<link rel="icon" href="/favicon.ico">\n<link rel="shortcut icon" href="/favicon.ico">{% endif %}
 {% if seo.json_ld %}<script type="application/ld+json">{{ seo.json_ld|safe }}</script>{% endif %}
