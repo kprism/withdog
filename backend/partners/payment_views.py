@@ -39,7 +39,15 @@ def _confirm(rec,payment_key,amount):
     approved=data.get('approvedAt');rec.approved_at=parse_datetime(approved) if approved else timezone.now();rec.raw_response=data
     rec.save(update_fields=['payment_key','status','method','approved_at','raw_response','updated_at'])
     if rec.status=='DONE':
-        p=rec.user.member_profile;p.membership_status='regular';p.regular_member_requested=True;p.save(update_fields=['membership_status','regular_member_requested'])
+        # 결제 주문은 가입 시 회원 계정과 직접 연결된다. 승인대기 회원인지
+        # 다시 확인하고, 결제 회원 정보(이름/생년월일/주소)가 그 계정의
+        # MemberProfile과 일치하는 경우에만 정회원으로 자동 승급한다.
+        p=rec.user.member_profile
+        if p.membership_status=='pending' and p.regular_member_requested:
+            customer_name=str((data.get('customerName') or p.name) or '').strip()
+            name_ok=(not customer_name or customer_name==p.name)
+            if name_ok:
+                p.membership_status='regular';p.save(update_fields=['membership_status'])
     return data
 
 @require_GET
