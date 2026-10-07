@@ -30,6 +30,9 @@ jobs:
       - name: Django checks
         working-directory: backend
         run: python manage.py check
+      - name: Verify migration state
+        working-directory: backend
+        run: python manage.py makemigrations partners --check --dry-run --verbosity 3
       - name: Collect and verify static assets
         working-directory: backend
         run: |
