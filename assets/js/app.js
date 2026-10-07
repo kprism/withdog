@@ -1,4 +1,34 @@
-(()=>{const slides=[...document.querySelectorAll('.hero-slide')],slideNo=document.querySelector('#slideNo'),pauseBtn=document.querySelector('#pauseBtn');let current=0,playing=true,timer;function show(index){current=(index+slides.length)%slides.length;slides.forEach((s,i)=>s.classList.toggle('active',i===current));if(slideNo)slideNo.textContent=current+1;}function start(){clearInterval(timer);timer=setInterval(()=>show(current+1),5000);}document.querySelectorAll('[data-dir]').forEach(btn=>btn.addEventListener('click',()=>{show(current+Number(btn.dataset.dir));if(playing)start();}));pauseBtn?.addEventListener('click',()=>{playing=!playing;pauseBtn.textContent=playing?'Ⅱ':'▶';playing?start():clearInterval(timer);});document.querySelector('.mobile-menu')?.addEventListener('click',()=>document.querySelector('.quick-nav')?.scrollIntoView({behavior:'smooth'}));if(!document.querySelector('link[href*="auth-modal.css"]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./assets/css/auth-modal.css';document.head.appendChild(l);}const wrap=document.createElement('div');wrap.innerHTML=`<div class="auth-overlay" id="authOverlay"><div class="auth-modal"><header class="auth-head"><h2 id="authTitle">로그인</h2><button class="auth-close" id="authClose">×</button></header><nav class="auth-tabs"><button class="auth-tab" data-auth="login">로그인</button><button class="auth-tab" data-auth="member">회원가입</button><button class="auth-tab" data-auth="partner">제휴업체 등록</button></nav><div class="auth-body"><section class="auth-panel" data-panel="login"><form class="auth-form"><label>이메일<input type="email" placeholder="example@email.com"></label><label>비밀번호<input type="password"></label><button class="auth-submit">로그인</button><p class="auth-message"></p></form></section><section class="auth-panel" data-panel="member"><form class="auth-form"><label>이름<input placeholder="홍길동"></label><div class="auth-grid"><label>생년월일<input placeholder="예) 1999.01.20"></label><label>성별<select><option>남성</option><option>여성</option></select></label></div><label>전화번호<input placeholder="010-0000-0000"></label><label>이메일 (로그인 아이디로 사용)<input type="email" placeholder="example@email.com"></label><div class="auth-grid"><label>비밀번호<input type="password"></label><label>비밀번호 확인<input type="password"></label></div><div class="auth-grid address"><label>지역<select><option>창원시</option><option>김해시</option><option>진주시</option></select></label><label>상세주소<input placeholder="상세 주소"></label></div><label class="auth-check"><input type="checkbox"><span><b>[필수]</b> 개인정보 수집·이용에 동의합니다.</span></label><div class="benefit-box"><strong>🎁 회원 혜택 안내</strong><ul><li>· 협력 동물병원 진료비 5~10% 할인</li><li>· 무료 건강검진 연 1회 제공</li><li>· 반려견 훈련·교육 프로그램 우선 신청</li><li>· 경남 반려견 축제 등 협회 행사 우선 초대</li><li>· 반려견 응급 의료 정보 공동 안내</li></ul></div><label class="auth-check"><input type="checkbox"><span><b>[선택]</b> 가입과 함께 연회비를 납부하고 정회원 혜택 및 회원증을 발급받고 싶습니다.</span></label><div class="fee-box"><strong>💳 연회비 안내</strong><h3>연회비 30,000원</h3><p>가입 후 아래 계좌로 연회비를 입금해주시면, 관리자 확인 후 <b>1년 유효기간</b>의 온라인 회원증이 마이페이지에 자동 발급됩니다.</p><div class="account">입금계좌: 은행명 000-0000-0000 (예금주: 경상남도 반려견 협회)</div><a class="benefit-link" href="benefits.html">🎁 회원 혜택 자세히 보기 →</a></div><button class="auth-submit">회원가입</button><p class="auth-message"></p></form></section><section class="auth-panel" data-panel="partner"><form class="auth-form"><div class="auth-note">동물병원·미용센터·용품점 등 반려동물 관련 업체의 제휴 신청 폼입니다.</div><label>업체명<input placeholder="예) 경남동물병원"></label><div class="auth-grid"><label>업종<select><option>동물병원</option><option>미용센터</option><option>용품점</option></select></label><label>대표자명<input></label></div><label>연락처<input placeholder="010-0000-0000"></label><label>이메일<input type="email"></label><label>업체 주소<input></label><label>제휴 제안 내용<textarea></textarea></label><button class="auth-submit">제휴 신청하기</button><p class="auth-message"></p></form></section></div></div></div>`;document.body.appendChild(wrap.firstElementChild);const overlay=document.getElementById('authOverlay'),title=document.getElementById('authTitle'),tabs=[...overlay.querySelectorAll('.auth-tab')],panels=[...overlay.querySelectorAll('.auth-panel')],authBody=overlay.querySelector('.auth-body');function activate(type){tabs.forEach(t=>t.classList.toggle('active',t.dataset.auth===type));panels.forEach(p=>p.classList.toggle('active',p.dataset.panel===type));title.textContent=type==='login'?'로그인':type==='member'?'회원가입':'제휴업체 등록';authBody.scrollTop=0;}function openAuth(type){activate(type);overlay.classList.add('open');document.body.style.overflow='hidden';}function closeAuth(){overlay.classList.remove('open');document.body.style.overflow='';}tabs.forEach(t=>t.addEventListener('click',()=>activate(t.dataset.auth)));document.getElementById('authClose').addEventListener('click',closeAuth);overlay.addEventListener('mousedown',e=>{if(e.target===overlay)closeAuth();});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAuth();});
+(()=>{const slides=[...document.querySelectorAll('.hero-slide')],slideNo=document.querySelector('#slideNo'),pauseBtn=document.querySelector('#pauseBtn');let current=0,playing=true,timer;function show(index){current=(index+slides.length)%slides.length;slides.forEach((s,i)=>s.classList.toggle('active',i===current));if(slideNo)slideNo.textContent=current+1;}function start(){clearInterval(timer);timer=setInterval(()=>show(current+1),5000);}document.querySelectorAll('[data-dir]').forEach(btn=>btn.addEventListener('click',()=>{show(current+Number(btn.dataset.dir));if(playing)start();}));pauseBtn?.addEventListener('click',()=>{playing=!playing;pauseBtn.textContent=playing?'Ⅱ':'▶';playing?start():clearInterval(timer);});document.querySelector('.mobile-menu')?.addEventListener('click',()=>document.querySelector('.quick-nav')?.scrollIntoView({behavior:'smooth'}));if(!document.querySelector('link[href*="auth-modal.css"]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./assets/css/auth-modal.css';document.head.appendChild(l);}const wrap=document.createElement('div');wrap.innerHTML=`<div class="auth-overlay" id="authOverlay"><div class="auth-modal"><header class="auth-head"><h2 id="authTitle">로그인</h2><button class="auth-close" id="authClose">×</button></header><nav class="auth-tabs"><button class="auth-tab" data-auth="login">로그인</button><button class="auth-tab" data-auth="member">회원가입</button><button class="auth-tab" data-auth="partner">제휴업체 등록</button></nav><div class="auth-body"><section class="auth-panel" data-panel="login"><form class="auth-form"><label>이메일<input type="email" placeholder="example@email.com"></label><label>비밀번호<input type="password"></label><button class="auth-submit">로그인</button><p class="auth-message"></p></form></section><section class="auth-panel" data-panel="member"><form class="auth-form"><label>이름<input placeholder="홍길동"></label><div class="auth-grid"><label>생년월일<input placeholder="예) 1999.01.20"></label><label>성별<select><option>남성</option><option>여성</option></select></label></div><label>전화번호<input placeholder="010-0000-0000"></label><label>이메일 (로그인 아이디로 사용)<input type="email" placeholder="example@email.com"></label><div class="auth-grid"><label>비밀번호<input type="password"></label><label>비밀번호 확인<input type="password"></label></div><div class="kakao-address"><label>주소</label><div class="postcode-row"><input data-postcode readonly placeholder="우편번호"><button type="button" class="address-search-btn" data-address-search>주소검색</button></div><input data-road-address readonly placeholder="도로명 또는 지번 주소"><input data-address-detail placeholder="상세주소를 입력하세요"></div><label class="auth-check"><input type="checkbox"><span><b>[필수]</b> 개인정보 수집·이용에 동의합니다.</span></label><div class="benefit-box"><strong>🎁 회원 혜택 안내</strong><ul><li>· 협력 동물병원 진료비 5~10% 할인</li><li>· 무료 건강검진 연 1회 제공</li><li>· 반려견 훈련·교육 프로그램 우선 신청</li><li>· 경남 반려견 축제 등 협회 행사 우선 초대</li><li>· 반려견 응급 의료 정보 공동 안내</li></ul></div><label class="auth-check"><input type="checkbox"><span><b>[선택]</b> 가입과 함께 연회비를 납부하고 정회원 혜택 및 회원증을 발급받고 싶습니다.</span></label><div class="fee-box"><strong>💳 연회비 안내</strong><h3>연회비 30,000원</h3><p>가입 후 아래 계좌로 연회비를 입금해주시면, 관리자 확인 후 <b>1년 유효기간</b>의 온라인 회원증이 마이페이지에 자동 발급됩니다.</p><div class="account">입금계좌: 은행명 000-0000-0000 (예금주: 경상남도 반려견 협회)</div><a class="benefit-link" href="benefits.html">🎁 회원 혜택 자세히 보기 →</a></div><button class="auth-submit">회원가입</button><p class="auth-message"></p></form></section><section class="auth-panel" data-panel="partner"><form class="auth-form"><div class="auth-note">동물병원·미용센터·용품점 등 반려동물 관련 업체의 제휴 신청 폼입니다.</div><label>업체명<input placeholder="예) 경남동물병원"></label><div class="auth-grid"><label>업종<select><option>동물병원</option><option>미용센터</option><option>용품점</option></select></label><label>대표자명<input></label></div><label>연락처<input placeholder="010-0000-0000"></label><label>이메일<input type="email"></label><label>업체 주소<input></label><label>제휴 제안 내용<textarea></textarea></label><button class="auth-submit">제휴 신청하기</button><p class="auth-message"></p></form></section></div></div></div>`;document.body.appendChild(wrap.firstElementChild);const overlay=document.getElementById('authOverlay'),title=document.getElementById('authTitle'),tabs=[...overlay.querySelectorAll('.auth-tab')],panels=[...overlay.querySelectorAll('.auth-panel')],authBody=overlay.querySelector('.auth-body');function activate(type){tabs.forEach(t=>t.classList.toggle('active',t.dataset.auth===type));panels.forEach(p=>p.classList.toggle('active',p.dataset.panel===type));title.textContent=type==='login'?'로그인':type==='member'?'회원가입':'제휴업체 등록';authBody.scrollTop=0;}function openAuth(type){activate(type);overlay.classList.add('open');document.body.style.overflow='hidden';}function closeAuth(){overlay.classList.remove('open');document.body.style.overflow='';}tabs.forEach(t=>t.addEventListener('click',()=>activate(t.dataset.auth)));document.getElementById('authClose').addEventListener('click',closeAuth);overlay.addEventListener('mousedown',e=>{if(e.target===overlay)closeAuth();});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAuth();});
+
+function loadDaumPostcode(){
+    if(window.daum?.Postcode) return Promise.resolve();
+    return new Promise((resolve,reject)=>{
+        const existing=document.querySelector('script[data-daum-postcode]');
+        if(existing){existing.addEventListener('load',resolve,{once:true});existing.addEventListener('error',reject,{once:true});return;}
+        const script=document.createElement('script');
+        script.src='https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js';
+        script.async=true;script.dataset.daumPostcode='1';script.onload=resolve;script.onerror=reject;document.head.appendChild(script);
+    });
+}
+
+overlay.addEventListener('click',async e=>{
+    const button=e.target.closest('[data-address-search]');
+    if(!button)return;
+    try{
+        await loadDaumPostcode();
+        new daum.Postcode({oncomplete(data){
+            const form=button.closest('form');
+            const postcode=form.querySelector('[data-postcode]');
+            const address=form.querySelector('[data-road-address]');
+            const detail=form.querySelector('[data-address-detail]');
+            postcode.value=data.zonecode||'';
+            address.value=data.roadAddress||data.jibunAddress||'';
+            address.dataset.sido=data.sido||'';
+            address.dataset.sigungu=data.sigungu||'';
+            detail.focus();
+        }}).open();
+    }catch(_){alert('주소 검색 서비스를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');}
+});
 
 /* === CSRF SUPPORT === */
 
@@ -195,13 +225,18 @@ overlay.querySelectorAll('form').forEach(form => {
         const email = inputs[3]?.value.trim() || '';
         const password = inputs[4]?.value || '';
         const password2 = inputs[5]?.value || '';
-        const address_detail = inputs[6]?.value.trim() || '';
+        const roadAddress = form.querySelector('[data-road-address]');
+        const detailAddress = form.querySelector('[data-address-detail]');
+        const postcode = form.querySelector('[data-postcode]')?.value.trim() || '';
+        const baseAddress = roadAddress?.value.trim() || '';
+        const detailValue = detailAddress?.value.trim() || '';
+        const address_detail = [baseAddress, detailValue].filter(Boolean).join(' ');
 
-        const privacy = inputs[7]?.checked || false;
-        const regular = inputs[8]?.checked || false;
+        const privacy = form.querySelector('.auth-check input[type="checkbox"]')?.checked || false;
+        const regular = form.querySelectorAll('.auth-check input[type="checkbox"]')[1]?.checked || false;
 
         const genderText = selects[0]?.value || '';
-        const region = selects[1]?.value || '';
+        const region = [roadAddress?.dataset.sido, roadAddress?.dataset.sigungu].filter(Boolean).join(' ') || baseAddress.split(' ').slice(0,2).join(' ');
 
         let gender = '';
         if(genderText === '남성') gender = 'M';
@@ -211,6 +246,11 @@ overlay.querySelectorAll('form').forEach(form => {
         if(!name || !phone || !email || !password){
             if(msg) msg.textContent =
                 '필수 정보를 모두 입력해 주세요.';
+            return;
+        }
+
+        if(!baseAddress){
+            if(msg) msg.textContent = '주소검색을 눌러 주소를 선택해 주세요.';
             return;
         }
 
