@@ -38,6 +38,7 @@ jobs:
         run: |
           python manage.py collectstatic --noinput
           test -s staticfiles/member_card_stamp.webp
+          test "$(stat -c%s staticfiles/member_card_stamp.webp)" = "10146"
           python - <<'PY'
           import hashlib
           from pathlib import Path
