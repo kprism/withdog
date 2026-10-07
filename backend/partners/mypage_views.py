@@ -48,5 +48,9 @@ def membership_card(request):
             'joined_date': joined_date.strftime('%Y.%m.%d'),
             'expiry_date': expiry_date.strftime('%Y.%m.%d'),
             'membership_label': membership_label,
+            'birth_date': profile.birth_date.strftime('%Y.%m.%d') if profile.birth_date else '-',
+            'address_short': ' '.join((profile.region or profile.address_detail or '').split()[:2]),
+            'phone': profile.phone or '-',
+            'gender_code': profile.gender if profile.gender in ('M','F') else '-',
         },
     )
