@@ -1076,3 +1076,33 @@ class ChatbotSetting(models.Model):
 
     def __str__(self):
         return self.bot_name
+
+
+class TossPaymentSetting(models.Model):
+    id=models.PositiveSmallIntegerField(primary_key=True,default=1,editable=False)
+    test_client_key=models.CharField(max_length=255,blank=True,default='')
+    test_secret_key=models.CharField(max_length=255,blank=True,default='')
+    live_client_key=models.CharField(max_length=255,blank=True,default='')
+    live_secret_key=models.CharField(max_length=255,blank=True,default='')
+    live_enabled=models.BooleanField(default=False)
+    annual_fee=models.PositiveIntegerField(default=30000)
+    updated_at=models.DateTimeField(auto_now=True)
+    @classmethod
+    def get_solo(cls):
+        obj,_=cls.objects.get_or_create(pk=1);return obj
+
+class PaymentRecord(models.Model):
+    ENVIRONMENTS=[('test','테스트'),('live','라이브')]
+    user=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT,related_name='payment_records')
+    environment=models.CharField(max_length=10,choices=ENVIRONMENTS,default='test',db_index=True)
+    order_id=models.CharField(max_length=64,unique=True)
+    payment_key=models.CharField(max_length=200,blank=True,default='',db_index=True)
+    order_name=models.CharField(max_length=100,default='정회원 연회비')
+    amount=models.PositiveIntegerField(default=30000)
+    status=models.CharField(max_length=30,default='READY',db_index=True)
+    method=models.CharField(max_length=50,blank=True,default='')
+    approved_at=models.DateTimeField(null=True,blank=True)
+    raw_response=models.JSONField(default=dict,blank=True)
+    created_at=models.DateTimeField(auto_now_add=True)
+    updated_at=models.DateTimeField(auto_now=True)
+    class Meta: ordering=['-created_at']
