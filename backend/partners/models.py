@@ -1086,6 +1086,11 @@ class TossPaymentSetting(models.Model):
     live_secret_key=models.CharField(max_length=255,blank=True,default='')
     live_enabled=models.BooleanField(default=False)
     annual_fee=models.PositiveIntegerField(default=30000)
+    settlement_bank=models.CharField(max_length=80,blank=True,default='')
+    settlement_account=models.CharField(max_length=100,blank=True,default='')
+    settlement_holder=models.CharField(max_length=100,blank=True,default='')
+    settlement_cycle=models.CharField(max_length=100,blank=True,default='')
+    card_fee_rate=models.DecimalField(max_digits=5,decimal_places=2,default=0)
     updated_at=models.DateTimeField(auto_now=True)
     @classmethod
     def get_solo(cls):
