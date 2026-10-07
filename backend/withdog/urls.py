@@ -19,7 +19,11 @@ def public_home(request):
     """Serve the live homepage without allowing stale HTML to mask deployed UI fixes."""
     from partners.models import SiteSetting
     s=SiteSetting.get_solo()
+    import re
+    import json
     html=(ROOT / 'index.html').read_text(encoding='utf-8')
+    html=re.sub(r'<title[^>]*>.*?</title>', '', html, count=1, flags=re.I|re.S)
+    html=re.sub(r'<meta\\s+name=["\\']description["\\'][^>]*>', '', html, count=1, flags=re.I)
     title=escape(s.site_name or '경상남도 반려견 협회')
     desc=escape(s.meta_description or s.site_subtitle or '')
     canonical=escape(s.canonical_url or request.build_absolute_uri('/'))
@@ -31,11 +35,16 @@ def public_home(request):
         f'<meta property="og:description" content="{escape(s.og_description or s.meta_description or s.site_subtitle or "")}">',
         f'<meta property="og:url" content="{canonical}">',
         '<meta property="og:type" content="website">',
+        '<meta property="og:site_name" content="'+title+'">',
+        '<meta name="robots" content="index,follow,max-image-preview:large">',
+        '<meta name="twitter:card" content="summary_large_image">',
     ]
     if s.meta_keywords: tags.append(f'<meta name="keywords" content="{escape(s.meta_keywords)}">')
     if s.naver_site_verification: tags.append(f'<meta name="naver-site-verification" content="{escape(s.naver_site_verification)}">')
     if s.google_site_verification: tags.append(f'<meta name="google-site-verification" content="{escape(s.google_site_verification)}">')
     if s.og_image_url: tags.append(f'<meta property="og:image" content="{escape(s.og_image_url)}">')
+    organization={'@context':'https://schema.org','@type':'Organization','name':str(s.site_name or '경상남도 반려견 협회'),'url':str(s.canonical_url or 'https://thepetkorea.co.kr/')}
+    tags.append('<script type="application/ld+json">'+json.dumps(organization,ensure_ascii=False).replace('</','<\\/')+'</script>')
     if s.favicon:
         try: tags.append(f'<link rel="icon" href="{escape(s.favicon.url)}">')
         except ValueError: pass
