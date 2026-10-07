@@ -59,6 +59,27 @@ def public_home(request):
 
 
 
+def public_static_page(request, filename):
+    """Serve legacy public HTML through an explicit route and force the intro header/footer markup."""
+    import re
+    allowed={'about.html','benefits.html','partners.html','breeds.html','join.html'}
+    if filename not in allowed:
+        raise Http404('page not found')
+    page=(ROOT / filename).read_text(encoding='utf-8')
+    intro=(ROOT / 'index.html').read_text(encoding='utf-8')
+    header=re.search(r'<header class="site-header"[\\s\\S]*?</header>',intro,re.I)
+    footer=re.search(r'<footer class="footer"[\\s\\S]*?</footer>',intro,re.I)
+    if header:
+        page=re.sub(r'<header[\\s\\S]*?</header>',header.group(0),page,count=1,flags=re.I)
+    if footer:
+        page=re.sub(r'<footer[\\s\\S]*?</footer>',footer.group(0),page,count=1,flags=re.I)
+    if 'assets/css/style.css' not in page:
+        page=page.replace('</head>','<link rel="stylesheet" href="/assets/css/style.css?v=20261007-router-sync"></head>',1)
+    response=HttpResponse(page,content_type='text/html; charset=utf-8')
+    response['Cache-Control']='no-store, no-cache, must-revalidate, max-age=0'
+    return response
+
+
 def favicon(request):
     """Stable root favicon URL backed by the favicon selected in Site Settings."""
     from partners.models import SiteSetting
@@ -275,6 +296,14 @@ urlpatterns = [
         website_views.public_community_delete,
         name='public_community_delete',
     ),
+
+    # 공개 정적 페이지도 catch-all에 맡기지 않고 명시적으로 라우팅한다.
+    # 응답 시 인트로(index.html)의 헤더/푸터를 그대로 주입한다.
+    path('about.html', public_static_page, {'filename':'about.html'}, name='public_about'),
+    path('benefits.html', public_static_page, {'filename':'benefits.html'}, name='public_benefits'),
+    path('partners.html', public_static_page, {'filename':'partners.html'}, name='public_partners'),
+    path('breeds.html', public_static_page, {'filename':'breeds.html'}, name='public_breeds_legacy'),
+    path('join.html', public_static_page, {'filename':'join.html'}, name='public_join'),
 
     # 기존 정적 홈페이지 파일
     re_path(
