@@ -130,7 +130,7 @@ jobs:
               ('https://thepetkorea.co.kr/mypage/', False),
               ('https://thepetkorea.co.kr/sitemap.xml', True),
               ('https://thepetkorea.co.kr/robots.txt', True),
-              ('https://thepetkorea.co.kr/static/member_card_stamp.webp?v=20261007-2', True),
+              ('https://thepetkorea.co.kr/static/member_card_stamp.webp?v=20261007-3', True),
           ]
           for url, must_be_200 in checks:
               req = urllib.request.Request(url, method='GET')
