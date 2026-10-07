@@ -95,6 +95,17 @@ class MemberProfile(models.Model):
     GENDERS=[('M','남성'),('F','여성'),('O','기타')]; STATUSES=[('general','일반회원'),('pending','정회원 승인대기'),('regular','정회원'),('withdrawn','탈퇴')]
     user=models.OneToOneField(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name='member_profile'); name=models.CharField(max_length=80); birth_date=models.DateField(null=True,blank=True); gender=models.CharField(max_length=1,choices=GENDERS,blank=True); phone=models.CharField(max_length=30,blank=True); region=models.CharField(max_length=40,blank=True); address_detail=models.CharField(max_length=250,blank=True); privacy_agreed=models.BooleanField(default=False); regular_member_requested=models.BooleanField(default=False); membership_status=models.CharField(max_length=20,choices=STATUSES,default='general'); joined_at=models.DateTimeField(auto_now_add=True)
     def __str__(self): return self.name or self.user.get_username()
+class MembershipCardGrant(models.Model):
+    SOURCES=[('legacy','기존 정회원 예외발급'),('payment','토스 연회비 결제')]
+    user=models.OneToOneField(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name='membership_card_grant')
+    source=models.CharField(max_length=20,choices=SOURCES)
+    payment=models.OneToOneField('PaymentRecord',on_delete=models.SET_NULL,null=True,blank=True,related_name='membership_card_grant')
+    issued_at=models.DateTimeField(auto_now_add=True)
+    valid_from=models.DateField()
+    valid_to=models.DateField()
+    is_active=models.BooleanField(default=True)
+    def __str__(self): return f'{self.user} · {self.get_source_display()}'
+
 class DogRegistration(models.Model):
     STATUS=[('pending','승인대기'),('approved','승인'),('rejected','반려')]
     owner=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name='dogs'); dog_name=models.CharField(max_length=80); registration_no=models.CharField(max_length=80,blank=True); breed=models.CharField(max_length=100,blank=True); birth_date=models.DateField(null=True,blank=True); gender=models.CharField(max_length=20,blank=True); status=models.CharField(max_length=20,choices=STATUS,default='pending'); created_at=models.DateTimeField(auto_now_add=True)
