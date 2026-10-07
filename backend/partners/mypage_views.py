@@ -3,6 +3,7 @@ from datetime import date
 from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from django.shortcuts import redirect, render
+from .models import SiteSetting
 
 from .models import MemberProfile
 
@@ -52,5 +53,6 @@ def membership_card(request):
             'address_short': ' '.join((profile.region or profile.address_detail or '').split()[:2]),
             'phone': profile.phone or '-',
             'gender_code': profile.gender if profile.gender in ('M','F') else '-',
+            'kakao_javascript_key': SiteSetting.get_solo().kakao_javascript_key,
         },
     )
