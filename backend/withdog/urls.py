@@ -63,7 +63,7 @@ def sitemap_xml(request):
     """Standards-compliant public sitemap for Google and Naver crawlers."""
     from xml.etree.ElementTree import Element, SubElement, tostring
     from django.utils import timezone
-    from partners.models import ContentItem, DogBreed, SiteSetting
+    from partners.models import BoardPost, DogBreed, SiteSetting
 
     s = SiteSetting.get_solo()
     base = (s.canonical_url or 'https://thepetkorea.co.kr/').strip().rstrip('/')
@@ -78,7 +78,7 @@ def sitemap_xml(request):
     entries = [(p, static_lastmod) for p in paths]
     entries += [
         (f'/board/{x.pk}/', x.updated_at.date().isoformat())
-        for x in ContentItem.objects.filter(kind='notice', is_published=True).only('pk', 'updated_at')
+        for x in BoardPost.objects.filter(board_type='notice', is_published=True, is_hidden=False).only('pk', 'updated_at')
     ]
     entries += [
         (f'/breeds/{x.slug}/', x.updated_at.date().isoformat())
