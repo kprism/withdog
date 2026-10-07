@@ -39,6 +39,13 @@ jobs:
           python manage.py collectstatic --noinput
           test -s staticfiles/member_card_stamp.webp
           python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected='f56646ab808b7d0aa5f84cfc3bba61d0829adc40bdfd73ee5f230183993d6a42'
+          actual=hashlib.sha256(Path('staticfiles/member_card_stamp.webp').read_bytes()).hexdigest()
+          assert actual == expected, (actual, expected)
+          PY
+          python - <<'PY'
           from pathlib import Path
           p=Path('partners/templates/website/mypage.html').read_text(encoding='utf-8')
           h=Path('partners/templates/website/includes/public_header.html').read_text(encoding='utf-8')
@@ -118,6 +125,7 @@ jobs:
       - name: Verify public endpoints and membership image
         run: |
           python - <<'PY'
+          import hashlib
           import urllib.error
           import urllib.request
           import xml.etree.ElementTree as ET
@@ -145,6 +153,15 @@ jobs:
                   print(url, exc.code)
                   if must_be_200 or exc.code >= 500:
                       raise
+          stamp_url='https://thepetkorea.co.kr/static/member_card_stamp.webp?v=20261007-3'
+          with urllib.request.urlopen(stamp_url, timeout=20) as response:
+              stamp_bytes=response.read()
+              stamp_hash=hashlib.sha256(stamp_bytes).hexdigest()
+              expected_stamp='f56646ab808b7d0aa5f84cfc3bba61d0829adc40bdfd73ee5f230183993d6a42'
+              print('MEMBER_CARD_STAMP_SHA256', stamp_hash)
+              if stamp_hash != expected_stamp:
+                  raise SystemExit(f'Membership stamp mismatch: {stamp_hash}')
+
           # Validate that public pages use the canonical authenticated-aware shell.
           for url in ['https://thepetkorea.co.kr/','https://thepetkorea.co.kr/about.html','https://thepetkorea.co.kr/benefits.html','https://thepetkorea.co.kr/partners.html']:
               with urllib.request.urlopen(url, timeout=20) as response:
