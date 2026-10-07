@@ -81,6 +81,7 @@ jobs:
               ('https://thepetkorea.co.kr/static/member_dog_stamp.webp', True),
               ('https://thepetkorea.co.kr/sitemap.xml', True),
               ('https://thepetkorea.co.kr/robots.txt', True),
+              ('https://thepetkorea.co.kr/sitemap.xml', True),
           ]
           for url, must_be_200 in checks:
               req = urllib.request.Request(url, method='GET')
