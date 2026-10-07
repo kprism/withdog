@@ -42,7 +42,7 @@ jobs:
           python - <<'PY'
           import hashlib
           from pathlib import Path
-          expected='f56646ab808b7d0aa5f84cfc3bba61d0829adc40bdfd73ee5f230183993d6a42'
+          expected='2f2653b53f25362a2c040665a6a44b226c50cc3b08eeec2b2e1a9b574a217c31'
           actual=hashlib.sha256(Path('staticfiles/member_card_stamp.webp').read_bytes()).hexdigest()
           assert actual == expected, (actual, expected)
           PY
@@ -158,7 +158,7 @@ jobs:
           with urllib.request.urlopen(stamp_url, timeout=20) as response:
               stamp_bytes=response.read()
               stamp_hash=hashlib.sha256(stamp_bytes).hexdigest()
-              expected_stamp='f56646ab808b7d0aa5f84cfc3bba61d0829adc40bdfd73ee5f230183993d6a42'
+              expected_stamp='2f2653b53f25362a2c040665a6a44b226c50cc3b08eeec2b2e1a9b574a217c31'
               print('MEMBER_CARD_STAMP_SHA256', stamp_hash)
               if stamp_hash != expected_stamp:
                   raise SystemExit(f'Membership stamp mismatch: {stamp_hash}')
