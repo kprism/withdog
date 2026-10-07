@@ -186,14 +186,16 @@ def member_register(request):
             status=500,
         )
 
-    return JsonResponse(
-        {
-            "ok": True,
-            "message": "가입을 축하드립니다.",
-            "email": email,
-        },
-        status=201,
-    )
+    result={"ok":True,"message":"가입을 축하드립니다.","email":email,"payment_required":False}
+    if regular_member_requested:
+        from .payment_views import create_membership_payment
+        payment,error=create_membership_payment(user)
+        if payment:
+            result["payment_required"]=True
+            result["payment"]=payment
+        else:
+            result["payment_message"]=error
+    return JsonResponse(result,status=201)
 
 
 # === PUBLIC CSRF COOKIE API ===
