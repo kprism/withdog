@@ -35,6 +35,7 @@ jobs:
         run: |
           python manage.py collectstatic --noinput
           test -s staticfiles/member_dog_stamp.webp
+          python manage.py test partners --noinput
 
   deploy:
     needs: test
@@ -67,7 +68,7 @@ jobs:
             --project=thepetkorea \
             --zone=asia-northeast3-a \
             --quiet \
-            --command="set -e; cd /home/mstclma00/withdog; sudo -u mstclma00 git fetch origin intro-homepage; sudo -u mstclma00 git checkout intro-homepage; sudo -u mstclma00 git reset --hard ${DEPLOY_SHA}; cd backend; sudo -u mstclma00 .venv/bin/python manage.py migrate --noinput; sudo -u mstclma00 .venv/bin/python manage.py check; sudo -u mstclma00 .venv/bin/python manage.py collectstatic --noinput; test -s staticfiles/member_dog_stamp.webp; sudo systemctl restart thepetkorea; sleep 3; systemctl is-active --quiet thepetkorea; curl -fsS http://127.0.0.1:8000/ >/dev/null; curl -fsS http://127.0.0.1:8000/sitemap.xml >/dev/null; curl -fsS http://127.0.0.1:8000/robots.txt >/dev/null"
+            --command="set -e; cd /home/mstclma00/withdog; sudo -u mstclma00 git fetch origin intro-homepage; sudo -u mstclma00 git checkout intro-homepage; sudo -u mstclma00 git reset --hard ${DEPLOY_SHA}; cd backend; sudo -u mstclma00 .venv/bin/python manage.py migrate --noinput; sudo -u mstclma00 .venv/bin/python manage.py check; sudo -u mstclma00 .venv/bin/python manage.py collectstatic --noinput; test -s staticfiles/member_dog_stamp.webp; sudo systemctl daemon-reload; sudo systemctl restart thepetkorea; sleep 3; systemctl is-active --quiet thepetkorea; test \"$(sudo -u mstclma00 git rev-parse HEAD)\" = \"\${DEPLOY_SHA}\"; curl -fsS http://127.0.0.1:8000/ >/dev/null; curl -fsS http://127.0.0.1:8000/sitemap.xml >/dev/null; curl -fsS http://127.0.0.1:8000/robots.txt >/dev/null"
 
       - name: Verify public endpoints and membership image
         run: |
@@ -78,6 +79,9 @@ jobs:
 
           checks = [
               ('https://thepetkorea.co.kr/', False),
+              ('https://thepetkorea.co.kr/about.html', True),
+              ('https://thepetkorea.co.kr/benefits.html', True),
+              ('https://thepetkorea.co.kr/partners.html', True),
               ('https://thepetkorea.co.kr/mypage/', False),
               ('https://thepetkorea.co.kr/static/member_dog_stamp.webp', True),
               ('https://thepetkorea.co.kr/sitemap.xml', True),
@@ -96,6 +100,15 @@ jobs:
                   print(url, exc.code)
                   if must_be_200 or exc.code >= 500:
                       raise
+          # Validate that public subpages actually carry the same intro shell.
+          for url in ['https://thepetkorea.co.kr/about.html','https://thepetkorea.co.kr/benefits.html','https://thepetkorea.co.kr/partners.html']:
+              with urllib.request.urlopen(url, timeout=20) as response:
+                  html=response.read().decode('utf-8','replace')
+                  if 'class="site-header"' not in html or 'class="footer"' not in html:
+                      raise SystemExit(f'Public shell validation failed: {url}')
+                  if 'Gyeongnam Pet Dog Association' not in html:
+                      raise SystemExit(f'Intro footer/header content missing: {url}')
+
           # Validate Googlebot-visible homepage and sitemap, not just HTTP 200.
           googlebot = {'User-Agent': 'Googlebot'}
           with urllib.request.urlopen(urllib.request.Request('https://thepetkorea.co.kr/', headers=googlebot), timeout=20) as response:
