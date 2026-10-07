@@ -70,3 +70,10 @@ urlpatterns += [
         name="member_reset_password",
     ),
 ]
+
+
+from . import payment_views
+urlpatterns += [
+    _member_path('payments/success/', payment_views.payment_success, name='payment_success'),
+    _member_path('payments/fail/', payment_views.payment_fail, name='payment_fail'),
+]
