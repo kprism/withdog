@@ -59,7 +59,7 @@ jobs:
             --quiet \
             --command="sudo git config --global --add safe.directory /home/mstclma00/withdog"
 
-      - name: Deploy exact tested commit to GCE
+      - name: Deploy exact tested commit and migrate before restart
         env:
           DEPLOY_SHA: ${{ github.sha }}
         run: |
@@ -67,15 +67,7 @@ jobs:
             --project=thepetkorea \
             --zone=asia-northeast3-a \
             --quiet \
-            --command="sudo /usr/local/sbin/deploy-thepetkorea ${DEPLOY_SHA}"
-
-      - name: Collect static assets on production
-        run: |
-          gcloud compute ssh thepetkorea-main-vm \
-            --project=thepetkorea \
-            --zone=asia-northeast3-a \
-            --quiet \
-            --command="cd /home/mstclma00/withdog/backend && sudo -u mstclma00 .venv/bin/python manage.py migrate --noinput && sudo -u mstclma00 .venv/bin/python manage.py collectstatic --noinput && test -s staticfiles/member_dog_stamp.webp && sudo systemctl restart thepetkorea"
+            --command="set -e; cd /home/mstclma00/withdog; sudo -u mstclma00 git fetch origin intro-homepage; sudo -u mstclma00 git checkout intro-homepage; sudo -u mstclma00 git reset --hard ${DEPLOY_SHA}; cd backend; sudo -u mstclma00 .venv/bin/python manage.py migrate --noinput; sudo -u mstclma00 .venv/bin/python manage.py check; sudo -u mstclma00 .venv/bin/python manage.py collectstatic --noinput; test -s staticfiles/member_dog_stamp.webp; sudo systemctl restart thepetkorea; sleep 3; systemctl is-active --quiet thepetkorea; curl -fsS http://127.0.0.1:8000/ >/dev/null; curl -fsS http://127.0.0.1:8000/sitemap.xml >/dev/null; curl -fsS http://127.0.0.1:8000/robots.txt >/dev/null"
 
       - name: Verify public endpoints and membership image
         run: |
