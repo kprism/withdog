@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from django.shortcuts import redirect, render
 
-from .models import AboutPageSetting, MemberProfile, MembershipCardGrant, SiteSetting
+from .models import MemberProfile, MembershipCardGrant, SiteSetting
 
 
 def _safe_file_url(field):
@@ -51,18 +51,6 @@ def membership_card(request):
         )
 
     site_setting = SiteSetting.get_solo()
-    about_setting = AboutPageSetting.get_solo()
-
-    member_card_dog_image = (
-        _safe_file_url(about_setting.member_card_image)
-        or _safe_file_url(site_setting.logo)
-    )
-    member_card_share_image = member_card_dog_image
-    if member_card_share_image.startswith('/'):
-        member_card_share_image = request.build_absolute_uri(
-            member_card_share_image
-        )
-
     membership_label = dict(MemberProfile.STATUSES).get(
         profile.membership_status,
         profile.membership_status,
@@ -94,7 +82,5 @@ def membership_card(request):
                 else '-'
             ),
             'kakao_javascript_key': site_setting.kakao_javascript_key,
-            'member_card_dog_image': member_card_dog_image,
-            'member_card_share_image': member_card_share_image,
         },
     )
