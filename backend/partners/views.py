@@ -545,3 +545,22 @@ def public_partner_map_api(request):
         'categories': categories,
         'cities': cities,
     })
+
+
+def _public_member_payload(user):
+    p=user.member_profile
+    address_short=' '.join((p.region or p.address_detail or '').split()[:2])
+    return {'email':user.email or user.username,'name':p.name,'birth_date':p.birth_date.strftime('%Y.%m.%d') if p.birth_date else '','gender':p.gender if p.gender in ('M','F') else '','phone':p.phone,'address_short':address_short,'membership_status':p.membership_status,'member_no':f'GN-{user.pk:06d}'}
+
+@require_GET
+def member_mypage(request):
+    if not request.user.is_authenticated or request.user.is_staff:return JsonResponse({'ok':False,'message':'로그인이 필요합니다.'},status=401)
+    return JsonResponse({'ok':True,'user':_public_member_payload(request.user)})
+
+@require_POST
+def member_self_withdraw(request):
+    if not request.user.is_authenticated or request.user.is_staff:return JsonResponse({'ok':False,'message':'로그인이 필요합니다.'},status=401)
+    user=request.user;p=user.member_profile
+    p.membership_status='withdrawn';p.regular_member_requested=False;p.save(update_fields=['membership_status','regular_member_requested'])
+    user.is_active=False;user.save(update_fields=['is_active']);logout(request)
+    return JsonResponse({'ok':True,'message':'회원 탈퇴가 완료되었습니다.'})
