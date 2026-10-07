@@ -317,7 +317,21 @@ overlay.querySelectorAll('form').forEach(form => {
             }
 
             form.reset();
-            showJoinSuccess(data.email || email);
+            if(data.payment_required && data.payment){
+                try{
+                    if(!window.TossPayments){
+                        await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://js.tosspayments.com/v2/standard';s.onload=resolve;s.onerror=reject;document.head.appendChild(s);});
+                    }
+                    const tossPayments=TossPayments(data.payment.client_key);
+                    const payment=tossPayments.payment({customerKey:TossPayments.ANONYMOUS});
+                    await payment.requestPayment({method:'CARD',amount:{currency:'KRW',value:data.payment.amount},orderId:data.payment.order_id,orderName:data.payment.order_name,customerName:data.payment.customer_name,customerEmail:data.payment.customer_email,successUrl:location.origin+'/api/payments/success/',failUrl:location.origin+'/api/payments/fail/'});
+                }catch(error){
+                    if(msg) msg.textContent=error?.message || '결제창을 열지 못했습니다.';
+                }
+            }else{
+                showJoinSuccess(data.email || email);
+                if(data.payment_message && msg) msg.textContent=data.payment_message;
+            }
 
         }catch(error){
             if(msg){
