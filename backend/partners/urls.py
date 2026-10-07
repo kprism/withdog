@@ -77,3 +77,6 @@ urlpatterns += [
     _member_path('payments/success/', payment_views.payment_success, name='payment_success'),
     _member_path('payments/fail/', payment_views.payment_fail, name='payment_fail'),
 ]
+
+from .views import member_mypage, member_self_withdraw
+urlpatterns += [_member_path('member-mypage/',member_mypage,name='member_mypage'),_member_path('member-withdraw/',member_self_withdraw,name='member_self_withdraw')]
