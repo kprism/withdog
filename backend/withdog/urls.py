@@ -14,6 +14,17 @@ from django.views.decorators.cache import never_cache
 ROOT = Path(__file__).resolve().parents[2]
 
 
+def _render_public_shell(request, html):
+    """Render the canonical public header/footer without consuming page scripts."""
+    import re
+    from django.template.loader import render_to_string
+    header = render_to_string('website/includes/public_header.html', request=request)
+    footer = render_to_string('website/includes/public_footer.html', request=request)
+    html = re.sub(r'<header class="site-header"[\\s\\S]*?</header>', header, html, count=1, flags=re.I)
+    html = re.sub(r'<footer class="footer"[\\s\\S]*?</footer>', footer, html, count=1, flags=re.I)
+    return html
+
+
 @never_cache
 def public_home(request):
     """Serve the live homepage without allowing stale HTML to mask deployed UI fixes."""
@@ -22,6 +33,7 @@ def public_home(request):
     import re
     import json
     html=(ROOT / 'index.html').read_text(encoding='utf-8')
+    html=_render_public_shell(request, html)
     html=re.sub(r'<title[^>]*>.*?</title>', '', html, count=1, flags=re.I|re.S)
     html=re.sub(r"""<meta\s+name=["']description["'][^>]*>""", '', html, count=1, flags=re.I)
     title=escape(s.site_name or '경상남도 반려견 협회')
@@ -66,13 +78,7 @@ def public_static_page(request, filename):
     if filename not in allowed:
         raise Http404('page not found')
     page=(ROOT / filename).read_text(encoding='utf-8')
-    intro=(ROOT / 'index.html').read_text(encoding='utf-8')
-    header=re.search(r'<header class="site-header"[\\s\\S]*?</header>',intro,re.I)
-    footer=re.search(r'<footer class="footer"[\\s\\S]*?</footer>',intro,re.I)
-    if header:
-        page=re.sub(r'<header[\\s\\S]*?</header>',header.group(0),page,count=1,flags=re.I)
-    if footer:
-        page=re.sub(r'<footer[\\s\\S]*?</footer>',footer.group(0),page,count=1,flags=re.I)
+    page=_render_public_shell(request, page)
     if 'assets/css/style.css' not in page:
         page=page.replace('</head>','<link rel="stylesheet" href="/assets/css/style.css?v=20261007-router-sync"></head>',1)
     response=HttpResponse(page,content_type='text/html; charset=utf-8')
