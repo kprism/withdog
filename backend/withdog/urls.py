@@ -20,8 +20,8 @@ def _render_public_shell(request, html):
     from django.template.loader import render_to_string
     header = render_to_string('website/includes/public_header.html', request=request)
     footer = render_to_string('website/includes/public_footer.html', request=request)
-    html = re.sub(r'<header class="site-header"[\\s\\S]*?</header>', header, html, count=1, flags=re.I)
-    html = re.sub(r'<footer class="footer"[\\s\\S]*?</footer>', footer, html, count=1, flags=re.I)
+    html = re.sub(r'<header class="site-header".*?</header>', header, html, count=1, flags=re.I | re.S)
+    html = re.sub(r'<footer class="footer".*?</footer>', footer, html, count=1, flags=re.I | re.S)
     return html
 
 
