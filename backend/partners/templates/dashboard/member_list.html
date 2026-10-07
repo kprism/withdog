@@ -76,12 +76,11 @@
                name="status"
                value="{{ status }}">
 
-        <input name="q"
-               value="{{ q }}"
-               placeholder="이름·전화·이메일·지역 검색"
-               style="flex:1;padding:12px;border:1px solid #ddd;border-radius:8px">
-
-        <button class="btn dark">검색</button>
+        <input name="q" value="{{ q }}" placeholder="이름·전화·이메일·주소 검색" style="flex:1;padding:12px;border:1px solid #ddd;border-radius:8px">
+        <select name="region" style="padding:12px;border:1px solid #ddd;border-radius:8px"><option value="">전체 지역</option>{% for x in regions %}<option value="{{ x }}" {% if region == x %}selected{% endif %}>{{ x }}</option>{% endfor %}</select>
+        <select name="grade" style="padding:12px;border:1px solid #ddd;border-radius:8px"><option value="">전체 회원구분</option><option value="general" {% if grade == 'general' %}selected{% endif %}>일반회원</option><option value="pending" {% if grade == 'pending' %}selected{% endif %}>정회원 승인대기</option><option value="regular" {% if grade == 'regular' %}selected{% endif %}>정회원</option><option value="withdrawn" {% if grade == 'withdrawn' %}selected{% endif %}>탈퇴</option></select>
+        <select name="sort" style="padding:12px;border:1px solid #ddd;border-radius:8px"><option value="name_asc" {% if sort == 'name_asc' %}selected{% endif %}>이름 가나다순</option><option value="name_desc" {% if sort == 'name_desc' %}selected{% endif %}>이름 역순</option><option value="region_asc" {% if sort == 'region_asc' %}selected{% endif %}>지역 가나다순</option><option value="region_desc" {% if sort == 'region_desc' %}selected{% endif %}>지역 역순</option><option value="joined_desc" {% if sort == 'joined_desc' %}selected{% endif %}>최근 가입순</option><option value="joined_asc" {% if sort == 'joined_asc' %}selected{% endif %}>오래된 가입순</option></select>
+        <button class="btn dark">필터 적용</button>
     </form>
 
     <div style="overflow:auto">
@@ -143,6 +142,8 @@
                                 탈퇴처리
                             </button>
                         </form>
+                        {% else %}
+                        <form method="post" action="{% url 'operator_dashboard:member_delete' r.id %}" style="display:inline" onsubmit="return confirm('이 탈퇴회원 계정을 완전히 삭제하시겠습니까? 결제 등 관련 데이터도 함께 삭제될 수 있습니다.')">{% csrf_token %}<button class="badge" style="border:0;cursor:pointer;background:#c91f26;color:#fff">삭제</button></form>
                         {% endif %}
                     </td>
                 </tr>
