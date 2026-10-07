@@ -6,6 +6,21 @@ from django.db.models import Q, Max
 from django.shortcuts import get_object_or_404, redirect, render
 from .models import ContentItem, SiteSetting, AboutPageSetting, AboutHistoryItem, AboutOrgItem
 
+def _seo_context(request, title, description, path, *, image='', og_type='website', json_ld=None, robots='index,follow,max-image-preview:large'):
+    import json
+    from django.utils.html import strip_tags
+    s=SiteSetting.get_solo()
+    base=(s.canonical_url or 'https://thepetkorea.co.kr/').rstrip('/')
+    desc=' '.join(strip_tags(description or '').split())[:300] or (s.meta_description or s.site_subtitle or '')
+    try: favicon=request.build_absolute_uri(s.favicon.url) if s.favicon else ''
+    except ValueError: favicon=''
+    if image and image.startswith('/'): image=base+image
+    data={'title':title[:200], 'description':desc, 'canonical':base+path, 'site_name':s.site_name,
+          'image':image or s.og_image_url, 'og_type':og_type, 'robots':robots,
+          'naver_verification':s.naver_site_verification, 'google_verification':s.google_site_verification,
+          'favicon':favicon, 'json_ld':json.dumps(json_ld, ensure_ascii=False) if json_ld else ''}
+    return data
+
 SECTIONS={'hero':('메인 비주얼','메인 첫 화면의 이미지·영상 슬라이드'),'intro':('홈페이지 콘텐츠','인트로 카드 영역의 이미지·영상 콘텐츠')}
 
 @staff_member_required
@@ -394,6 +409,7 @@ def public_breed_list(request):
         'selected_group': selected_group,
         'groups': groups,
         'total_count': breeds.count(),
+        'seo': _seo_context(request, '전 세계 견종 | 경상남도 반려견 협회', 'FCI 분류와 원산지, 역사, 외형, 성격 등 전 세계 견종 정보를 확인하세요.', '/breeds/', robots=('noindex,follow' if q or group else 'index,follow,max-image-preview:large')),
     }
 
     return render(
@@ -433,6 +449,7 @@ def public_breed_detail(request, slug):
         {
             'breed': breed,
             'related_breeds': related_breeds,
+            'seo': _seo_context(request, f'{breed.name_ko} 특징·성격·역사 | 경상남도 반려견 협회', breed.summary or f'{breed.name_ko}의 원산지, FCI 분류, 외형, 성격과 역사를 확인하세요.', f'/breeds/{breed.slug}/', image=(breed.image.url if breed.image else breed.image_url), json_ld={'@context':'https://schema.org','@type':'WebPage','name':breed.name_ko,'description':breed.summary or breed.description,'url':request.build_absolute_uri(), 'breadcrumb':{'@type':'BreadcrumbList','itemListElement':[{'@type':'ListItem','position':1,'name':'홈','item':'https://thepetkorea.co.kr/'},{'@type':'ListItem','position':2,'name':'전 세계 견종','item':'https://thepetkorea.co.kr/breeds/'},{'@type':'ListItem','position':3,'name':breed.name_ko,'item':request.build_absolute_uri()}]}}),
         },
     )
 
@@ -515,6 +532,7 @@ def public_notice_board(request):
             'page_obj': page_obj,
             'keyword': keyword,
             'selected_category': selected_category,
+            'seo': _seo_context(request, '공지 및 소식 | 경상남도 반려견 협회', '경상남도 반려견 협회의 공지사항과 새로운 소식을 확인하세요.', '/board.html', robots=('noindex,follow' if keyword or selected_category or request.GET.get('page') else 'index,follow,max-image-preview:large')),
         }
     )
 
@@ -712,6 +730,8 @@ def public_notice_detail(request, pk):
         _notice_attachment_context(post)
     )
 
+    context['seo'] = _seo_context(request, f'{post.title} | 경상남도 반려견 협회', post.body, f'/board/{post.pk}/', og_type='article', json_ld={'@context':'https://schema.org','@type':'Article','headline':post.title,'datePublished':post.created_at.isoformat(),'dateModified':post.updated_at.isoformat(),'mainEntityOfPage':request.build_absolute_uri(),'publisher':{'@type':'Organization','name':'경상남도 반려견 협회'}})
+
     return render(
         request,
         'website/board_detail.html',
@@ -806,6 +826,7 @@ def public_community_list(request):
             'page_obj': page_obj,
             'keyword': keyword,
             'selected_category': selected_category,
+            'seo': _seo_context(request, '자유게시판 | 경상남도 반려견 협회', '반려견과 반려생활에 관한 이야기를 나누는 경상남도 반려견 협회 자유게시판입니다.', '/community.html', robots='noindex,follow'),
         }
     )
 
@@ -895,6 +916,7 @@ def public_community_detail(request, pk):
             'attachments': attachments,
             'like_count': like_count,
             'user_liked': user_liked,
+            'seo': _seo_context(request, f'{post.title} | 경상남도 반려견 협회', post.body, f'/community/{post.pk}/', robots='noindex,follow'),
         }
     )
 
