@@ -319,12 +319,20 @@ overlay.querySelectorAll('form').forEach(form => {
             form.reset();
             if(data.payment_required && data.payment){
                 try{
+                    const clientKey=data.payment.client_key || '';
+                    const isV1Key=/^(test|live)_ck_/.test(clientKey);
+                    const sdkSrc=isV1Key ? 'https://js.tosspayments.com/v1/payment' : 'https://js.tosspayments.com/v2/standard';
                     if(!window.TossPayments){
-                        await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://js.tosspayments.com/v2/standard';s.onload=resolve;s.onerror=reject;document.head.appendChild(s);});
+                        await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=sdkSrc;s.onload=resolve;s.onerror=reject;document.head.appendChild(s);});
                     }
-                    const tossPayments=TossPayments(data.payment.client_key);
-                    const payment=tossPayments.payment({customerKey:TossPayments.ANONYMOUS});
-                    await payment.requestPayment({method:'CARD',amount:{currency:'KRW',value:data.payment.amount},orderId:data.payment.order_id,orderName:data.payment.order_name,customerName:data.payment.customer_name,customerEmail:data.payment.customer_email,successUrl:location.origin+'/api/payments/success/',failUrl:location.origin+'/api/payments/fail/'});
+                    const tossPayments=TossPayments(clientKey);
+                    const common={amount:data.payment.amount,orderId:data.payment.order_id,orderName:data.payment.order_name,customerName:data.payment.customer_name,customerEmail:data.payment.customer_email,successUrl:location.origin+'/api/payments/success/',failUrl:location.origin+'/api/payments/fail/'};
+                    if(isV1Key){
+                        await tossPayments.requestPayment('카드',common);
+                    }else{
+                        const payment=tossPayments.payment({customerKey:TossPayments.ANONYMOUS});
+                        await payment.requestPayment({method:'CARD',amount:{currency:'KRW',value:data.payment.amount},orderId:data.payment.order_id,orderName:data.payment.order_name,customerName:data.payment.customer_name,customerEmail:data.payment.customer_email,successUrl:common.successUrl,failUrl:common.failUrl});
+                    }
                 }catch(error){
                     if(msg) msg.textContent=error?.message || '결제창을 열지 못했습니다.';
                 }
