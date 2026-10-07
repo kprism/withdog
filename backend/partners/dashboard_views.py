@@ -772,18 +772,20 @@ def section_delete(request,section,pk):
 
 @staff_member_required
 def member_list(request):
- User=get_user_model(); q=request.GET.get('q','').strip(); status=request.GET.get('status','active').strip(); qs=User.objects.filter(is_staff=False).select_related('member_profile')
- if status == 'withdrawn':
-  qs=qs.filter(Q(is_active=False)|Q(member_profile__membership_status='withdrawn'))
- elif status == 'all':
-  pass
- else:
-  status='active'; qs=qs.filter(is_active=True).exclude(member_profile__membership_status='withdrawn')
- if q: qs=qs.filter(Q(email__icontains=q)|Q(username__icontains=q)|Q(member_profile__name__icontains=q)|Q(member_profile__phone__icontains=q)|Q(member_profile__region__icontains=q))
+ User=get_user_model(); q=request.GET.get('q','').strip(); status=request.GET.get('status','active').strip(); grade=request.GET.get('grade','').strip(); region=request.GET.get('region','').strip(); sort=request.GET.get('sort','name_asc').strip(); qs=User.objects.filter(is_staff=False).select_related('member_profile')
+ if status == 'withdrawn': qs=qs.filter(Q(is_active=False)|Q(member_profile__membership_status='withdrawn'))
+ elif status == 'all': pass
+ else: status='active'; qs=qs.filter(is_active=True).exclude(member_profile__membership_status='withdrawn')
+ if q: qs=qs.filter(Q(email__icontains=q)|Q(username__icontains=q)|Q(member_profile__name__icontains=q)|Q(member_profile__phone__icontains=q)|Q(member_profile__region__icontains=q)|Q(member_profile__address_detail__icontains=q))
+ if grade in {'general','pending','regular','withdrawn'}: qs=qs.filter(member_profile__membership_status=grade)
+ else: grade=''
+ if region: qs=qs.filter(member_profile__region=region)
+ order_map={'name_asc':'member_profile__name','name_desc':'-member_profile__name','region_asc':'member_profile__region','region_desc':'-member_profile__region','joined_desc':'-date_joined','joined_asc':'date_joined'}; qs=qs.order_by(order_map.get(sort,'member_profile__name'),'pk')
+ regions=list(MemberProfile.objects.exclude(region='').values_list('region',flat=True).distinct().order_by('region'))
  rows=[]
- for u in qs.order_by('-date_joined')[:300]:
+ for u in qs[:500]:
   p=getattr(u,'member_profile',None); rows.append({'id':u.pk,'name':p.name if p else u.get_full_name() or '-','birth':p.birth_date if p else '-','gender':p.get_gender_display() if p and p.gender else '-','phone':p.phone if p else '-','email':u.email or u.username,'region':p.region if p else '-','address':p.address_detail if p else '-','grade':p.get_membership_status_display() if p else '일반회원','active':u.is_active,'joined':u.date_joined})
- return render(request,'dashboard/member_list.html',{'rows':rows,'q':q})
+ return render(request,'dashboard/member_list.html',{'rows':rows,'q':q,'status':status,'grade':grade,'region':region,'sort':sort,'regions':regions})
 
 @staff_member_required
 def member_edit(request,pk=None):
@@ -802,6 +804,17 @@ def member_withdraw(request,pk):
   if p: p.membership_status='withdrawn'; p.save(update_fields=['membership_status'])
   messages.success(request,'회원이 탈퇴(비활성) 처리되었습니다. 데이터는 이력 보존을 위해 유지됩니다.')
  return redirect('operator_dashboard:manage_section',section='members')
+
+@staff_member_required
+@require_POST
+def member_delete(request,pk):
+ u=get_object_or_404(get_user_model(),pk=pk,is_staff=False)
+ p=getattr(u,'member_profile',None)
+ if u.is_active and (not p or p.membership_status!='withdrawn'):
+  messages.error(request,'활성 회원은 바로 삭제할 수 없습니다. 먼저 탈퇴 처리해 주세요.')
+ else:
+  name=p.name if p else (u.email or u.username); u.delete(); messages.success(request,f'{name} 회원의 탈퇴 계정과 관련 데이터를 삭제했습니다.')
+ return redirect('/dashboard/manage/members/?status=withdrawn')
 
 @staff_member_required
 def admin_list(request):
