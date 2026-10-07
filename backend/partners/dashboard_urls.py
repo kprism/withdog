@@ -2,8 +2,11 @@ from django.contrib.auth import views as auth_views
 from django.urls import path
 from . import dashboard_views as v
 from . import website_views as w
+from . import payment_views as p
 app_name='operator_dashboard'
 urlpatterns=[
+ path('payments/settings/',p.payment_settings,name='payment_settings'),
+ path('payments/settlements/',p.settlements,name='settlements'),
  path('website/chatbot/',w.chatbot_editor,name='chatbot_editor'),
  path('website/boards/<str:board_type>/',v.board_admin_list,name='board_admin_list'),
  path('website/boards/<str:board_type>/create/',v.board_admin_create,name='board_admin_create'),
