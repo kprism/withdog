@@ -73,6 +73,12 @@ def payment_settings(request):
         secret=request.POST.get('live_secret_key','').strip()
         if secret: s.live_secret_key=secret
         s.live_enabled='live_enabled' in request.POST
+        s.settlement_bank=request.POST.get('settlement_bank','').strip()
+        s.settlement_account=request.POST.get('settlement_account','').strip()
+        s.settlement_holder=request.POST.get('settlement_holder','').strip()
+        s.settlement_cycle=request.POST.get('settlement_cycle','').strip()
+        try:s.card_fee_rate=max(0,float(request.POST.get('card_fee_rate') or 0))
+        except ValueError:s.card_fee_rate=0
         try:s.annual_fee=max(1,int(request.POST.get('annual_fee') or 30000))
         except ValueError:s.annual_fee=30000
         s.save();messages.success(request,'토스페이먼츠 설정이 저장되었습니다.');return redirect('operator_dashboard:payment_settings')
@@ -83,4 +89,5 @@ def settlements(request):
     env=request.GET.get('env','test');env=env if env in ('test','live') else 'test'
     rows=PaymentRecord.objects.filter(environment=env,status='DONE').select_related('user','user__member_profile')[:500]
     total=PaymentRecord.objects.filter(environment=env,status='DONE').aggregate(v=Sum('amount'))['v'] or 0
-    return render(request,'dashboard/settlements.html',{'rows':rows,'env':env,'total':total})
+    s=_setting(); fee=int(round(float(total)*float(s.card_fee_rate)/100)); net=total-fee
+    return render(request,'dashboard/settlements.html',{'rows':rows,'env':env,'total':total,'setting':s,'estimated_fee':fee,'estimated_net':net})
