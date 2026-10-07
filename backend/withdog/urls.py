@@ -23,7 +23,7 @@ def public_home(request):
     import json
     html=(ROOT / 'index.html').read_text(encoding='utf-8')
     html=re.sub(r'<title[^>]*>.*?</title>', '', html, count=1, flags=re.I|re.S)
-    html=re.sub(r'<meta\\s+name=["\\']description["\\'][^>]*>', '', html, count=1, flags=re.I)
+    html=re.sub(r"""<meta\\s+name=["']description["'][^>]*>""", '', html, count=1, flags=re.I)
     title=escape(s.site_name or '경상남도 반려견 협회')
     desc=escape(s.meta_description or s.site_subtitle or '')
     canonical=escape(s.canonical_url or request.build_absolute_uri('/'))
