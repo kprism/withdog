@@ -44,9 +44,14 @@ def _confirm(rec,payment_key,amount):
         # MemberProfile과 일치하는 경우에만 정회원으로 자동 승급한다.
         p=rec.user.member_profile
         if p.membership_status=='pending' and p.regular_member_requested:
-            customer_name=str((data.get('customerName') or p.name) or '').strip()
+            # order_id가 가입 시점의 user FK와 1:1로 연결되어 있어 동명이인도 섞이지 않는다.
+            # 추가로 토스 결제 응답의 고객명과 가입 이메일이 있으면 함께 교차검증한다.
+            customer_name=str((data.get('customerName') or '')).strip()
+            customer_email=str((data.get('customerEmail') or '')).strip().lower()
+            member_email=str(rec.user.email or rec.user.username or '').strip().lower()
             name_ok=(not customer_name or customer_name==p.name)
-            if name_ok:
+            email_ok=(not customer_email or customer_email==member_email)
+            if name_ok and email_ok:
                 p.membership_status='regular';p.save(update_fields=['membership_status'])
     return data
 
