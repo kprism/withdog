@@ -25,6 +25,17 @@ def _render_public_shell(request, html):
     return html
 
 
+def _render_public_shell(request, html):
+    """Render one canonical authenticated-aware header/footer on every public HTML page."""
+    import re
+    from django.template.loader import render_to_string
+    header = render_to_string('website/includes/public_header.html', request=request)
+    footer = render_to_string('website/includes/public_footer.html', request=request)
+    html = re.sub(r'<header class="site-header"[\\s\\S]*?</header>', header, html, count=1, flags=re.I)
+    html = re.sub(r'<footer class="footer"[\\s\\S]*?</footer>', footer, html, count=1, flags=re.I)
+    return html
+
+
 @never_cache
 def public_home(request):
     """Serve the live homepage without allowing stale HTML to mask deployed UI fixes."""
