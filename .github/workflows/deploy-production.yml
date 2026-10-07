@@ -43,6 +43,10 @@ jobs:
           p=Path('partners/templates/website/mypage.html').read_text(encoding='utf-8')
           assert '/static/member_dog_stamp.webp?v=approved-clean-20261007-b0' in p
           assert 'member_card_dog_image' not in p
+          import os
+          os.environ.setdefault('DJANGO_SETTINGS_MODULE','withdog.settings')
+          import django
+          django.setup()
           from withdog.urls import _render_public_shell
           assert callable(_render_public_shell)
           PY
