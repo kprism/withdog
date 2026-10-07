@@ -5,7 +5,7 @@ from django.http import Http404
 from django.shortcuts import redirect, render
 from .models import SiteSetting
 
-from .models import MemberProfile, AboutPageSetting
+from .models import MemberProfile, AboutPageSetting, MembershipCardGrant
 
 
 def _plus_one_year(value):
@@ -33,8 +33,12 @@ def membership_card(request):
     except MemberProfile.DoesNotExist as exc:
         raise Http404('회원 프로필을 찾을 수 없습니다.') from exc
 
-    joined_date = profile.joined_at.date()
-    expiry_date = _plus_one_year(joined_date)
+    try:
+        grant=MembershipCardGrant.objects.get(user=request.user,is_active=True)
+    except MembershipCardGrant.DoesNotExist:
+        return render(request,'website/mypage.html',{'card_allowed':False,'membership_label':dict(MemberProfile.STATUSES).get(profile.membership_status,profile.membership_status)})
+    joined_date = grant.valid_from
+    expiry_date = grant.valid_to
     membership_label = dict(MemberProfile.STATUSES).get(
         profile.membership_status,
         profile.membership_status,
@@ -48,6 +52,8 @@ def membership_card(request):
         request,
         'website/mypage.html',
         {
+            'card_allowed': True,
+            'grant_source': grant.source,
             'member_name': profile.name or request.user.get_username(),
             'member_no': f'GN-{profile.pk:05d}',
             'joined_date': joined_date.strftime('%Y.%m.%d'),
