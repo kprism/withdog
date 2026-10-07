@@ -43,7 +43,7 @@ a{
     font-size:14px;
 }
 
-.hero{
+.breed-detail-hero{
     overflow:hidden;
     display:grid;
     grid-template-columns:
@@ -207,7 +207,7 @@ a{
         padding-top:25px;
     }
 
-    .hero{
+    .breed-detail-hero{
         grid-template-columns:1fr;
     }
 
@@ -237,9 +237,12 @@ a{
     }
 }
 </style>
+{% include "website/includes/public_layout_css.html" %}
 </head>
 
 <body>
+
+{% include "website/includes/public_header.html" %}
 
 <main class="detail-wrap">
 
@@ -247,7 +250,7 @@ a{
     ← 전 세계 견종
 </a>
 
-<section class="hero">
+<section class="breed-detail-hero">
 
     <div class="hero-image">
 
@@ -489,6 +492,8 @@ a{
 {% endif %}
 
 </main>
+
+{% include "website/includes/public_footer.html" %}
 
 </body>
 </html>

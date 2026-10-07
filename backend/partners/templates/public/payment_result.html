@@ -1,1 +1,28 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>결제 결과</title><style>body{font-family:"Noto Sans KR",sans-serif;background:#f5f6f8;margin:0;display:grid;place-items:center;min-height:100vh}.box{width:min(440px,90vw);background:#fff;border-radius:18px;padding:38px;text-align:center;box-shadow:0 15px 50px #0002}h1{color:{% if ok %}#198754{% else %}#c91f26{% endif %}}a{display:block;margin-top:24px;padding:14px;background:#d1282d;color:#fff;text-decoration:none;border-radius:9px;font-weight:800}</style></head><body><div class="box"><h1>{% if ok %}결제 완료{% else %}결제 실패{% endif %}</h1><p>{{ message }}</p><a href="/">홈페이지로 돌아가기</a></div></body></html>
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>결제 결과</title>
+{% include "website/includes/public_layout_css.html" %}
+<style>
+body{font-family:"Noto Sans KR",sans-serif;background:#f5f6f8;margin:0}
+.payment-result-main{min-height:calc(100vh - 86px);display:grid;place-items:center;padding:48px 16px}
+.payment-result-box{width:min(440px,90vw);background:#fff;border-radius:18px;padding:38px;text-align:center;box-shadow:0 15px 50px #0002}
+.payment-result-box h1{color:{% if ok %}#198754{% else %}#c91f26{% endif %}}
+.payment-result-box>a{display:block;margin-top:24px;padding:14px;background:#d1282d;color:#fff;text-decoration:none;border-radius:9px;font-weight:800}
+@media(max-width:900px){.payment-result-main{min-height:calc(100vh - 70px)}}
+</style>
+</head>
+<body>
+{% include "website/includes/public_header.html" %}
+<main class="payment-result-main">
+    <div class="payment-result-box">
+        <h1>{% if ok %}결제 완료{% else %}결제 실패{% endif %}</h1>
+        <p>{{ message }}</p>
+        <a href="/">홈페이지로 돌아가기</a>
+    </div>
+</main>
+{% include "website/includes/public_footer.html" %}
+</body>
+</html>

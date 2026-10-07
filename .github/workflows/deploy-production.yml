@@ -48,6 +48,21 @@ jobs:
           assert 'public_site_logo_url' in h
           assert '🐶' not in h
           assert '🐶' not in f
+          shell_templates = [
+              Path('partners/templates/website/board.html'),
+              Path('partners/templates/website/board_detail.html'),
+              Path('partners/templates/website/community.html'),
+              Path('partners/templates/website/community_detail.html'),
+              Path('partners/templates/website/community_form.html'),
+              Path('partners/templates/website/mypage.html'),
+              Path('partners/templates/public/breed_list.html'),
+              Path('partners/templates/public/breed_detail.html'),
+              Path('partners/templates/public/payment_result.html'),
+          ]
+          for template_path in shell_templates:
+              html = template_path.read_text(encoding='utf-8')
+              assert 'website/includes/public_header.html' in html, template_path
+              assert 'website/includes/public_footer.html' in html, template_path
           import os
           os.environ.setdefault('DJANGO_SETTINGS_MODULE','withdog.settings')
           import django
