@@ -5,7 +5,7 @@ from django.http import Http404
 from django.shortcuts import redirect, render
 from .models import SiteSetting
 
-from .models import MemberProfile
+from .models import MemberProfile, AboutPageSetting
 
 
 def _plus_one_year(value):
@@ -40,6 +40,10 @@ def membership_card(request):
         profile.membership_status,
     )
 
+    about_setting=AboutPageSetting.get_solo()
+    try: member_card_dog_image=about_setting.member_card_image.url if about_setting.member_card_image else ''
+    except ValueError: member_card_dog_image=''
+
     return render(
         request,
         'website/mypage.html',
@@ -54,5 +58,6 @@ def membership_card(request):
             'phone': profile.phone or '-',
             'gender_code': profile.gender if profile.gender in ('M','F') else '-',
             'kakao_javascript_key': SiteSetting.get_solo().kakao_javascript_key,
+            'member_card_dog_image': member_card_dog_image,
         },
     )
