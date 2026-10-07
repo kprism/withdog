@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django.views.decorators.http import require_GET, require_POST
-from .models import TossPaymentSetting, PaymentRecord, MemberProfile
+from .models import TossPaymentSetting, PaymentRecord, MemberProfile, MembershipCardGrant
 
 def _setting(): return TossPaymentSetting.get_solo()
 def _env(s): return 'live' if s.live_enabled else 'test'
@@ -51,8 +51,15 @@ def _confirm(rec,payment_key,amount):
             member_email=str(rec.user.email or rec.user.username or '').strip().lower()
             name_ok=(not customer_name or customer_name==p.name)
             email_ok=(not customer_email or customer_email==member_email)
-            if name_ok and email_ok:
+            if name_ok and email_ok and rec.amount==30000:
                 p.membership_status='regular';p.save(update_fields=['membership_status'])
+                start=(rec.approved_at or timezone.now()).date()
+                try: end=start.replace(year=start.year+1)
+                except ValueError: end=start.replace(year=start.year+1,month=2,day=28)
+                MembershipCardGrant.objects.update_or_create(
+                    user=rec.user,
+                    defaults={'source':'payment','payment':rec,'valid_from':start,'valid_to':end,'is_active':True},
+                )
     return data
 
 @require_GET
