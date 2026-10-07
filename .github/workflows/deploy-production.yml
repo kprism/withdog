@@ -80,6 +80,10 @@ jobs:
           django.setup()
           from withdog.urls import _render_public_shell
           assert callable(_render_public_shell)
+          from django.template.loader import get_template
+          get_template('website/mypage.html')
+          get_template('website/includes/public_header.html')
+          get_template('website/includes/public_footer.html')
           PY
 
   deploy:
