@@ -51,17 +51,52 @@ def public_home(request):
 
 
 def sitemap_xml(request):
-    from partners.models import ContentItem, DogBreed
-    base=request.build_absolute_uri('/').rstrip('/')
-    urls=['/','/about.html','/benefits.html','/partners.html','/board.html','/community.html','/breeds/']
-    urls += [f'/board/{x.pk}/' for x in ContentItem.objects.filter(kind='notice',is_published=True).only('pk')]
-    urls += [f'/breeds/{x.slug}/' for x in DogBreed.objects.filter(is_published=True).only('slug')]
-    body='<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + ''.join(f'<url><loc>{escape(base+p)}</loc></url>' for p in urls) + '</urlset>'
-    return HttpResponse(body,content_type='application/xml; charset=utf-8')
+    """Standards-compliant public sitemap for Google and Naver crawlers."""
+    from xml.etree.ElementTree import Element, SubElement, tostring
+    from partners.models import ContentItem, DogBreed, SiteSetting
+
+    s = SiteSetting.get_solo()
+    base = (s.canonical_url or 'https://thepetkorea.co.kr/').strip().rstrip('/')
+    if not base.startswith('https://'):
+        base = 'https://thepetkorea.co.kr'
+
+    paths = [
+        '/', '/about.html', '/benefits.html', '/partners.html',
+        '/board.html', '/community.html', '/breeds/',
+    ]
+    paths += [f'/board/{x.pk}/' for x in ContentItem.objects.filter(kind='notice', is_published=True).only('pk')]
+    paths += [f'/breeds/{x.slug}/' for x in DogBreed.objects.filter(is_published=True).only('slug')]
+
+    urlset = Element('urlset', xmlns='http://www.sitemaps.org/schemas/sitemap/0.9')
+    seen = set()
+    for path_value in paths:
+        loc_value = base + path_value
+        if loc_value in seen:
+            continue
+        seen.add(loc_value)
+        url = SubElement(urlset, 'url')
+        SubElement(url, 'loc').text = loc_value
+
+    body = b'<?xml version="1.0" encoding="UTF-8"?>\n' + tostring(urlset, encoding='utf-8')
+    response = HttpResponse(body, content_type='application/xml; charset=utf-8')
+    response['X-Robots-Tag'] = 'noindex'
+    response['Cache-Control'] = 'public, max-age=300'
+    return response
 
 def robots_txt(request):
-    sitemap=request.build_absolute_uri('/sitemap.xml')
-    return HttpResponse(f'User-agent: *\nAllow: /\nDisallow: /dashboard/\nDisallow: /admin/\nSitemap: {sitemap}\n',content_type='text/plain; charset=utf-8')
+    from partners.models import SiteSetting
+    s = SiteSetting.get_solo()
+    base = (s.canonical_url or 'https://thepetkorea.co.kr/').strip().rstrip('/')
+    if not base.startswith('https://'):
+        base = 'https://thepetkorea.co.kr'
+    body = (
+        'User-agent: *\n'
+        'Allow: /\n'
+        'Disallow: /dashboard/\n'
+        'Disallow: /admin/\n'
+        f'Sitemap: {base}/sitemap.xml\n'
+    )
+    return HttpResponse(body, content_type='text/plain; charset=utf-8')
 
 urlpatterns = [
     path('sitemap.xml', sitemap_xml, name='sitemap_xml'),
