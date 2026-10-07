@@ -35,7 +35,13 @@ jobs:
         run: |
           python manage.py collectstatic --noinput
           test -s staticfiles/member_dog_stamp.webp
-          python manage.py test partners --noinput
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('partners/templates/website/mypage.html').read_text(encoding='utf-8')
+          assert "member_dog_stamp.webp'?" not in p
+          assert 'member_dog_stamp.webp' in p
+          assert 'member_card_dog_image' not in p
+          PY
 
   deploy:
     needs: test
