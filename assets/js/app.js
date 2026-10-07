@@ -426,12 +426,26 @@ function renderMemberHeader(user){
     headerActions
         .querySelector('[data-member-mypage]')
         ?.addEventListener('click', () => {
-            alert('마이페이지는 다음 단계에서 연결합니다.');
+            openMemberMyPage();
         });
 
     headerActions
         .querySelector('[data-member-logout]')
         ?.addEventListener('click', logoutMember);
+}
+
+async function openMemberMyPage(){
+ try{
+  const response=await fetch('/api/member-mypage/',{credentials:'same-origin',cache:'no-store'}),data=await response.json();if(!response.ok||!data.ok)throw new Error(data.message||'마이페이지를 불러오지 못했습니다.');
+  const u=data.user,old=document.getElementById('memberMyPage');if(old)old.remove();const el=document.createElement('div');el.id='memberMyPage';el.className='member-mypage-overlay';
+  let card='<div class="member-status-box">현재 회원구분: '+escapeMemberHtml(u.membership_status)+'</div>';
+  if(u.membership_status==='regular')card='<div class="digital-member-card"><small>NO '+escapeMemberHtml(u.member_no)+'</small><h2>경상남도 반려견협회 정회원증</h2><h3>'+escapeMemberHtml(u.name)+'</h3><dl><div><dt>생년월일</dt><dd>'+escapeMemberHtml(u.birth_date)+'</dd></div><div><dt>주소</dt><dd>'+escapeMemberHtml(u.address_short)+'</dd></div><div><dt>연락처</dt><dd>'+escapeMemberHtml(u.phone)+'</dd></div><div><dt>성별</dt><dd>'+escapeMemberHtml(u.gender)+'</dd></div></dl><b>경상남도 반려견협회</b></div><p class="member-card-guide">해당 업체에서 회원증을 제시하면 회원혜택을 받을 수 있습니다.</p><div class="member-share-actions"><button type="button" data-share-card>카카오톡/공유</button><a data-email-card>이메일로 보내기</a></div>';
+  el.innerHTML='<div class="member-mypage-modal"><button class="mypage-close" type="button">×</button><h2>마이페이지</h2>'+card+'<button class="member-withdraw-btn" type="button">회원탈퇴</button></div>';document.body.appendChild(el);document.body.style.overflow='hidden';
+  el.querySelector('.mypage-close').onclick=()=>{el.remove();document.body.style.overflow=''};
+  el.querySelector('[data-share-card]')?.addEventListener('click',async()=>{const share={title:'경상남도 반려견협회 회원증',text:u.name+'님의 경상남도 반려견협회 온라인 회원증',url:location.href};if(navigator.share){try{await navigator.share(share)}catch(_){}}else{await navigator.clipboard.writeText(location.href);alert('회원증 페이지 주소를 복사했습니다. 카카오톡에 붙여넣어 주세요.')}});
+  const email=el.querySelector('[data-email-card]');if(email)email.href='mailto:'+encodeURIComponent(u.email)+'?subject='+encodeURIComponent('경상남도 반려견협회 회원증')+'&body='+encodeURIComponent('경상남도 반려견협회 온라인 회원증은 마이페이지에서 확인할 수 있습니다. '+location.origin);
+  el.querySelector('.member-withdraw-btn').onclick=async()=>{if(!confirm('회원탈퇴 시 로그인이 차단됩니다. 정말 탈퇴하시겠습니까?'))return;const csrfToken=await ensureCsrfCookie();const r=await fetch('/api/member-withdraw/',{method:'POST',credentials:'same-origin',headers:{'X-CSRFToken':csrfToken}}),d=await r.json();if(!r.ok||!d.ok){alert(d.message||'탈퇴 처리에 실패했습니다.');return}alert('회원탈퇴가 완료되었습니다.');el.remove();document.body.style.overflow='';renderGuestHeader()};
+ }catch(e){alert(e.message||'마이페이지를 불러오지 못했습니다.')}
 }
 
 async function refreshMemberSession(){
