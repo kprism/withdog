@@ -1,19 +1,18 @@
-from datetime import date
-
 from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from django.shortcuts import redirect, render
-from .models import SiteSetting
 
-from .models import MemberProfile, MembershipCardGrant
+from .models import AboutPageSetting, MemberProfile, MembershipCardGrant, SiteSetting
 
 
-def _plus_one_year(value):
-    """Return the same month/day next year, handling Feb 29 safely."""
+def _safe_file_url(field):
+    """Return a media URL only when the backing file really exists."""
     try:
-        return value.replace(year=value.year + 1)
-    except ValueError:
-        return value.replace(year=value.year + 1, month=2, day=28)
+        if field and field.name and field.storage.exists(field.name):
+            return field.url
+    except (OSError, ValueError):
+        pass
+    return ""
 
 
 @login_required(login_url='/')
@@ -34,11 +33,36 @@ def membership_card(request):
         raise Http404('회원 프로필을 찾을 수 없습니다.') from exc
 
     try:
-        grant=MembershipCardGrant.objects.get(user=request.user,is_active=True)
+        grant = MembershipCardGrant.objects.get(
+            user=request.user,
+            is_active=True,
+        )
     except MembershipCardGrant.DoesNotExist:
-        return render(request,'website/mypage.html',{'card_allowed':False,'membership_label':dict(MemberProfile.STATUSES).get(profile.membership_status,profile.membership_status)})
-    joined_date = grant.valid_from
-    expiry_date = grant.valid_to
+        return render(
+            request,
+            'website/mypage.html',
+            {
+                'card_allowed': False,
+                'membership_label': dict(MemberProfile.STATUSES).get(
+                    profile.membership_status,
+                    profile.membership_status,
+                ),
+            },
+        )
+
+    site_setting = SiteSetting.get_solo()
+    about_setting = AboutPageSetting.get_solo()
+
+    member_card_dog_image = (
+        _safe_file_url(about_setting.member_card_image)
+        or _safe_file_url(site_setting.logo)
+    )
+    member_card_share_image = member_card_dog_image
+    if member_card_share_image.startswith('/'):
+        member_card_share_image = request.build_absolute_uri(
+            member_card_share_image
+        )
+
     membership_label = dict(MemberProfile.STATUSES).get(
         profile.membership_status,
         profile.membership_status,
@@ -52,13 +76,25 @@ def membership_card(request):
             'grant_source': grant.source,
             'member_name': profile.name or request.user.get_username(),
             'member_no': f'GN-{profile.pk:05d}',
-            'joined_date': joined_date.strftime('%Y.%m.%d'),
-            'expiry_date': expiry_date.strftime('%Y.%m.%d'),
+            'joined_date': grant.valid_from.strftime('%Y.%m.%d'),
+            'expiry_date': grant.valid_to.strftime('%Y.%m.%d'),
             'membership_label': membership_label,
-            'birth_date': profile.birth_date.strftime('%Y.%m.%d') if profile.birth_date else '-',
-            'address_short': ' '.join((profile.region or profile.address_detail or '').split()[:2]),
+            'birth_date': (
+                profile.birth_date.strftime('%Y.%m.%d')
+                if profile.birth_date
+                else '-'
+            ),
+            'address_short': ' '.join(
+                (profile.region or profile.address_detail or '').split()[:2]
+            ),
             'phone': profile.phone or '-',
-            'gender_code': profile.gender if profile.gender in ('M','F') else '-',
-            'kakao_javascript_key': SiteSetting.get_solo().kakao_javascript_key,
+            'gender_code': (
+                profile.gender
+                if profile.gender in ('M', 'F')
+                else '-'
+            ),
+            'kakao_javascript_key': site_setting.kakao_javascript_key,
+            'member_card_dog_image': member_card_dog_image,
+            'member_card_share_image': member_card_share_image,
         },
     )

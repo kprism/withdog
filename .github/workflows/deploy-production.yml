@@ -37,12 +37,17 @@ jobs:
         working-directory: backend
         run: |
           python manage.py collectstatic --noinput
-          test -s staticfiles/member_dog_stamp.webp
           python - <<'PY'
           from pathlib import Path
           p=Path('partners/templates/website/mypage.html').read_text(encoding='utf-8')
-          assert '/static/member_dog_stamp.webp?v=approved-clean-20261007-b0' in p
-          assert 'member_card_dog_image' not in p
+          h=Path('partners/templates/website/includes/public_header.html').read_text(encoding='utf-8')
+          f=Path('partners/templates/website/includes/public_footer.html').read_text(encoding='utf-8')
+          assert 'data:image/webp;base64' not in p
+          assert 'member_dog_stamp.webp' not in p
+          assert 'member_card_dog_image' in p
+          assert 'public_site_logo_url' in h
+          assert '🐶' not in h
+          assert '🐶' not in f
           import os
           os.environ.setdefault('DJANGO_SETTINGS_MODULE','withdog.settings')
           import django
@@ -82,7 +87,7 @@ jobs:
             --project=thepetkorea \
             --zone=asia-northeast3-a \
             --quiet \
-            --command="set -e; cd /home/mstclma00/withdog; sudo -u mstclma00 git fetch origin intro-homepage; sudo -u mstclma00 git checkout intro-homepage; sudo -u mstclma00 git reset --hard ${DEPLOY_SHA}; cd backend; sudo -u mstclma00 .venv/bin/python manage.py migrate --noinput; sudo -u mstclma00 .venv/bin/python manage.py check; sudo -u mstclma00 .venv/bin/python manage.py collectstatic --noinput; test -s staticfiles/member_dog_stamp.webp; echo '=== SERVICE CONFIG ==='; sudo systemctl show thepetkorea -p WorkingDirectory -p ExecStart -p FragmentPath; sudo systemctl daemon-reload; sudo systemctl restart thepetkorea; sleep 3; systemctl is-active --quiet thepetkorea; test \"$(sudo -u mstclma00 git rev-parse HEAD)\" = \"\${DEPLOY_SHA}\"; curl -fsS http://127.0.0.1:8000/ >/dev/null || { sudo journalctl -u thepetkorea -n 80 --no-pager; exit 1; }; curl -fsS http://127.0.0.1:8000/sitemap.xml >/dev/null; curl -fsS http://127.0.0.1:8000/robots.txt >/dev/null; LOCAL_HASH=\$(sha256sum staticfiles/member_dog_stamp.webp | awk '{print \$1}'); LIVE_HASH=\$(curl -fsS https://thepetkorea.co.kr/static/member_dog_stamp.webp?v=${DEPLOY_SHA} | sha256sum | awk '{print \$1}'); echo \"membership artwork local=\$LOCAL_HASH live=\$LIVE_HASH\"; test \"\$LOCAL_HASH\" = \"\$LIVE_HASH\""
+            --command="set -e; cd /home/mstclma00/withdog; sudo -u mstclma00 git fetch origin intro-homepage; sudo -u mstclma00 git checkout intro-homepage; sudo -u mstclma00 git reset --hard ${DEPLOY_SHA}; cd backend; sudo -u mstclma00 .venv/bin/python manage.py migrate --noinput; sudo -u mstclma00 .venv/bin/python manage.py check; sudo -u mstclma00 .venv/bin/python manage.py collectstatic --noinput; echo '=== BRAND/MEMBER MEDIA ==='; sudo -u mstclma00 .venv/bin/python manage.py shell -c "from partners.models import SiteSetting,AboutPageSetting; s=SiteSetting.get_solo(); a=AboutPageSetting.get_solo(); print('site_logo=',s.logo.name if s.logo else '', 'exists=', bool(s.logo and s.logo.storage.exists(s.logo.name))); print('member_art=',a.member_card_image.name if a.member_card_image else '', 'exists=', bool(a.member_card_image and a.member_card_image.storage.exists(a.member_card_image.name)))"; echo '=== SERVICE CONFIG ==='; sudo systemctl show thepetkorea -p WorkingDirectory -p ExecStart -p FragmentPath; sudo systemctl daemon-reload; sudo systemctl restart thepetkorea; sleep 3; systemctl is-active --quiet thepetkorea; test \"$(sudo -u mstclma00 git rev-parse HEAD)\" = \"\${DEPLOY_SHA}\"; curl -fsS http://127.0.0.1:8000/ >/dev/null || { sudo journalctl -u thepetkorea -n 80 --no-pager; exit 1; }; curl -fsS http://127.0.0.1:8000/sitemap.xml >/dev/null; curl -fsS http://127.0.0.1:8000/robots.txt >/dev/null"
 
       - name: Verify public endpoints and membership image
         run: |
@@ -97,7 +102,6 @@ jobs:
               ('https://thepetkorea.co.kr/benefits.html', True),
               ('https://thepetkorea.co.kr/partners.html', True),
               ('https://thepetkorea.co.kr/mypage/', False),
-              ('https://thepetkorea.co.kr/static/member_dog_stamp.webp', True),
               ('https://thepetkorea.co.kr/sitemap.xml', True),
               ('https://thepetkorea.co.kr/robots.txt', True),
           ]
@@ -124,6 +128,10 @@ jobs:
                       raise SystemExit(f'Canonical footer/header content missing: {url}')
                   if '/dashboard/login/' not in html or '/join.html' not in html:
                       raise SystemExit(f'Canonical public auth controls missing: {url}')
+                  if 'class="brand-dog"' not in html or '<img' not in html:
+                      raise SystemExit(f'Canonical server-rendered logo missing: {url}')
+                  if '🐶' in html.split('</header>', 1)[0]:
+                      raise SystemExit(f'Legacy header dog fallback still present: {url}')
 
           # Validate Googlebot-visible homepage and sitemap, not just HTTP 200.
           googlebot = {'User-Agent': 'Googlebot'}

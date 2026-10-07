@@ -3,11 +3,18 @@
 
         <div>
             <div class="footer-brand">
-                🐶 <b>경상남도 반려견 협회</b>
+                {% if public_site_logo_url %}
+                <img
+                    class="footer-brand-logo"
+                    src="{{ public_site_logo_url }}"
+                    alt="{{ public_site.site_name|default:'경상남도 반려견 협회' }} 로고"
+                >
+                {% endif %}
+                <b>{{ public_site.site_name|default:"경상남도 반려견 협회" }}</b>
             </div>
 
             <small>
-                Gyeongnam Pet Dog Association
+                {{ public_site.site_subtitle|default:"Gyeongnam Pet Dog Association" }}
             </small>
 
             <p>
@@ -48,7 +55,7 @@
 
     <div class="footer-bottom">
         <span>
-            COPYRIGHT © 2026 경상남도 반려견 협회.
+            COPYRIGHT © 2026 {{ public_site.site_name|default:"경상남도 반려견 협회" }}.
             ALL RIGHTS RESERVED.
         </span>
 

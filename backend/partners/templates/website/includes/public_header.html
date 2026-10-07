@@ -1,9 +1,17 @@
 <header class="site-header" id="top">
     <a class="brand" href="/">
-        <span class="brand-dog">🐶</span>
+        {% if public_site_logo_url %}
+        <span class="brand-dog">
+            <img
+                src="{{ public_site_logo_url }}"
+                alt="{{ public_site.site_name|default:'경상남도 반려견 협회' }} 로고"
+            >
+        </span>
+        {% endif %}
+
         <span>
-            <b>경상남도 반려견 협회</b>
-            <small>Gyeongnam Pet Dog Association</small>
+            <b>{{ public_site.site_name|default:"경상남도 반려견 협회" }}</b>
+            <small>{{ public_site.site_subtitle|default:"Gyeongnam Pet Dog Association" }}</small>
         </span>
     </a>
 

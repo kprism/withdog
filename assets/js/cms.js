@@ -15,10 +15,6 @@ fetch('/api/content/?kind=notice').then(r=>r.json()).then(d=>{if(!d.results.leng
 fetch('/api/content/?kind=popup').then(r=>r.json()).then(d=>{const x=d.results[0];if(!x)return;const wrap=document.createElement('div');wrap.style.cssText='position:fixed;inset:0;background:#0008;z-index:99999;display:grid;place-items:center;padding:20px';wrap.innerHTML=`<div style="width:min(520px,94vw);background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 25px 80px #0006"><div style="position:relative">${media(x,'popup-media')}<button data-close style="position:absolute;right:12px;top:12px;border:0;border-radius:50%;width:36px;height:36px;font-size:20px;cursor:pointer">×</button></div><div style="padding:24px"><h2 style="margin:0 0 10px">${esc(x.title)}</h2><p style="white-space:pre-line;color:#666">${esc(x.body)}</p>${x.link?`<a href="${esc(x.link)}" style="display:inline-block;background:#c91f26;color:#fff;padding:11px 16px;border-radius:8px;text-decoration:none">자세히 보기</a>`:''}</div></div>`;document.body.appendChild(wrap);wrap.querySelector('[data-close]').onclick=()=>wrap.remove();wrap.onclick=e=>{if(e.target===wrap)wrap.remove()}}).catch(()=>{})})();
 
 
-/* === SITE SETTINGS CMS === */
-(()=>{fetch('/api/site-settings/').then(r=>{if(!r.ok)throw new Error('site settings API');return r.json()}).then(x=>{const brand=document.querySelector('.site-header .brand');if(brand){const icon=brand.querySelector('.brand-dog');if(icon&&x.logo){icon.innerHTML='';const img=document.createElement('img');img.src=x.logo;img.alt=x.site_name||'로고';icon.appendChild(img)}const title=brand.querySelector('b'),sub=brand.querySelector('small');if(title&&x.site_name)title.textContent=x.site_name;if(sub)sub.textContent=x.site_subtitle||''}if(x.site_name)document.title=x.site_name}).catch(err=>console.warn('사이트 설정을 불러오지 못했습니다.',err))})();
-
-
 /* =========================================================
    INTRO NOTICE / ASSOCIATION NEWS
    ========================================================= */
