@@ -7,7 +7,7 @@ from django.contrib import admin
 from django.urls import include, path, re_path
 from django.views.static import serve
 from django.conf import settings
-from django.http import HttpResponse
+from django.http import HttpResponse, FileResponse, Http404
 from django.utils.html import escape
 from django.views.decorators.cache import never_cache
 
@@ -46,8 +46,8 @@ def public_home(request):
     organization={'@context':'https://schema.org','@type':'Organization','name':str(s.site_name or '경상남도 반려견 협회'),'url':str(s.canonical_url or 'https://thepetkorea.co.kr/')}
     tags.append('<script type="application/ld+json">'+json.dumps(organization,ensure_ascii=False).replace('</','<\\/')+'</script>')
     if s.favicon:
-        try: tags.append(f'<link rel="icon" href="{escape(s.favicon.url)}">')
-        except ValueError: pass
+        tags.append('<link rel="icon" href="/favicon.ico">')
+        tags.append('<link rel="shortcut icon" href="/favicon.ico">')
     seo='\n'.join(tags)
     pos=html.lower().find('</head>')
     if pos >= 0: html=html[:pos]+seo+'\n'+html[pos:]
@@ -57,6 +57,32 @@ def public_home(request):
     response['Expires'] = '0'
     return response
 
+
+
+def favicon(request):
+    """Stable root favicon URL backed by the favicon selected in Site Settings."""
+    from partners.models import SiteSetting
+    s = SiteSetting.get_solo()
+    if not s.favicon:
+        raise Http404('favicon not configured')
+    try:
+        handle = s.favicon.open('rb')
+    except (ValueError, FileNotFoundError):
+        raise Http404('favicon not found')
+    name = (s.favicon.name or '').lower()
+    if name.endswith('.png'):
+        content_type = 'image/png'
+    elif name.endswith(('.jpg', '.jpeg')):
+        content_type = 'image/jpeg'
+    elif name.endswith('.webp'):
+        content_type = 'image/webp'
+    elif name.endswith('.svg'):
+        content_type = 'image/svg+xml'
+    else:
+        content_type = 'image/x-icon'
+    response = FileResponse(handle, content_type=content_type)
+    response['Cache-Control'] = 'public, max-age=86400'
+    return response
 
 
 def sitemap_xml(request):
@@ -118,6 +144,7 @@ def robots_txt(request):
     return HttpResponse(body, content_type='text/plain; charset=utf-8')
 
 urlpatterns = [
+    path('favicon.ico', favicon, name='favicon'),
     path('sitemap.xml', sitemap_xml, name='sitemap_xml'),
     path('robots.txt', robots_txt, name='robots_txt'),
     path(
