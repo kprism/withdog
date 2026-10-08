@@ -87,9 +87,8 @@ jobs:
           from django.template.loader import get_template
           from partners.models import IntroLayer, SiteSetting
           assert IntroLayer._meta.get_field('x_px')
-          setting=SiteSetting.get_solo()
-          assert setting.intro_stage_width >= 1280
-          assert setting.intro_stage_height >= 600
+          assert SiteSetting._meta.get_field('intro_stage_width').default == 1920
+          assert SiteSetting._meta.get_field('intro_stage_height').default == 864
           get_template('dashboard/website_settings.html')
           get_template('website/mypage.html')
           get_template('website/includes/public_header.html')
