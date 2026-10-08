@@ -1,58 +1,54 @@
-<header class="site-header" id="top">
+<header
+    class="site-header {% if request.path == '/' %}site-header--intro{% else %}site-header--inner{% endif %}"
+    id="top"
+    style="
+        --brand-logo-size:{{ public_site.header_logo_size|default:48 }}px;
+        --brand-name-size:{{ public_site.header_site_name_size|default:17 }}px;
+        --brand-name-weight:{{ public_site.header_site_name_weight|default:800 }};
+        --brand-subtitle-size:{{ public_site.header_subtitle_size|default:12 }}px;
+        --brand-subtitle-weight:{{ public_site.header_subtitle_weight|default:500 }};
+    "
+>
     <a class="brand" href="/">
         {% if public_site_logo_url %}
         <span class="brand-dog">
-            <img
-                src="{{ public_site_logo_url }}"
-                alt="{{ public_site.site_name|default:'경상남도 반려견 협회' }} 로고"
-            >
+            <img src="{{ public_site_logo_url }}" alt="{{ public_site.site_name|default:'경상남도 반려견 협회' }} 로고">
         </span>
         {% endif %}
-
-        <span>
+        <span class="brand-copy">
             <b>{{ public_site.site_name|default:"경상남도 반려견 협회" }}</b>
             <small>{{ public_site.site_subtitle|default:"Gyeongnam Pet Dog Association" }}</small>
         </span>
     </a>
 
-    <nav class="header-actions">
-        <a href="/#privacy">개인정보처리방침</a>
-
-        {% if request.user.is_authenticated %}
-            <span class="public-user-name">
-                {{ request.user.username }}
-            </span>
-
-            {% if request.user.is_staff %}
-                <a class="btn btn-outline" href="/dashboard/">
-                    운영자 페이지
-                </a>
-            {% else %}
-                <a class="btn btn-outline" href="/mypage/">
-                    마이페이지
-                </a>
-            {% endif %}
-
-            <form
-                method="post"
-                action="/dashboard/logout/"
-                class="public-logout-form"
-            >
-                {% csrf_token %}
-                <button type="submit" class="btn btn-gold">
-                    로그아웃
-                </button>
-            </form>
-        {% else %}
-            <a class="btn btn-outline" href="/dashboard/login/">
-                로그인
-            </a>
-
-            <a class="btn btn-gold" href="/join.html">
-                회원가입
-            </a>
-        {% endif %}
+    <nav class="primary-nav" aria-label="주요 메뉴">
+        <a href="/#join">회원등록</a>
+        <a href="/about.html">협회ㆍ임원진 소개</a>
+        <a href="/partners.html">후원업체</a>
+        <a href="/breeds/">견생(Dog Life)</a>
+        <a href="/board.html">커뮤니티</a>
     </nav>
 
-    <button class="mobile-menu" type="button">☰</button>
+    <nav class="header-actions" aria-label="회원 메뉴">
+        {% if request.user.is_authenticated %}
+            <span class="public-user-name">{{ request.user.username }}</span>
+            {% if request.user.is_staff %}
+                <a class="auth-link auth-link--mypage" href="/dashboard/">운영자</a>
+            {% else %}
+                <a class="auth-link auth-link--mypage" href="/mypage/">마이페이지</a>
+            {% endif %}
+            <form method="post" action="/dashboard/logout/" class="public-logout-form">
+                {% csrf_token %}
+                <button type="submit" class="auth-link auth-link--accent">로그아웃</button>
+            </form>
+        {% else %}
+            {% if request.path == '/' %}
+                <button type="button" class="auth-link" data-member-login>로그인</button>
+                <button type="button" class="auth-link auth-link--accent" data-member-join>회원가입</button>
+            {% else %}
+                <a class="auth-link" href="/dashboard/login/">로그인</a>
+                <a class="auth-link auth-link--accent" href="/#join">회원가입</a>
+            {% endif %}
+        {% endif %}
+    </nav>
 </header>

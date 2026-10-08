@@ -191,6 +191,7 @@ overlay.querySelectorAll('form').forEach(form => {
                 closeAuth();
 
                 await refreshMemberSession();
+if(location.hash==='#join') setTimeout(()=>openAuth('member'),0);
 
             }catch(error){
                 if(msg){
@@ -373,17 +374,8 @@ function renderGuestHeader(){
     if(!headerActions) return;
 
     headerActions.innerHTML = `
-        <a href="#privacy">개인정보처리방침</a>
-        <button type="button"
-                class="btn btn-outline"
-                data-member-login>
-            로그인
-        </button>
-        <button type="button"
-                class="btn btn-gold"
-                data-member-join>
-            회원가입
-        </button>
+        <button type="button" class="auth-link" data-member-login>로그인</button>
+        <button type="button" class="auth-link auth-link--accent" data-member-join>회원가입</button>
     `;
 
     headerActions
@@ -403,24 +395,9 @@ function renderMemberHeader(user){
     );
 
     headerActions.innerHTML = `
-        <a href="#privacy">개인정보처리방침</a>
-
-        <span class="member-welcome"
-              style="font-weight:700;white-space:nowrap">
-            ${name}님
-        </span>
-
-        <button type="button"
-                class="btn btn-outline"
-                data-member-mypage>
-            마이페이지
-        </button>
-
-        <button type="button"
-                class="btn btn-gold"
-                data-member-logout>
-            로그아웃
-        </button>
+        <span class="member-welcome" style="font-weight:700;white-space:nowrap">${name}님</span>
+        <button type="button" class="auth-link auth-link--mypage" data-member-mypage>마이페이지</button>
+        <button type="button" class="auth-link auth-link--accent" data-member-logout>로그아웃</button>
     `;
 
     headerActions
@@ -518,7 +495,7 @@ async function logoutMember(){
 
 // 페이지 진입 시 Django 세션 확인
 refreshMemberSession();
-document.querySelectorAll('a[href="#join"],.join .btn-gold,.footer-banner .btn-red').forEach(el=>el.addEventListener('click',e=>{e.preventDefault();openAuth('member');}));document.querySelector('.quick-nav a[href="#partners"]')?.addEventListener('click',e=>{e.preventDefault();location.href='partners.html';});document.querySelector('.quick-nav a[href="#about"]')?.addEventListener('click',e=>{e.preventDefault();location.href='about.html';});document.querySelectorAll('a[href="#benefits"],.btn-dark-outline').forEach(el=>el.addEventListener('click',e=>{e.preventDefault();location.href='benefits.html';}));
+document.querySelectorAll('a[href="#join"],a[href="/#join"],.join .btn-gold,.footer-banner .btn-red').forEach(el=>el.addEventListener('click',e=>{e.preventDefault();openAuth('member');}));document.querySelector('.quick-nav a[href="#partners"]')?.addEventListener('click',e=>{e.preventDefault();location.href='partners.html';});document.querySelector('.quick-nav a[href="#about"]')?.addEventListener('click',e=>{e.preventDefault();location.href='about.html';});document.querySelectorAll('a[href="#benefits"],.btn-dark-outline').forEach(el=>el.addEventListener('click',e=>{e.preventDefault();location.href='benefits.html';}));
 // Shared reveal motion: works automatically on current and future pages using these common components.
 const motionGroups=[['.quick-nav a',55],['.stat-grid article',75],['.service-grid article',90],['.featured,.news-row',55],['.join-benefits span,.join-benefits>div',70],['.footer-banner',0]];const observed=[];motionGroups.forEach(([selector,step])=>{document.querySelectorAll(selector).forEach((el,i)=>{el.classList.add('reveal-motion');el.style.transitionDelay=`${Math.min(i*step,320)}ms`;observed.push(el);});});const revealObserver=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('is-visible');revealObserver.unobserve(entry.target);}});},{threshold:.12,rootMargin:'0px 0px -25px 0px'});observed.forEach(el=>revealObserver.observe(el));
 // Count-up for the four headline statistics while preserving suffix text such as 만+, 개소, 명, 개.

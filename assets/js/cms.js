@@ -1,4 +1,34 @@
 (()=>{const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const bool=(v,n)=>v?` ${n}`:'';function youtube(url){const m=String(url||'').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([^?&/]+)/);return m?m[1]:''}function media(x,cls=''){if(x.media_type==='video_file'&&x.video)return `<video class="${cls}" playsinline${bool(x.autoplay,'autoplay')}${bool(x.muted,'muted')}${bool(x.loop,'loop')} src="${esc(x.video)}"></video>`;if(x.media_type==='video_url'&&x.video_url){const y=youtube(x.video_url);if(y)return `<iframe class="${cls}" src="https://www.youtube.com/embed/${y}?autoplay=${x.autoplay?1:0}&mute=${x.muted?1:0}&loop=${x.loop?1:0}&playlist=${y}&controls=0&playsinline=1" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;return `<video class="${cls}" playsinline${bool(x.autoplay,'autoplay')}${bool(x.muted,'muted')}${bool(x.loop,'loop')} src="${esc(x.video_url)}"></video>`}return x.image?`<img class="${cls}" src="${esc(x.image)}" alt="${esc(x.title)}">`:''}
+function renderIntroLayers(hero,slide){
+ const old=hero.querySelector('.intro-layer-host');if(old)old.remove();
+ const host=document.createElement('div');host.className='intro-layer-host';
+ const sw=Math.max(1,Number(slide.stage_width)||1920),sh=Math.max(1,Number(slide.stage_height)||864);
+ (slide.layers||[]).forEach(layer=>{
+  const type=layer.layer_type||'text';
+  const el=document.createElement(type==='button'?'a':'div');
+  el.className='intro-layer intro-layer--'+type+(layer.animation&&layer.animation!=='none'?' intro-anim-'+layer.animation:'');
+  el.style.left=(Number(layer.x_px||0)/sw*100)+'%';
+  el.style.top=(Number(layer.y_px||0)/sh*100)+'%';
+  el.style.width=(Number(layer.width_px||0)/sw*100)+'%';
+  el.style.height=(Number(layer.height_px||0)/sh*100)+'%';
+  el.style.zIndex=String(layer.z_index||2);
+  el.style.opacity=String((Number(layer.opacity??100))/100);
+  el.style.setProperty('--intro-opacity',String((Number(layer.opacity??100))/100));
+  el.style.setProperty('--intro-anim-delay',(Number(layer.animation_delay_ms||0)/1000)+'s');
+  el.style.setProperty('--intro-anim-duration',(Number(layer.animation_duration_ms||700)/1000)+'s');
+  el.style.color=layer.color||'#fff';
+  el.style.background=layer.background||'transparent';
+  el.style.borderRadius=(Number(layer.border_radius||0))+'px';
+  el.style.fontSize=(Number(layer.font_size||40))+'px';
+  el.style.fontWeight=String(layer.font_weight||800);
+  if(type==='text'){el.textContent=layer.text||'';}
+  else if(type==='button'){el.textContent=layer.text||'버튼';el.href=layer.link||'#';}
+  else if(type==='image'&&layer.image){const img=document.createElement('img');img.src=layer.image;img.alt=layer.name||'';img.style.objectFit=layer.object_fit||'contain';el.appendChild(img);}
+  else if(type==='video'&&layer.video){const v=document.createElement('video');v.src=layer.video;v.autoplay=true;v.muted=true;v.loop=true;v.playsInline=true;v.style.objectFit=layer.object_fit||'cover';el.appendChild(v);v.play().catch(()=>{});}
+  host.appendChild(el);
+ });
+ hero.appendChild(host);
+}
 fetch('/api/content/?kind=hero').then(r=>r.json()).then(d=>{
  const data=d.results.sort((a,b)=>a.sort_order-b.sort_order);if(!data.length)return;
  const hero=document.querySelector('.hero'),shade=hero?.querySelector('.hero-shade'),content=hero?.querySelector('.hero-content');if(!hero||!shade||!content)return;
@@ -6,7 +36,7 @@ fetch('/api/content/?kind=hero').then(r=>r.json()).then(d=>{
  const slides=data.map((x,i)=>{const el=document.createElement('div');el.className='hero-slide cms-hero-slide'+(i===0?' active':'');if(x.media_type==='image'&&x.image)el.style.setProperty('--bg',`url('${x.image}')`);else el.innerHTML=media(x,'hero-media');hero.insertBefore(el,shade);return el});
  let i=0,paused=false,timer=null;const no=document.querySelector('#slideNo'),total=document.querySelector('.slider-control>span'),pause=document.querySelector('#pauseBtn'),prev=document.querySelector('.slider-control [data-dir="-1"]'),next=document.querySelector('.slider-control [data-dir="1"]');if(total)total.textContent='/ '+slides.length;
  const setText=(el,value)=>{if(el)el.textContent=value||''};const setTitle=(el,value)=>{if(!el)return;el.innerHTML='';String(value||'').split('\n').forEach((line,k,a)=>{el.appendChild(document.createTextNode(line));if(k<a.length-1)el.appendChild(document.createElement('br'))})};
- function show(n){i=(n+slides.length)%slides.length;slides.forEach((s,k)=>{s.classList.toggle('active',k===i);const v=s.querySelector('video');if(v){if(k===i)v.play().catch(()=>{});else v.pause()}});const x=data[i];if(no)no.textContent=i+1;setText(content.querySelector('.eyebrow'),x.hero_eyebrow);setTitle(content.querySelector('h1'),x.hero_title);const metas=content.querySelectorAll('.hero-meta');setText(metas[0],x.hero_meta1);setText(metas[1],x.hero_meta2);const btns=content.querySelectorAll('.hero-buttons a');if(btns[0]){setText(btns[0],x.hero_button1_text);btns[0].href=x.hero_button1_link||'#';btns[0].style.display=x.hero_button1_text?'':'none'}if(btns[1]){setText(btns[1],x.hero_button2_text);btns[1].href=x.hero_button2_link||'#';btns[1].style.display=x.hero_button2_text?'':'none'}}
+ function show(n){i=(n+slides.length)%slides.length;slides.forEach((s,k)=>{s.classList.toggle('active',k===i);const v=s.querySelector('video');if(v){if(k===i)v.play().catch(()=>{});else v.pause()}});const x=data[i];if(no)no.textContent=i+1;setText(content.querySelector('.eyebrow'),x.hero_eyebrow);setTitle(content.querySelector('h1'),x.hero_title);const metas=content.querySelectorAll('.hero-meta');setText(metas[0],x.hero_meta1);setText(metas[1],x.hero_meta2);const btns=content.querySelectorAll('.hero-buttons a');if(btns[0]){setText(btns[0],x.hero_button1_text);btns[0].href=x.hero_button1_link||'#';btns[0].style.display=x.hero_button1_text?'':'none'}if(btns[1]){setText(btns[1],x.hero_button2_text);btns[1].href=x.hero_button2_link||'#';btns[1].style.display=x.hero_button2_text?'':'none'}renderIntroLayers(hero,x)}
  function restart(){clearInterval(timer);if(!paused&&slides.length>1)timer=setInterval(()=>show(i+1),5000)}
  if(prev)prev.onclick=e=>{e.preventDefault();show(i-1);restart()};if(next)next.onclick=e=>{e.preventDefault();show(i+1);restart()};if(pause)pause.onclick=e=>{e.preventDefault();paused=!paused;pause.textContent=paused?'▶':'Ⅱ';restart()};show(0);restart();
 }).catch(()=>{});

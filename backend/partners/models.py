@@ -135,6 +135,17 @@ class SiteSetting(models.Model):
         blank=True,
     )
 
+    # Intro/global brand presentation controls.
+    header_logo_size = models.PositiveSmallIntegerField(default=48)
+    header_site_name_size = models.PositiveSmallIntegerField(default=17)
+    header_site_name_weight = models.PositiveSmallIntegerField(default=800)
+    header_subtitle_size = models.PositiveSmallIntegerField(default=12)
+    header_subtitle_weight = models.PositiveSmallIntegerField(default=500)
+
+    # Canonical intro editing canvas.
+    intro_stage_width = models.PositiveIntegerField(default=1920)
+    intro_stage_height = models.PositiveIntegerField(default=864)
+
     hero_eyebrow = models.CharField(
         max_length=200,
         blank=True,
@@ -213,6 +224,66 @@ class SiteSetting(models.Model):
     def get_solo(cls):
         obj, _ = cls.objects.get_or_create(pk=1)
         return obj
+
+
+class IntroLayer(models.Model):
+    LAYER_TYPES = [
+        ('text', '텍스트'),
+        ('image', '이미지'),
+        ('video', '동영상'),
+        ('button', '버튼'),
+        ('overlay', '오버레이'),
+    ]
+    ANIMATIONS = [
+        ('fade-up', 'Fade Up'),
+        ('fade', 'Fade In'),
+        ('slide-left', 'Slide Left'),
+        ('slide-right', 'Slide Right'),
+        ('zoom-in', 'Zoom In'),
+        ('none', '없음'),
+    ]
+    OBJECT_FITS = [('contain', 'Contain'), ('cover', 'Cover')]
+
+    hero = models.ForeignKey(
+        ContentItem,
+        on_delete=models.CASCADE,
+        related_name='intro_layers',
+        limit_choices_to={'kind': 'hero'},
+    )
+    name = models.CharField(max_length=100, default='새 레이어')
+    layer_type = models.CharField(max_length=20, choices=LAYER_TYPES, default='text')
+    text = models.TextField(blank=True, default='')
+    link = models.CharField(max_length=500, blank=True, default='')
+    image = models.FileField(upload_to='intro/layers/', blank=True)
+    video = models.FileField(upload_to='intro/layers/video/', blank=True)
+
+    x_px = models.IntegerField(default=120)
+    y_px = models.IntegerField(default=220)
+    width_px = models.PositiveIntegerField(default=520)
+    height_px = models.PositiveIntegerField(default=120)
+
+    opacity = models.PositiveSmallIntegerField(default=100)
+    z_index = models.PositiveSmallIntegerField(default=2)
+    font_size = models.PositiveSmallIntegerField(default=40)
+    font_weight = models.PositiveSmallIntegerField(default=800)
+    color = models.CharField(max_length=40, default='#ffffff')
+    background = models.CharField(max_length=80, blank=True, default='transparent')
+    border_radius = models.PositiveSmallIntegerField(default=0)
+    object_fit = models.CharField(max_length=10, choices=OBJECT_FITS, default='contain')
+
+    animation = models.CharField(max_length=20, choices=ANIMATIONS, default='fade-up')
+    animation_delay_ms = models.PositiveIntegerField(default=200)
+    animation_duration_ms = models.PositiveIntegerField(default=700)
+
+    is_visible = models.BooleanField(default=True)
+    sort_order = models.IntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['z_index', 'sort_order', 'pk']
+
+    def __str__(self):
+        return f'{self.hero_id} · {self.name}'
 
 
 # === ABOUT PAGE CMS ===

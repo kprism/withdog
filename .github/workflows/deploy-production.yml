@@ -85,6 +85,12 @@ jobs:
           assert '가입후 환불은 불가합니다.' in app_js
           assert '은행명 000-0000-0000' not in app_js
           from django.template.loader import get_template
+          from partners.models import IntroLayer, SiteSetting
+          assert IntroLayer._meta.get_field('x_px')
+          setting=SiteSetting.get_solo()
+          assert setting.intro_stage_width >= 1280
+          assert setting.intro_stage_height >= 600
+          get_template('dashboard/website_settings.html')
           get_template('website/mypage.html')
           get_template('website/includes/public_header.html')
           get_template('website/includes/public_footer.html')
@@ -183,8 +189,21 @@ jobs:
                       raise SystemExit(f'Canonical public auth controls missing: {url}')
                   if 'class="brand-dog"' not in html or '<img' not in html:
                       raise SystemExit(f'Canonical server-rendered logo missing: {url}')
+                  if 'class="primary-nav"' not in html:
+                      raise SystemExit(f'Primary navigation missing: {url}')
                   if '🐶' in html.split('</header>', 1)[0]:
                       raise SystemExit(f'Legacy header dog fallback still present: {url}')
+
+          with urllib.request.urlopen('https://thepetkorea.co.kr/', timeout=20) as response:
+              home_html=response.read().decode('utf-8','replace')
+              if 'site-header--intro' not in home_html:
+                  raise SystemExit('Intro glass header class missing')
+              if 'quick-nav' in home_html:
+                  raise SystemExit('Legacy lower quick navigation still present')
+          with urllib.request.urlopen('https://thepetkorea.co.kr/about.html', timeout=20) as response:
+              inner_html=response.read().decode('utf-8','replace')
+              if 'site-header--inner' not in inner_html:
+                  raise SystemExit('Inner gray header class missing')
 
           # Validate Googlebot-visible homepage and sitemap, not just HTTP 200.
           googlebot = {'User-Agent': 'Googlebot'}

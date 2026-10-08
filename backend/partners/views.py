@@ -5,7 +5,7 @@ from django.views.decorators.http import require_GET,require_POST
 from django.utils import timezone
 from django.db.models import Q
 from openpyxl import load_workbook
-from .models import Partner,PartnerCategory,ContentItem,SiteSetting
+from .models import Partner,PartnerCategory,ContentItem,SiteSetting,IntroLayer
 @require_GET
 def partner_list(request):
  qs=Partner.objects.filter(is_active=True).select_related('category'); category=request.GET.get('category'); city=request.GET.get('city'); q=request.GET.get('q')
@@ -16,12 +16,40 @@ def partner_list(request):
  return JsonResponse({'count':qs.count(),'results':data})
 @require_GET
 def content_feed(request):
- kind=request.GET.get('kind'); qs=ContentItem.objects.filter(is_published=True)
+ kind=request.GET.get('kind')
+ qs=ContentItem.objects.filter(is_published=True)
  if kind:qs=qs.filter(kind=kind)
- now=timezone.now(); normal=['notice','community','breed','intro','hero']; qs=qs.filter(Q(kind__in=normal)|Q(kind='popup',popup_start__isnull=True)|Q(kind='popup',popup_start__lte=now)).filter(Q(kind__in=normal)|Q(kind='popup',popup_end__isnull=True)|Q(kind='popup',popup_end__gte=now))
+ if kind == 'hero':qs=qs.prefetch_related('intro_layers')
+ now=timezone.now()
+ normal=['notice','community','breed','intro','hero']
+ qs=qs.filter(Q(kind__in=normal)|Q(kind='popup',popup_start__isnull=True)|Q(kind='popup',popup_start__lte=now)).filter(Q(kind__in=normal)|Q(kind='popup',popup_end__isnull=True)|Q(kind='popup',popup_end__gte=now))
+ setting=SiteSetting.get_solo()
  results=[]
- for x in qs[:100]:results.append({'id':x.id,'kind':x.kind,'title':x.title,'label':x.label,'body':x.body,'image':x.image.url if x.image else x.image_url,'link':x.link,'media_type':x.media_type,'video':x.video.url if x.video else '','video_url':x.video_url,'autoplay':x.autoplay,'muted':x.muted,'loop':x.loop,'sort_order':x.sort_order,'hero_eyebrow':x.hero_eyebrow,'hero_title':x.hero_title,'hero_meta1':x.hero_meta1,'hero_meta2':x.hero_meta2,'hero_button1_text':x.hero_button1_text,'hero_button1_link':x.hero_button1_link,'hero_button2_text':x.hero_button2_text,'hero_button2_link':x.hero_button2_link,'created_at':x.created_at.strftime('%Y-%m-%d')})
+ for x in qs[:100]:
+  layers=[]
+  if x.kind == 'hero':
+   for layer in x.intro_layers.all():
+    if not layer.is_visible:continue
+    layers.append({
+     'id':layer.id,'name':layer.name,'layer_type':layer.layer_type,'text':layer.text,'link':layer.link,
+     'image':layer.image.url if layer.image else '','video':layer.video.url if layer.video else '',
+     'x_px':layer.x_px,'y_px':layer.y_px,'width_px':layer.width_px,'height_px':layer.height_px,
+     'opacity':layer.opacity,'z_index':layer.z_index,'font_size':layer.font_size,'font_weight':layer.font_weight,
+     'color':layer.color,'background':layer.background,'border_radius':layer.border_radius,'object_fit':layer.object_fit,
+     'animation':layer.animation,'animation_delay_ms':layer.animation_delay_ms,'animation_duration_ms':layer.animation_duration_ms,
+    })
+  results.append({
+   'id':x.id,'kind':x.kind,'title':x.title,'label':x.label,'body':x.body,
+   'image':x.image.url if x.image else x.image_url,'link':x.link,'media_type':x.media_type,
+   'video':x.video.url if x.video else '','video_url':x.video_url,'autoplay':x.autoplay,'muted':x.muted,'loop':x.loop,
+   'sort_order':x.sort_order,'hero_eyebrow':x.hero_eyebrow,'hero_title':x.hero_title,'hero_meta1':x.hero_meta1,
+   'hero_meta2':x.hero_meta2,'hero_button1_text':x.hero_button1_text,'hero_button1_link':x.hero_button1_link,
+   'hero_button2_text':x.hero_button2_text,'hero_button2_link':x.hero_button2_link,
+   'stage_width':setting.intro_stage_width,'stage_height':setting.intro_stage_height,'layers':layers,
+   'created_at':x.created_at.strftime('%Y-%m-%d'),
+  })
  return JsonResponse({'count':len(results),'results':results})
+
 @staff_member_required
 @require_POST
 def import_excel(request):
@@ -319,6 +347,13 @@ def site_settings_api(request):
         'site_name': x.site_name,
         'site_subtitle': x.site_subtitle,
         'logo': x.logo.url if x.logo else '',
+        'header_logo_size': x.header_logo_size,
+        'header_site_name_size': x.header_site_name_size,
+        'header_site_name_weight': x.header_site_name_weight,
+        'header_subtitle_size': x.header_subtitle_size,
+        'header_subtitle_weight': x.header_subtitle_weight,
+        'intro_stage_width': x.intro_stage_width,
+        'intro_stage_height': x.intro_stage_height,
         'hero_eyebrow': x.hero_eyebrow,
         'hero_title': x.hero_title,
         'hero_meta1': x.hero_meta1,

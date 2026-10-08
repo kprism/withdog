@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Q, Max
 from django.shortcuts import get_object_or_404, redirect, render
-from .models import ContentItem, SiteSetting, AboutPageSetting, AboutHistoryItem, AboutOrgItem
+from .models import ContentItem, SiteSetting, IntroLayer, AboutPageSetting, AboutHistoryItem, AboutOrgItem
 
 def _seo_context(request, title, description, path, *, image='', og_type='website', json_ld=None, robots='index,follow,max-image-preview:large'):
     import json
@@ -52,11 +52,21 @@ def _delete_file(field):
     if field:
         field.delete(save=False)
 
-def _hero_redirect(pk=None):
+def _hero_redirect(pk=None, anchor='hero-editor'):
     url='/dashboard/website/'
-    if pk: url += f'?slide={pk}#hero-editor'
-    else: url += '#hero-editor'
+    if pk:
+        url += f'?slide={pk}#{anchor}'
+    elif anchor:
+        url += f'#{anchor}'
     return redirect(url)
+
+
+def _clamped_int(value, default, minimum, maximum):
+    try:
+        value = int(value)
+    except (TypeError, ValueError):
+        return default
+    return max(minimum, min(maximum, value))
 
 @staff_member_required
 def site_settings(request):
@@ -65,17 +75,77 @@ def site_settings(request):
     if request.method == 'POST':
         action=request.POST.get('action','header_save')
 
-        if action == 'header_save':
+        if action in ('header_save', 'intro_brand_save'):
             setting.site_name=request.POST.get('site_name','').strip() or '경상남도 반려견 협회'
             setting.site_subtitle=request.POST.get('site_subtitle','').strip()
+            setting.header_logo_size=_clamped_int(request.POST.get('header_logo_size'),setting.header_logo_size,28,120)
+            setting.header_site_name_size=_clamped_int(request.POST.get('header_site_name_size'),setting.header_site_name_size,11,40)
+            setting.header_site_name_weight=_clamped_int(request.POST.get('header_site_name_weight'),setting.header_site_name_weight,400,900)
+            setting.header_subtitle_size=_clamped_int(request.POST.get('header_subtitle_size'),setting.header_subtitle_size,9,28)
+            setting.header_subtitle_weight=_clamped_int(request.POST.get('header_subtitle_weight'),setting.header_subtitle_weight,400,900)
+            setting.intro_stage_width=_clamped_int(request.POST.get('intro_stage_width'),setting.intro_stage_width,1280,3840)
+            setting.intro_stage_height=_clamped_int(request.POST.get('intro_stage_height'),setting.intro_stage_height,600,2160)
             if request.POST.get('delete_logo') == '1' and setting.logo:
                 _delete_file(setting.logo); setting.logo=''
             if request.FILES.get('logo'):
                 if setting.logo: _delete_file(setting.logo)
                 setting.logo=request.FILES['logo']
             setting.save()
-            messages.success(request,'헤더 설정이 저장되었습니다.')
+            messages.success(request,'인트로 상단 브랜드와 기준 캔버스가 저장되었습니다.')
             return redirect('operator_dashboard:website_settings')
+
+        if action == 'layer_add':
+            hero=get_object_or_404(ContentItem,pk=request.POST.get('slide_id'),kind='hero')
+            layer_type=request.POST.get('layer_type','text')
+            if layer_type not in dict(IntroLayer.LAYER_TYPES): layer_type='text'
+            current=list(hero.intro_layers.order_by('-z_index','-pk')[:1])
+            next_z=(current[0].z_index + 1) if current else 2
+            layer=IntroLayer.objects.create(
+                hero=hero,
+                name=f'Layer {hero.intro_layers.count()+2}',
+                layer_type=layer_type,
+                z_index=next_z,
+                sort_order=next_z,
+            )
+            messages.success(request,f'{layer.name}가 추가되었습니다.')
+            return _hero_redirect(hero.pk,'layer-editor')
+
+        if action in ('layer_save','layer_delete'):
+            layer=get_object_or_404(IntroLayer,pk=request.POST.get('layer_id'))
+            hero=layer.hero
+            if action == 'layer_delete':
+                _delete_file(layer.image); _delete_file(layer.video); layer.delete()
+                messages.success(request,'선택한 레이어가 삭제되었습니다.')
+                return _hero_redirect(hero.pk,'layer-editor')
+
+            layer.name=request.POST.get('name','').strip() or layer.name
+            layer.layer_type=request.POST.get('layer_type') if request.POST.get('layer_type') in dict(IntroLayer.LAYER_TYPES) else layer.layer_type
+            layer.text=request.POST.get('text','').strip()
+            layer.link=request.POST.get('link','').strip()
+            layer.x_px=_clamped_int(request.POST.get('x_px'),layer.x_px,-3840,3840)
+            layer.y_px=_clamped_int(request.POST.get('y_px'),layer.y_px,-2160,2160)
+            layer.width_px=_clamped_int(request.POST.get('width_px'),layer.width_px,10,3840)
+            layer.height_px=_clamped_int(request.POST.get('height_px'),layer.height_px,10,2160)
+            layer.opacity=_clamped_int(request.POST.get('opacity'),layer.opacity,0,100)
+            layer.z_index=_clamped_int(request.POST.get('z_index'),layer.z_index,1,200)
+            layer.font_size=_clamped_int(request.POST.get('font_size'),layer.font_size,8,240)
+            layer.font_weight=_clamped_int(request.POST.get('font_weight'),layer.font_weight,100,900)
+            layer.border_radius=_clamped_int(request.POST.get('border_radius'),layer.border_radius,0,300)
+            layer.animation_delay_ms=_clamped_int(request.POST.get('animation_delay_ms'),layer.animation_delay_ms,0,10000)
+            layer.animation_duration_ms=_clamped_int(request.POST.get('animation_duration_ms'),layer.animation_duration_ms,100,10000)
+            layer.sort_order=_clamped_int(request.POST.get('sort_order'),layer.sort_order,-1000,1000)
+            layer.color=(request.POST.get('color') or '#ffffff').strip()
+            layer.background=(request.POST.get('background') or 'transparent').strip()
+            layer.object_fit=request.POST.get('object_fit') if request.POST.get('object_fit') in dict(IntroLayer.OBJECT_FITS) else 'contain'
+            layer.animation=request.POST.get('animation') if request.POST.get('animation') in dict(IntroLayer.ANIMATIONS) else 'fade-up'
+            layer.is_visible='is_visible' in request.POST
+            if request.FILES.get('image'):
+                _delete_file(layer.image); layer.image=request.FILES['image']
+            if request.FILES.get('video'):
+                _delete_file(layer.video); layer.video=request.FILES['video']
+            layer.save()
+            messages.success(request,f'{layer.name}가 저장되었습니다.')
+            return _hero_redirect(hero.pk,'layer-editor')
 
         if action == 'hero_add':
             max_order=ContentItem.objects.filter(kind='hero').aggregate(m=Max('sort_order'))['m'] or 0
@@ -140,10 +210,23 @@ def site_settings(request):
             messages.success(request,'슬라이드가 저장되어 홈페이지에 반영되었습니다.')
             return _hero_redirect(obj.pk)
 
-    hero_items=list(ContentItem.objects.filter(kind='hero').order_by('sort_order','pk'))
+    hero_items=list(
+        ContentItem.objects.filter(kind='hero').prefetch_related('intro_layers').order_by('sort_order','pk')
+    )
     selected_id=request.GET.get('slide')
     selected_pk=int(selected_id) if selected_id and selected_id.isdigit() else (hero_items[0].pk if hero_items else None)
-    return render(request,'dashboard/website_settings.html',{'setting':setting,'hero_items':hero_items,'selected_pk':selected_pk})
+    return render(
+        request,
+        'dashboard/website_settings.html',
+        {
+            'setting':setting,
+            'hero_items':hero_items,
+            'selected_pk':selected_pk,
+            'layer_types':IntroLayer.LAYER_TYPES,
+            'layer_animations':IntroLayer.ANIMATIONS,
+            'layer_object_fits':IntroLayer.OBJECT_FITS,
+        },
+    )
 
 
 
