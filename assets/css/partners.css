@@ -1052,3 +1052,12 @@
     box-shadow:0 0 0 3px rgba(201,31,38,.06);
 }
 
+
+
+/* ============================================================
+   PARTNERS LAYOUT CLEANUP 2026-10-08
+   ============================================================ */
+.partners{padding-top:34px!important}
+.partners #regions{margin:0 0 24px;padding:0}
+.partners .region-filter{max-width:none;margin:0;padding:0;gap:8px}
+.partners .count{margin-bottom:14px}

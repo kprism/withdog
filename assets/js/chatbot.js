@@ -1,6 +1,15 @@
 (()=>{
 'use strict';
 
+if(window.__thePetChatbotBooted){
+    return;
+}
+window.__thePetChatbotBooted = true;
+
+const floats = Array.from(document.querySelectorAll('.bot-float'));
+floats.slice(1).forEach(node=>node.remove());
+document.querySelectorAll('.bot').forEach(node=>node.remove());
+
 const oldButton = document.getElementById('botButton');
 
 if(!oldButton){
@@ -138,8 +147,9 @@ async function boot(){
             {
                 width:'100%',
                 height:'100%',
-                objectFit:'cover',
-                borderRadius:'50%',
+                objectFit:'contain',
+                borderRadius:'0',
+                background:'transparent',
                 display:'block',
                 pointerEvents:'none'
             }

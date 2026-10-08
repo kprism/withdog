@@ -343,3 +343,118 @@
 @media(max-width:760px){
     .bot-float{right:18px;bottom:105px}
 }
+
+
+/* ============================================================
+   SINGLE TRANSPARENT CHATBOT + DOG LIFE WEB MAGAZINE 2026-10-08
+   ============================================================ */
+.bot-tip{display:none!important}
+.bot-float{
+    right:28px!important;
+    bottom:190px!important;
+    align-items:center;
+}
+.bot-float button,
+#botButton{
+    width:108px!important;
+    height:108px!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+    overflow:visible!important;
+}
+#botButton video{
+    width:100%!important;
+    height:100%!important;
+    object-fit:contain!important;
+    border:0!important;
+    border-radius:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+}
+.brand-dog video,
+.footer-brand-video{
+    display:block;
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    background:transparent;
+    border:0;
+}
+.slider-control{display:none!important}
+
+.web-magazine{
+    width:min(1380px,calc(100% - 48px));
+    margin:0 auto;
+    padding:64px 0 90px;
+}
+.mag-head{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:30px;
+    margin-bottom:34px;
+    padding-bottom:22px;
+    border-bottom:1px solid #ddd;
+}
+.mag-head .eyebrow{color:#d1282d;margin:0 0 7px}
+.mag-head h2{font-size:36px;margin:0 0 10px}
+.mag-head p{margin:0;color:#777}
+.mag-filters{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.mag-filters button{
+    border:1px solid #ddd;background:#fff;border-radius:999px;
+    padding:9px 14px;font-weight:750;color:#555
+}
+.mag-filters button.active{background:#171717;color:#fff;border-color:#171717}
+.mag-feed{display:grid;grid-template-columns:repeat(12,1fr);gap:20px}
+.mag-card{
+    position:relative;background:#fff;border:1px solid #e7e7e7;
+    border-radius:18px;overflow:hidden;min-height:220px;
+    transition:transform .2s ease,box-shadow .2s ease
+}
+.mag-card:hover{transform:translateY(-3px);box-shadow:0 14px 34px #00000012}
+.mag-copy{padding:25px}
+.mag-category{
+    display:inline-flex;margin-bottom:13px;color:#d1282d;
+    font-size:12px;font-weight:900;letter-spacing:.02em
+}
+.mag-card h3{font-size:22px;line-height:1.45;margin:0 0 12px}
+.mag-card p{font-size:14px;line-height:1.8;color:#666;margin:0 0 20px}
+.mag-meta{display:flex;gap:14px;flex-wrap:wrap;color:#999;font-size:12px}
+.mag-media{position:relative;overflow:hidden;background:#eee}
+.mag-media img{width:100%;height:100%;display:block;object-fit:cover}
+.mag-card-text{grid-column:span 4;background:#faf8f4}
+.mag-card-half{grid-column:span 8;display:grid;grid-template-columns:1fr 1fr}
+.mag-card-half .mag-media{min-height:330px}
+.mag-card-thumb{grid-column:span 7;display:grid;grid-template-columns:110px 1fr;align-items:stretch}
+.mag-card-thumb .mag-media{min-height:190px}
+.mag-card-video-wide{grid-column:span 7}
+.mag-card-video-wide .mag-media{aspect-ratio:16/9}
+.mag-card-video-vertical{grid-column:span 5;display:grid;grid-template-columns:minmax(180px,42%) 1fr}
+.mag-card-video-vertical .mag-media{aspect-ratio:9/16;max-height:520px}
+.mag-video-poster:after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 55%,#0008)}
+.mag-play{
+    position:absolute;z-index:2;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:60px;height:60px;border-radius:50%;display:grid;place-items:center;
+    background:#ffffffdd;color:#d1282d;font-size:22px;padding-left:4px
+}
+.mag-format{
+    position:absolute;z-index:2;left:16px;bottom:14px;
+    color:#fff;font-size:11px;font-weight:900;background:#0008;
+    padding:6px 9px;border-radius:999px
+}
+@media(max-width:900px){
+    .web-magazine{width:min(100% - 28px,720px);padding-top:40px}
+    .mag-head{display:block}.mag-filters{justify-content:flex-start;margin-top:18px}
+    .mag-card-text,.mag-card-half,.mag-card-thumb,.mag-card-video-wide,.mag-card-video-vertical{grid-column:1/-1}
+    .mag-card-half{grid-template-columns:1fr}.mag-card-half .mag-media{min-height:240px}
+    .mag-card-video-vertical{grid-template-columns:180px 1fr}
+    .bot-float{right:12px!important;bottom:110px!important}
+    .bot-float button,#botButton{width:92px!important;height:92px!important}
+}
+@media(max-width:560px){
+    .mag-card-thumb{grid-template-columns:90px 1fr}
+    .mag-card-video-vertical{grid-template-columns:140px 1fr}
+}

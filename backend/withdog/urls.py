@@ -20,6 +20,35 @@ def _render_public_shell(request, html):
     from django.template.loader import render_to_string
     header = render_to_string('website/includes/public_header.html', request=request)
     footer = render_to_string('website/includes/public_footer.html', request=request)
+
+    # Strip legacy floating chatbot / scroll controls and duplicate chatbot scripts
+    # from static HTML before injecting the canonical footer. This prevents the
+    # old bot from covering the admin-configured video and removes duplicate IDs.
+    html = re.sub(
+        r'<div\s+class=["\']bot-float["\'][^>]*>\s*<div\s+class=["\']bot-tip["\'][^>]*>.*?</div>\s*<button[^>]*id=["\']botButton["\'][^>]*>.*?</button>\s*</div>',
+        '',
+        html,
+        flags=re.I | re.S,
+    )
+    html = re.sub(
+        r'<div\s+class=["\']bot["\'][^>]*>\s*<span[^>]*>.*?</span>\s*<button[^>]*>.*?</button>\s*</div>',
+        '',
+        html,
+        flags=re.I | re.S,
+    )
+    html = re.sub(
+        r'<button\s+class=["\'](?:to-top|top)["\'][^>]*>.*?</button>',
+        '',
+        html,
+        flags=re.I | re.S,
+    )
+    html = re.sub(
+        r'<script[^>]+src=["\'][^"\']*assets/js/chatbot\.js[^"\']*["\'][^>]*></script>',
+        '',
+        html,
+        flags=re.I | re.S,
+    )
+
     html = re.sub(r'<header class="site-header".*?</header>', header, html, count=1, flags=re.I | re.S)
     html = re.sub(r'<footer class="footer".*?</footer>', footer, html, count=1, flags=re.I | re.S)
     return html

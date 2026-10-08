@@ -88,11 +88,27 @@ def site_settings(request):
             setting.intro_header_opacity=_clamped_int(request.POST.get('intro_header_opacity'),setting.intro_header_opacity,0,100)
             setting.intro_stage_width=_clamped_int(request.POST.get('intro_stage_width'),setting.intro_stage_width,1280,3840)
             setting.intro_stage_height=_clamped_int(request.POST.get('intro_stage_height'),setting.intro_stage_height,600,2160)
-            if request.POST.get('delete_logo') == '1' and setting.logo:
-                _delete_file(setting.logo); setting.logo=''
+            if request.POST.get('delete_logo') == '1':
+                if setting.logo:
+                    _delete_file(setting.logo)
+                    setting.logo=''
+                if setting.logo_video:
+                    _delete_file(setting.logo_video)
+                    setting.logo_video=''
             if request.FILES.get('logo'):
-                if setting.logo: _delete_file(setting.logo)
+                if setting.logo:
+                    _delete_file(setting.logo)
+                if setting.logo_video:
+                    _delete_file(setting.logo_video)
                 setting.logo=request.FILES['logo']
+                setting.logo_video=''
+            if request.FILES.get('logo_video'):
+                if setting.logo_video:
+                    _delete_file(setting.logo_video)
+                if setting.logo:
+                    _delete_file(setting.logo)
+                setting.logo_video=request.FILES['logo_video']
+                setting.logo=''
             setting.save()
             messages.success(request,'인트로 상단 브랜드와 기준 캔버스가 저장되었습니다.')
             return redirect('operator_dashboard:website_settings')
@@ -1779,10 +1795,17 @@ def public_chatbot_config(request):
     if setting.bot_video:
         try:
             video_url = setting.bot_video.url
+            separator = '&' if '?' in video_url else '?'
+            video_url = (
+                video_url
+                + separator
+                + 'v='
+                + str(int(setting.updated_at.timestamp()))
+            )
         except Exception:
             video_url = ''
 
-    return JsonResponse({
+    response = JsonResponse({
         'enabled': setting.enabled,
         'ai_enabled': setting.ai_enabled,
         'bot_name': setting.bot_name,
@@ -1791,6 +1814,8 @@ def public_chatbot_config(request):
         'contact_button_text': setting.contact_button_text,
         'contact_phone': setting.contact_phone,
     })
+    response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    return response
 
 
 @require_POST

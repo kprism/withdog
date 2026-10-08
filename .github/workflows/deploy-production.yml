@@ -217,10 +217,29 @@ jobs:
                   raise SystemExit('Legacy lower quick navigation still present')
               if '--intro-nav-opacity:' not in home_html or '--menu-font-size:' not in home_html:
                   raise SystemExit('Intro menu presentation controls missing')
+              if home_html.count('id="botButton"') != 1:
+                  raise SystemExit('Homepage must render exactly one chatbot button')
+              if 'class="slider-control"' in home_html:
+                  raise SystemExit('Legacy intro slider controls still present')
+              if 'class="stats"' in home_html:
+                  raise SystemExit('Legacy statistics section still present')
+              if 'class="web-magazine"' not in home_html:
+                  raise SystemExit('Dog Life web magazine section missing')
           with urllib.request.urlopen('https://thepetkorea.co.kr/about.html', timeout=20) as response:
               inner_html=response.read().decode('utf-8','replace')
               if 'site-header--inner' not in inner_html:
                   raise SystemExit('Inner gray header class missing')
+          with urllib.request.urlopen('https://thepetkorea.co.kr/partners.html', timeout=20) as response:
+              partners_html=response.read().decode('utf-8','replace')
+              if partners_html.count('id="botButton"') != 1:
+                  raise SystemExit('Partners page must render exactly one chatbot button')
+              if 'RELATED COMPANIES' in partners_html:
+                  raise SystemExit('Legacy partners hero still present')
+              count_pos=partners_html.find('id="count"')
+              regions_pos=partners_html.find('id="regions"')
+              cards_pos=partners_html.find('id="cards"')
+              if not (count_pos >= 0 and regions_pos > count_pos and cards_pos > regions_pos):
+                  raise SystemExit('Partner region filters are not directly below total count')
 
           # Validate Googlebot-visible homepage and sitemap, not just HTTP 200.
           googlebot = {'User-Agent': 'Googlebot'}

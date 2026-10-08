@@ -136,6 +136,10 @@ class SiteSetting(models.Model):
         upload_to='site/logo/',
         blank=True,
     )
+    logo_video = models.FileField(
+        upload_to='site/logo/video/',
+        blank=True,
+    )
 
     # Intro/global brand presentation controls.
     header_logo_size = models.PositiveSmallIntegerField(default=48)
