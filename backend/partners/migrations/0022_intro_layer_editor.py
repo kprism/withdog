@@ -48,5 +48,4 @@ class Migration(migrations.Migration):
             ],
             options={'ordering': ['z_index', 'sort_order', 'pk']},
         ),
-    ]
-}
+    ]]
