@@ -458,3 +458,252 @@
     .mag-card-thumb{grid-template-columns:90px 1fr}
     .mag-card-video-vertical{grid-template-columns:140px 1fr}
 }
+
+
+/* ============================================================
+   COMPACT DOG LIFE FEED + CIRCULAR BRAND/BOT 2026-10-08
+   ============================================================ */
+
+/* Header logo: clean circular crop, no ring/border/background */
+.site-header .brand-dog{
+    border-radius:50%!important;
+    overflow:hidden!important;
+    background:transparent!important;
+    border:0!important;
+    box-shadow:none!important;
+}
+.site-header .brand-dog img,
+.site-header .brand-dog video,
+.brand-logo-video{
+    width:100%!important;
+    height:100%!important;
+    object-fit:cover!important;
+    border-radius:50%!important;
+    border:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+}
+
+/* Floating bot: circular visual only, no border/background plate */
+.bot-float{
+    right:24px!important;
+    bottom:90px!important;
+}
+.bot-float button,
+#botButton{
+    width:82px!important;
+    height:82px!important;
+    border-radius:50%!important;
+    overflow:hidden!important;
+    border:0!important;
+    outline:0!important;
+    padding:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+}
+#botButton video,
+#botButton img{
+    width:100%!important;
+    height:100%!important;
+    object-fit:cover!important;
+    border-radius:50%!important;
+    border:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+}
+
+/* Compact YouTube-style magazine */
+.web-magazine--compact{
+    width:min(1420px,calc(100% - 42px));
+    padding:38px 0 58px;
+}
+.mag-head--compact{
+    margin-bottom:20px;
+    padding-bottom:16px;
+    align-items:center;
+}
+.mag-head--compact h2{
+    font-size:28px;
+    margin:0 0 6px;
+}
+.mag-head--compact p{
+    font-size:13px;
+}
+.mag-layout{
+    display:grid;
+    grid-template-columns:280px minmax(0,1fr);
+    gap:22px;
+    align-items:start;
+}
+
+/* Left rail = compact text-first feed */
+.mag-text-rail{
+    display:flex;
+    flex-direction:column;
+    border-right:1px solid #e5e5e5;
+    padding-right:18px;
+}
+.mag-text-item{
+    padding:15px 0;
+    border-bottom:1px solid #ececec;
+}
+.mag-text-item:first-child{padding-top:3px}
+.mag-text-item .mag-category{
+    margin-bottom:6px;
+}
+.mag-text-item h3{
+    margin:0 0 7px;
+    font-size:15px;
+    line-height:1.45;
+}
+.mag-text-item p{
+    margin:0 0 10px;
+    color:#666;
+    font-size:12px;
+    line-height:1.55;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+}
+.mag-text-item .mag-meta{
+    font-size:10px;
+    gap:8px;
+}
+
+/* Right = dense media feed */
+.mag-media-grid{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:16px;
+}
+.mag-tile{
+    min-width:0;
+}
+.mag-tile .mag-media{
+    position:relative;
+    aspect-ratio:16/10;
+    border-radius:13px;
+    overflow:hidden;
+    background:#111;
+}
+.mag-tile--wide{
+    grid-column:span 2;
+}
+.mag-tile--wide .mag-media{
+    aspect-ratio:16/7.7;
+}
+.mag-tile--shorts{
+    grid-row:span 2;
+}
+.mag-tile--shorts .mag-media{
+    aspect-ratio:9/16;
+    height:min(520px,52vw);
+    max-height:520px;
+}
+.mag-tile .mag-media img,
+.mag-tile .mag-media video{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+    transition:transform .35s ease;
+}
+.mag-tile:hover .mag-media img,
+.mag-tile:hover .mag-media video{
+    transform:scale(1.025);
+}
+.mag-overlay{
+    position:absolute;
+    z-index:3;
+    inset:auto 0 0;
+    padding:54px 14px 13px;
+    color:#fff;
+    background:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,.18) 22%,rgba(0,0,0,.84) 100%);
+}
+.mag-overlay .mag-category{
+    margin:0 0 5px;
+    color:#fff;
+    font-size:10px;
+    text-shadow:0 1px 3px #000;
+}
+.mag-overlay h3{
+    margin:0 0 7px;
+    color:#fff;
+    font-size:15px;
+    line-height:1.38;
+    text-shadow:0 2px 5px #000;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+}
+.mag-overlay p{
+    margin:0 0 7px;
+    color:#eee;
+    font-size:11px;
+    line-height:1.45;
+    display:-webkit-box;
+    -webkit-line-clamp:1;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+}
+.mag-overlay .mag-meta{
+    color:#ddd;
+    font-size:9px;
+    gap:8px;
+}
+.mag-tile .mag-play{
+    width:42px;
+    height:42px;
+    font-size:16px;
+}
+.mag-tile .mag-format{
+    left:10px;
+    top:10px;
+    bottom:auto;
+    font-size:9px;
+    padding:5px 7px;
+}
+.mag-filters button{
+    padding:7px 12px;
+    font-size:12px;
+}
+
+/* neutralize old large card rules inside compact feed */
+.web-magazine--compact .mag-card,
+.web-magazine--compact .mag-card-half,
+.web-magazine--compact .mag-card-thumb,
+.web-magazine--compact .mag-card-video-wide,
+.web-magazine--compact .mag-card-video-vertical{
+    display:contents;
+}
+
+@media(max-width:1100px){
+    .mag-layout{grid-template-columns:240px minmax(0,1fr)}
+    .mag-media-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .mag-tile--wide{grid-column:span 2}
+}
+@media(max-width:760px){
+    .web-magazine--compact{width:min(100% - 24px,720px);padding:28px 0 42px}
+    .mag-head--compact{display:block}
+    .mag-layout{grid-template-columns:1fr;gap:16px}
+    .mag-text-rail{
+        border-right:0;
+        border-bottom:1px solid #e5e5e5;
+        padding:0 0 10px;
+    }
+    .mag-text-item{padding:11px 0}
+    .mag-media-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .mag-tile--wide{grid-column:span 2}
+    .mag-tile--shorts{grid-row:auto}
+    .mag-tile--shorts .mag-media{height:auto;max-height:none;aspect-ratio:9/14}
+    .bot-float{right:12px!important;bottom:78px!important}
+    .bot-float button,#botButton{width:72px!important;height:72px!important}
+}
+@media(max-width:480px){
+    .mag-media-grid{grid-template-columns:1fr 1fr}
+    .mag-overlay{padding:44px 10px 10px}
+    .mag-overlay h3{font-size:13px}
+    .mag-tile--wide{grid-column:span 2}
+}
