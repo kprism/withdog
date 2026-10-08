@@ -8,10 +8,29 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(model_name='contentitem', name='hero_meta1_font_size', field=models.PositiveSmallIntegerField(default=16)),
-        migrations.AddField(model_name='contentitem', name='hero_meta2_font_size', field=models.PositiveSmallIntegerField(default=16)),
-        migrations.AddField(model_name='sitesetting', name='header_menu_font_size', field=models.PositiveSmallIntegerField(default=16)),
-        migrations.AddField(model_name='sitesetting', name='header_menu_font_weight', field=models.PositiveSmallIntegerField(default=700)),
-        migrations.AddField(model_name='sitesetting', name='intro_header_opacity', field=models.PositiveSmallIntegerField(default=82)),
-    ]
+        migrations.AddField(
+            model_name='contentitem',
+            name='hero_meta1_font_size',
+            field=models.PositiveSmallIntegerField(default=16),
+        ),
+        migrations.AddField(
+            model_name='contentitem',
+            name='hero_meta2_font_size',
+            field=models.PositiveSmallIntegerField(default=16),
+        ),
+        migrations.AddField(
+            model_name='sitesetting',
+            name='header_menu_font_size',
+            field=models.PositiveSmallIntegerField(default=16),
+        ),
+        migrations.AddField(
+            model_name='sitesetting',
+            name='header_menu_font_weight',
+            field=models.PositiveSmallIntegerField(default=700),
+        ),
+        migrations.AddField(
+            model_name='sitesetting',
+            name='intro_header_opacity',
+            field=models.PositiveSmallIntegerField(default=82),
+        ),
     ]
