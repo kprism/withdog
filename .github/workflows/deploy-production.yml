@@ -82,7 +82,16 @@ jobs:
           assert callable(_render_public_shell)
           app_js=Path('../assets/js/app.js').read_text(encoding='utf-8')
           assert '농협 351-2027-0000-43' in app_js
-          assert '가입후 환불은 불가합니다.' in app_js
+          assert '가입 후 환불은 불가합니다. 1년마다 갱신되며, 별도 연락 없을 시 자동갱신 됩니다.' in app_js
+          assert '관리자 확인 후' not in app_js
+          assert '🎁 회원 혜택 안내' not in app_js
+          assert 'data-agree-all' in app_js
+          assert 'data-agreement="privacy"' in app_js
+          assert 'data-agreement="terms"' in app_js
+          assert 'data-agreement="rules"' in app_js
+          assert 'data-term-panel="privacy"' in app_js
+          assert 'data-term-panel="terms"' in app_js
+          assert 'data-term-panel="rules"' in app_js
           assert '은행명 000-0000-0000' not in app_js
           from django.template.loader import get_template
           from partners.models import IntroLayer, SiteSetting

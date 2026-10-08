@@ -707,3 +707,20 @@
     .mag-overlay h3{font-size:13px}
     .mag-tile--wide{grid-column:span 2}
 }
+
+
+/* === FOOTER BRAND MEDIA SIZE RESTORE 2026-10-08 === */
+.footer .footer-brand-logo,
+.footer .footer-brand-video{
+    width:38px!important;
+    height:38px!important;
+    min-width:38px!important;
+    min-height:38px!important;
+    flex:0 0 38px!important;
+    object-fit:cover!important;
+    border-radius:50%!important;
+    overflow:hidden!important;
+    background:transparent!important;
+    border:0!important;
+    box-shadow:none!important;
+}
