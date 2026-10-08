@@ -744,15 +744,15 @@
     min-width:54px;
     height:26px;
     padding:0 8px;
-    border:0;
+    border:1px solid rgba(0,0,0,.12);
     border-radius:999px;
-    background:#161616;
-    color:#fff;
+    background:rgba(255,255,255,.96);
+    color:#5f6368!important;
     font-size:10px!important;
     line-height:1!important;
     letter-spacing:-.02em;
     font-weight:800!important;
-    box-shadow:0 5px 14px #0002;
+    box-shadow:0 5px 14px #0001;
     opacity:0;
     transform:scale(.78);
     pointer-events:none;
@@ -760,7 +760,7 @@
     white-space:nowrap;
 }
 .bot-radial-ask{right:54px;bottom:58px}
-.bot-radial-share{right:-4px;bottom:82px;background:#d1282d}
+.bot-radial-share{right:-4px;bottom:82px;background:#f3f4f6;color:#5f6368!important}
 .bot-radial-actions.open .bot-radial-action{
     opacity:1;
     transform:scale(1);
