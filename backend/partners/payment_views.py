@@ -19,8 +19,20 @@ def _keys(s, env):
 def create_membership_payment(user):
     s=_setting(); env=_env(s); client,secret=_keys(s,env)
     if not client or not secret: return None,'토스페이먼츠 API 키가 아직 설정되지 않았습니다.'
-    rec=PaymentRecord.objects.create(user=user,environment=env,order_id='MEMBER_'+uuid.uuid4().hex[:24],amount=s.annual_fee,order_name='경상남도 반려견 협회 정회원 연회비')
-    return {'client_key':client,'order_id':rec.order_id,'amount':rec.amount,'order_name':rec.order_name,'customer_name':getattr(user.member_profile,'name','회원'),'customer_email':user.email},None
+    profile=getattr(user,'member_profile',None)
+    rec=PaymentRecord.objects.create(
+        user=user,
+        member_name=getattr(profile,'name','') or '',
+        member_birth_date=getattr(profile,'birth_date',None),
+        member_email=user.email or user.username or '',
+        member_region=getattr(profile,'region','') or '',
+        member_address=getattr(profile,'address_detail','') or '',
+        environment=env,
+        order_id='MEMBER_'+uuid.uuid4().hex[:24],
+        amount=s.annual_fee,
+        order_name='경상남도 반려견 협회 정회원 연회비',
+    )
+    return {'client_key':client,'order_id':rec.order_id,'amount':rec.amount,'order_name':rec.order_name,'customer_name':getattr(profile,'name','회원'),'customer_email':user.email},None
 
 def _confirm(rec,payment_key,amount):
     s=_setting(); _,secret=_keys(s,rec.environment)
@@ -38,7 +50,7 @@ def _confirm(rec,payment_key,amount):
     rec.payment_key=data.get('paymentKey','');rec.status=data.get('status','DONE');rec.method=data.get('method','') or ''
     approved=data.get('approvedAt');rec.approved_at=parse_datetime(approved) if approved else timezone.now();rec.raw_response=data
     rec.save(update_fields=['payment_key','status','method','approved_at','raw_response','updated_at'])
-    if rec.status=='DONE':
+    if rec.status=='DONE' and rec.user_id:
         # 결제 주문은 가입 시 회원 계정과 직접 연결된다. 승인대기 회원인지
         # 다시 확인하고, 결제 회원 정보(이름/생년월일/주소)가 그 계정의
         # MemberProfile과 일치하는 경우에만 정회원으로 자동 승급한다.

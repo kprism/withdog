@@ -741,31 +741,33 @@
 }
 .bot-radial-action{
     position:absolute;
-    min-width:70px;
-    height:34px;
-    padding:0 11px;
+    min-width:54px;
+    height:26px;
+    padding:0 8px;
     border:0;
     border-radius:999px;
     background:#161616;
     color:#fff;
-    font-size:11px;
-    font-weight:900;
-    box-shadow:0 7px 20px #0002;
+    font-size:10px!important;
+    line-height:1!important;
+    letter-spacing:-.02em;
+    font-weight:800!important;
+    box-shadow:0 5px 14px #0002;
     opacity:0;
-    transform:scale(.72);
+    transform:scale(.78);
     pointer-events:none;
-    transition:opacity .2s ease,transform .2s ease;
+    transition:opacity .18s ease,transform .18s ease;
     white-space:nowrap;
 }
-.bot-radial-ask{right:58px;bottom:62px}
-.bot-radial-share{right:-12px;bottom:92px;background:#d1282d}
+.bot-radial-ask{right:54px;bottom:58px}
+.bot-radial-share{right:-4px;bottom:82px;background:#d1282d}
 .bot-radial-actions.open .bot-radial-action{
     opacity:1;
     transform:scale(1);
     pointer-events:auto;
 }
 @media(max-width:760px){
-    .bot-radial-ask{right:50px;bottom:54px}
-    .bot-radial-share{right:-6px;bottom:80px}
-    .bot-radial-action{min-width:64px;height:32px;font-size:10px}
+    .bot-radial-ask{right:46px;bottom:50px}
+    .bot-radial-share{right:-2px;bottom:72px}
+    .bot-radial-action{min-width:50px;height:24px;padding:0 7px;font-size:9px!important}
 }

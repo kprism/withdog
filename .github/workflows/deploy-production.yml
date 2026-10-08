@@ -33,6 +33,35 @@ jobs:
       - name: Verify migration state
         working-directory: backend
         run: python manage.py makemigrations partners --check --dry-run --verbosity 3
+      - name: Verify member deletion ledger preservation
+        working-directory: backend
+        run: |
+          python manage.py migrate --noinput
+          python manage.py shell <<'PY'
+          from django.contrib.auth import get_user_model
+          from partners.models import MemberProfile, PaymentRecord
+          User=get_user_model()
+          u=User.objects.create_user(username='ci-delete@example.com',email='ci-delete@example.com',password='test12345')
+          p=MemberProfile.objects.create(user=u,name='삭제테스트',phone='010-0000-0000',membership_status='withdrawn')
+          r=PaymentRecord.objects.create(
+              user=u,
+              member_name=p.name,
+              member_email=u.email,
+              member_region='경남',
+              member_address='테스트 주소',
+              environment='test',
+              order_id='CI_MEMBER_DELETE_LEDGER',
+              amount=30000,
+              status='DONE',
+          )
+          u.delete()
+          r.refresh_from_db()
+          assert r.user_id is None
+          assert r.member_name == '삭제테스트'
+          assert r.member_email == 'ci-delete@example.com'
+          r.delete()
+          print('MEMBER_DELETE_LEDGER_PRESERVED')
+          PY
       - name: Collect and verify static assets
         working-directory: backend
         run: |
@@ -169,6 +198,7 @@ jobs:
               ('https://thepetkorea.co.kr/about.html', True),
               ('https://thepetkorea.co.kr/benefits.html', True),
               ('https://thepetkorea.co.kr/partners.html', True),
+              ('https://thepetkorea.co.kr/doglife/', True),
               ('https://thepetkorea.co.kr/mypage/', False),
               ('https://thepetkorea.co.kr/sitemap.xml', True),
               ('https://thepetkorea.co.kr/robots.txt', True),
@@ -247,6 +277,16 @@ jobs:
               inner_html=response.read().decode('utf-8','replace')
               if 'site-header--inner' not in inner_html:
                   raise SystemExit('Inner gray header class missing')
+          with urllib.request.urlopen('https://thepetkorea.co.kr/doglife/', timeout=20) as response:
+              doglife_html=response.read().decode('utf-8','replace')
+              if '견생 · 반려견과 함께 사는 이야기' not in doglife_html:
+                  raise SystemExit('Dog Life heading missing')
+              for layout in ('feature','mosaic','strip','editorial'):
+                  if f'dl-grid--{layout}' not in doglife_html:
+                      raise SystemExit(f'Dog Life layout missing: {layout}')
+              if 'dl-empty-box' in doglife_html:
+                  raise SystemExit('Legacy oversized empty box still present')
+
           with urllib.request.urlopen('https://thepetkorea.co.kr/partners.html', timeout=20) as response:
               partners_html=response.read().decode('utf-8','replace')
               if partners_html.count('id="botButton"') != 1:

@@ -2163,28 +2163,45 @@ def _doglife_save_files(post, request):
 def public_doglife_list(request):
     from .models import BoardCategory
 
-    categories = BoardCategory.objects.filter(
-        board_type='doglife',
-        is_active=True,
-    ).order_by('sort_order', 'id')
+    categories = list(
+        BoardCategory.objects.filter(
+            board_type='doglife',
+            is_active=True,
+        ).order_by('sort_order', 'id')
+    )
 
     selected_category = (request.GET.get('category') or '').strip()
-
     base = _doglife_queryset().order_by('-published_at', '-created_at')
 
+    # 카테고리는 유지하되 매 섹션의 편집 리듬이 반복되지 않도록
+    # 네 가지 매거진 레이아웃을 순환한다.
+    layouts = ('feature', 'mosaic', 'strip', 'editorial')
+
+    def group_for(category, index, limit=None):
+        qs = base.filter(category=category)
+        if limit:
+            qs = qs[:limit]
+        return {
+            'category': category,
+            'posts': list(qs),
+            'layout': layouts[index % len(layouts)],
+        }
+
     if selected_category:
-        selected = categories.filter(slug=selected_category).first()
-        posts = base.filter(category=selected) if selected else base.none()
-        category_groups = [
-            {'category': selected, 'posts': list(posts)}
-        ] if selected else []
+        selected = next(
+            (x for x in categories if x.slug == selected_category),
+            None,
+        )
+        if selected:
+            selected_index = categories.index(selected)
+            category_groups = [group_for(selected, selected_index)]
+        else:
+            category_groups = []
     else:
-        category_groups = []
-        for category in categories:
-            category_groups.append({
-                'category': category,
-                'posts': list(base.filter(category=category)[:12]),
-            })
+        category_groups = [
+            group_for(category, index, 12)
+            for index, category in enumerate(categories)
+        ]
 
     context = {
         'categories': categories,
@@ -2199,7 +2216,6 @@ def public_doglife_list(request):
     }
 
     return render(request, 'website/doglife.html', context)
-
 
 def public_doglife_detail(request, pk):
     from django.db.models import F

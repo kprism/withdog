@@ -1225,7 +1225,12 @@ class TossPaymentSetting(models.Model):
 
 class PaymentRecord(models.Model):
     ENVIRONMENTS=[('test','테스트'),('live','라이브')]
-    user=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.PROTECT,related_name='payment_records')
+    user=models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.SET_NULL,null=True,blank=True,related_name='payment_records')
+    member_name=models.CharField(max_length=120,blank=True,default='')
+    member_birth_date=models.DateField(null=True,blank=True)
+    member_email=models.EmailField(blank=True,default='')
+    member_region=models.CharField(max_length=120,blank=True,default='')
+    member_address=models.CharField(max_length=300,blank=True,default='')
     environment=models.CharField(max_length=10,choices=ENVIRONMENTS,default='test',db_index=True)
     order_id=models.CharField(max_length=64,unique=True)
     payment_key=models.CharField(max_length=200,blank=True,default='',db_index=True)

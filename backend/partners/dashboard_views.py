@@ -8,6 +8,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import get_user_model
 from django.core.paginator import Paginator
 from django.db.models import Count,Q
+from django.db.models.deletion import ProtectedError
 from django.shortcuts import redirect,render,get_object_or_404
 from django.utils.dateparse import parse_date,parse_datetime
 from openpyxl import load_workbook
@@ -813,7 +814,12 @@ def member_delete(request,pk):
  if u.is_active and (not p or p.membership_status!='withdrawn'):
   messages.error(request,'활성 회원은 바로 삭제할 수 없습니다. 먼저 탈퇴 처리해 주세요.')
  else:
-  name=p.name if p else (u.email or u.username); u.delete(); messages.success(request,f'{name} 회원의 탈퇴 계정과 관련 데이터를 삭제했습니다.')
+  name=p.name if p else (u.email or u.username)
+  try:
+   u.delete()
+   messages.success(request,f'{name} 회원 계정을 삭제했습니다. 결제·정산 이력은 회원정보 스냅샷으로 보존됩니다.')
+  except ProtectedError:
+   messages.error(request,'이 회원을 참조하는 보존 대상 데이터가 있어 삭제하지 못했습니다. 관련 이력을 먼저 확인해 주세요.')
  return redirect('/dashboard/manage/members/?status=withdrawn')
 
 @staff_member_required

@@ -143,7 +143,7 @@
                             </button>
                         </form>
                         {% else %}
-                        <form method="post" action="{% url 'operator_dashboard:member_delete' r.id %}" style="display:inline" onsubmit="return confirm('이 탈퇴회원 계정을 완전히 삭제하시겠습니까? 결제 등 관련 데이터도 함께 삭제될 수 있습니다.')">{% csrf_token %}<button class="badge" style="border:0;cursor:pointer;background:#c91f26;color:#fff">삭제</button></form>
+                        <form method="post" action="{% url 'operator_dashboard:member_delete' r.id %}" style="display:inline" onsubmit="return confirm('이 탈퇴회원 계정을 삭제하시겠습니까? 결제·정산 이력은 삭제하지 않고 보존됩니다.')">{% csrf_token %}<button class="badge" style="border:0;cursor:pointer;background:#c91f26;color:#fff">삭제</button></form>
                         {% endif %}
                     </td>
                 </tr>
