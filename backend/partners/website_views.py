@@ -83,6 +83,9 @@ def site_settings(request):
             setting.header_site_name_weight=_clamped_int(request.POST.get('header_site_name_weight'),setting.header_site_name_weight,400,900)
             setting.header_subtitle_size=_clamped_int(request.POST.get('header_subtitle_size'),setting.header_subtitle_size,9,28)
             setting.header_subtitle_weight=_clamped_int(request.POST.get('header_subtitle_weight'),setting.header_subtitle_weight,400,900)
+            setting.header_menu_font_size=_clamped_int(request.POST.get('header_menu_font_size'),setting.header_menu_font_size,11,28)
+            setting.header_menu_font_weight=_clamped_int(request.POST.get('header_menu_font_weight'),setting.header_menu_font_weight,400,900)
+            setting.intro_header_opacity=_clamped_int(request.POST.get('intro_header_opacity'),setting.intro_header_opacity,0,100)
             setting.intro_stage_width=_clamped_int(request.POST.get('intro_stage_width'),setting.intro_stage_width,1280,3840)
             setting.intro_stage_height=_clamped_int(request.POST.get('intro_stage_height'),setting.intro_stage_height,600,2160)
             if request.POST.get('delete_logo') == '1' and setting.logo:
@@ -187,6 +190,8 @@ def site_settings(request):
             obj.hero_title=request.POST.get('hero_title','').strip()
             obj.hero_meta1=request.POST.get('hero_meta1','').strip()
             obj.hero_meta2=request.POST.get('hero_meta2','').strip()
+            obj.hero_meta1_font_size=_clamped_int(request.POST.get('hero_meta1_font_size'),obj.hero_meta1_font_size,10,40)
+            obj.hero_meta2_font_size=_clamped_int(request.POST.get('hero_meta2_font_size'),obj.hero_meta2_font_size,10,40)
             obj.hero_button1_text=request.POST.get('hero_button1_text','').strip()
             obj.hero_button1_link=request.POST.get('hero_button1_link','').strip()
             obj.hero_button2_text=request.POST.get('hero_button2_text','').strip()

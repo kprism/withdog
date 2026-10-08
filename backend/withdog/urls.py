@@ -81,13 +81,13 @@ def public_static_page(request, filename):
     page=_render_public_shell(request, page)
     page=re.sub(
         r'''href=["'][^"']*assets/css/style\.css(?:\?[^"']*)?["']''',
-        'href="/assets/css/style.css?v=20261008-intro-stage-v1"',
+        'href="/assets/css/style.css?v=20261008-intro-stage-v2"',
         page,
         count=1,
         flags=re.I,
     )
     if 'assets/css/style.css' not in page:
-        page=page.replace('</head>','<link rel="stylesheet" href="/assets/css/style.css?v=20261008-intro-stage-v1"></head>',1)
+        page=page.replace('</head>','<link rel="stylesheet" href="/assets/css/style.css?v=20261008-intro-stage-v2"></head>',1)
     response=HttpResponse(page,content_type='text/html; charset=utf-8')
     response['Cache-Control']='no-store, no-cache, must-revalidate, max-age=0'
     return response

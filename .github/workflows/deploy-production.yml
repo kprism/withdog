@@ -89,6 +89,12 @@ jobs:
           assert IntroLayer._meta.get_field('x_px')
           assert SiteSetting._meta.get_field('intro_stage_width').default == 1920
           assert SiteSetting._meta.get_field('intro_stage_height').default == 864
+          assert SiteSetting._meta.get_field('intro_header_opacity').default == 82
+          assert SiteSetting._meta.get_field('header_menu_font_size').default == 16
+          assert SiteSetting._meta.get_field('header_menu_font_weight').default == 700
+          from partners.models import ContentItem
+          assert ContentItem._meta.get_field('hero_meta1_font_size').default == 16
+          assert ContentItem._meta.get_field('hero_meta2_font_size').default == 16
           get_template('dashboard/website_settings.html')
           get_template('website/mypage.html')
           get_template('website/includes/public_header.html')
@@ -209,6 +215,8 @@ jobs:
                   raise SystemExit('Intro glass header class missing')
               if 'quick-nav' in home_html:
                   raise SystemExit('Legacy lower quick navigation still present')
+              if '--intro-nav-opacity:' not in home_html or '--menu-font-size:' not in home_html:
+                  raise SystemExit('Intro menu presentation controls missing')
           with urllib.request.urlopen('https://thepetkorea.co.kr/about.html', timeout=20) as response:
               inner_html=response.read().decode('utf-8','replace')
               if 'site-header--inner' not in inner_html:

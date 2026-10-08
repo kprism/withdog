@@ -306,3 +306,40 @@
     .site-header--intro + .hero{height:720px}
     .site-header--intro + .hero .hero-content{top:31%}
 }
+
+
+/* ============================================================
+   INTRO PRESENTATION CONTROLS 2026-10-08
+   ============================================================ */
+.site-header--intro{
+    background:rgb(255 255 255 / var(--intro-nav-opacity,82%));
+}
+.primary-nav a{
+    font-size:var(--menu-font-size,16px);
+    font-weight:var(--menu-font-weight,700);
+}
+.header-actions,
+.auth-link{
+    font-size:var(--menu-font-size,16px);
+    font-weight:var(--menu-font-weight,700);
+}
+.site-header .brand-dog{
+    background:transparent!important;
+    border-radius:0!important;
+    overflow:visible!important;
+}
+.site-header .brand-dog img{
+    background:transparent!important;
+    border-radius:0!important;
+}
+.footer-brand-logo{
+    background:transparent!important;
+    border-radius:0!important;
+}
+.bot-float{
+    right:36px;
+    bottom:220px;
+}
+@media(max-width:760px){
+    .bot-float{right:18px;bottom:105px}
+}

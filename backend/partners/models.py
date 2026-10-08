@@ -88,6 +88,8 @@ class ContentItem(models.Model):
     MEDIA_TYPES=[('image','이미지'),('video_file','영상 파일'),('video_url','영상 링크')]
     kind=models.CharField(max_length=20,choices=KINDS,db_index=True); title=models.CharField(max_length=200); label=models.CharField(max_length=80,blank=True); body=models.TextField(blank=True); image=models.FileField(upload_to='content/%Y/%m/',blank=True); image_url=models.URLField(max_length=1200,blank=True); link=models.CharField(max_length=500,blank=True); media_type=models.CharField(max_length=20,choices=MEDIA_TYPES,default='image'); video=models.FileField(upload_to='content/video/%Y/%m/',blank=True); video_url=models.URLField(max_length=1000,blank=True); autoplay=models.BooleanField(default=True); muted=models.BooleanField(default=True); loop=models.BooleanField(default=True); is_published=models.BooleanField(default=True); sort_order=models.IntegerField(default=0); popup_start=models.DateTimeField(null=True,blank=True); popup_end=models.DateTimeField(null=True,blank=True); created_at=models.DateTimeField(auto_now_add=True); updated_at=models.DateTimeField(auto_now=True)
     hero_eyebrow=models.CharField(max_length=200,blank=True); hero_title=models.CharField(max_length=300,blank=True); hero_meta1=models.CharField(max_length=300,blank=True); hero_meta2=models.CharField(max_length=300,blank=True); hero_button1_text=models.CharField(max_length=80,blank=True); hero_button1_link=models.CharField(max_length=500,blank=True); hero_button2_text=models.CharField(max_length=80,blank=True); hero_button2_link=models.CharField(max_length=500,blank=True)
+    hero_meta1_font_size=models.PositiveSmallIntegerField(default=16)
+    hero_meta2_font_size=models.PositiveSmallIntegerField(default=16)
     class Meta: ordering=['sort_order','-created_at']
     def __str__(self): return self.title
 
@@ -141,6 +143,9 @@ class SiteSetting(models.Model):
     header_site_name_weight = models.PositiveSmallIntegerField(default=800)
     header_subtitle_size = models.PositiveSmallIntegerField(default=12)
     header_subtitle_weight = models.PositiveSmallIntegerField(default=500)
+    header_menu_font_size = models.PositiveSmallIntegerField(default=16)
+    header_menu_font_weight = models.PositiveSmallIntegerField(default=700)
+    intro_header_opacity = models.PositiveSmallIntegerField(default=82)
 
     # Canonical intro editing canvas.
     intro_stage_width = models.PositiveIntegerField(default=1920)
