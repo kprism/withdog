@@ -1,0 +1,322 @@
+name: Deploy production
+
+on:
+  push:
+    branches: [intro-homepage]
+  workflow_dispatch:
+
+concurrency:
+  group: thepetkorea-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      - name: Install dependencies
+        run: pip install -r backend/requirements.txt
+      - name: Compile Python
+        run: python -m compileall -q backend
+      - name: Django checks
+        working-directory: backend
+        run: python manage.py check
+      - name: Verify migration state
+        working-directory: backend
+        run: python manage.py makemigrations partners --check --dry-run --verbosity 3
+      - name: Verify member deletion ledger preservation
+        working-directory: backend
+        run: |
+          python manage.py migrate --noinput
+          python manage.py shell <<'PY'
+          from django.contrib.auth import get_user_model
+          from partners.models import MemberProfile, PaymentRecord
+          User=get_user_model()
+          u=User.objects.create_user(username='ci-delete@example.com',email='ci-delete@example.com',password='test12345')
+          p=MemberProfile.objects.create(user=u,name='삭제테스트',phone='010-0000-0000',membership_status='withdrawn')
+          r=PaymentRecord.objects.create(
+              user=u,
+              member_name=p.name,
+              member_email=u.email,
+              member_region='경남',
+              member_address='테스트 주소',
+              environment='test',
+              order_id='CI_MEMBER_DELETE_LEDGER',
+              amount=30000,
+              status='DONE',
+          )
+          u.delete()
+          r.refresh_from_db()
+          assert r.user_id is None
+          assert r.member_name == '삭제테스트'
+          assert r.member_email == 'ci-delete@example.com'
+          r.delete()
+          print('MEMBER_DELETE_LEDGER_PRESERVED')
+          PY
+      - name: Collect and verify static assets
+        working-directory: backend
+        run: |
+          python manage.py collectstatic --noinput
+          test -s staticfiles/member_card_stamp.webp
+          test "$(stat -c%s staticfiles/member_card_stamp.webp)" = "10146"
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected='2f2653b53f25362a2c040665a6a44b226c50cc3b08eeec2b2e1a9b574a217c31'
+          actual=hashlib.sha256(Path('staticfiles/member_card_stamp.webp').read_bytes()).hexdigest()
+          assert actual == expected, (actual, expected)
+          PY
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('partners/templates/website/mypage.html').read_text(encoding='utf-8')
+          h=Path('partners/templates/website/includes/public_header.html').read_text(encoding='utf-8')
+          f=Path('partners/templates/website/includes/public_footer.html').read_text(encoding='utf-8')
+          assert 'data:image/webp;base64' not in p
+          assert 'member_dog_stamp.webp' not in p
+          assert 'member_card_stamp.webp' in p
+          assert 'background:#fff;box-shadow' in p
+          assert 'member_card_dog_image' not in p
+          assert 'public_site_logo_url' in h
+          assert '🐶' not in h
+          assert '🐶' not in f
+          shell_templates = [
+              Path('partners/templates/website/board.html'),
+              Path('partners/templates/website/board_detail.html'),
+              Path('partners/templates/website/community.html'),
+              Path('partners/templates/website/community_detail.html'),
+              Path('partners/templates/website/community_form.html'),
+              Path('partners/templates/website/mypage.html'),
+              Path('partners/templates/public/breed_list.html'),
+              Path('partners/templates/public/breed_detail.html'),
+              Path('partners/templates/public/payment_result.html'),
+          ]
+          for template_path in shell_templates:
+              html = template_path.read_text(encoding='utf-8')
+              assert 'website/includes/public_header.html' in html, template_path
+              assert 'website/includes/public_footer.html' in html, template_path
+          import os
+          os.environ.setdefault('DJANGO_SETTINGS_MODULE','withdog.settings')
+          import django
+          django.setup()
+          from withdog.urls import _render_public_shell
+          assert callable(_render_public_shell)
+          app_js=Path('../assets/js/app.js').read_text(encoding='utf-8')
+          assert '농협 351-2027-0000-43' in app_js
+          assert '가입 후 환불은 불가합니다. 1년마다 갱신되며, 별도 연락 없을 시 자동갱신 됩니다.' in app_js
+          assert '관리자 확인 후' not in app_js
+          assert '🎁 회원 혜택 안내' not in app_js
+          assert 'data-agree-all' in app_js
+          assert 'data-agreement="privacy"' in app_js
+          assert 'data-agreement="terms"' in app_js
+          assert 'data-agreement="rules"' in app_js
+          assert 'data-term-panel="privacy"' in app_js
+          assert 'data-term-panel="terms"' in app_js
+          assert 'data-term-panel="rules"' in app_js
+          assert '은행명 000-0000-0000' not in app_js
+          from django.template.loader import get_template
+          from partners.models import IntroLayer, SiteSetting
+          assert IntroLayer._meta.get_field('x_px')
+          assert SiteSetting._meta.get_field('intro_stage_width').default == 1920
+          assert SiteSetting._meta.get_field('intro_stage_height').default == 864
+          assert SiteSetting._meta.get_field('intro_header_opacity').default == 82
+          assert SiteSetting._meta.get_field('header_menu_font_size').default == 16
+          assert SiteSetting._meta.get_field('header_menu_font_weight').default == 700
+          from partners.models import ContentItem
+          assert ContentItem._meta.get_field('hero_meta1_font_size').default == 16
+          assert ContentItem._meta.get_field('hero_meta2_font_size').default == 16
+          get_template('dashboard/website_settings.html')
+          get_template('dashboard/policy_editor.html')
+          get_template('website/doglife.html')
+          get_template('website/doglife_detail.html')
+          get_template('website/doglife_form.html')
+          get_template('website/includes/doglife_home_feed.html')
+          get_template('website/mypage.html')
+          get_template('website/includes/public_header.html')
+          get_template('website/includes/public_footer.html')
+          PY
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/819578664210/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+          service_account: github-deployer@thepetkorea.iam.gserviceaccount.com
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Prepare production repository trust
+        run: |
+          gcloud compute ssh thepetkorea-main-vm \
+            --project=thepetkorea \
+            --zone=asia-northeast3-a \
+            --quiet \
+            --command="sudo git config --global --add safe.directory /home/mstclma00/withdog"
+
+      - name: Deploy exact tested commit and migrate before restart
+        env:
+          DEPLOY_SHA: ${{ github.sha }}
+        run: |
+          gcloud compute ssh thepetkorea-main-vm \
+            --project=thepetkorea \
+            --zone=asia-northeast3-a \
+            --quiet \
+            --command="set -e; cd /home/mstclma00/withdog; sudo -u mstclma00 git fetch origin intro-homepage; sudo -u mstclma00 git checkout intro-homepage; sudo -u mstclma00 git reset --hard ${DEPLOY_SHA}; cd backend; sudo -u mstclma00 .venv/bin/python manage.py migrate --noinput; sudo -u mstclma00 .venv/bin/python manage.py check; sudo -u mstclma00 .venv/bin/python manage.py collectstatic --noinput; echo '=== SERVICE CONFIG ==='; sudo systemctl show thepetkorea -p WorkingDirectory -p ExecStart -p FragmentPath; sudo systemctl daemon-reload; sudo systemctl restart thepetkorea; sleep 3; systemctl is-active --quiet thepetkorea; test \"$(sudo -u mstclma00 git rev-parse HEAD)\" = \"\${DEPLOY_SHA}\"; curl -fsS http://127.0.0.1:8000/ >/dev/null || { sudo journalctl -u thepetkorea -n 80 --no-pager; exit 1; }; curl -fsS http://127.0.0.1:8000/sitemap.xml >/dev/null; curl -fsS http://127.0.0.1:8000/robots.txt >/dev/null"
+
+      - name: Inspect production branding sources
+        run: |
+          gcloud compute ssh thepetkorea-main-vm \
+            --project=thepetkorea \
+            --zone=asia-northeast3-a \
+            --quiet \
+            --command='cd /home/mstclma00/withdog/backend; sudo -u mstclma00 .venv/bin/python manage.py shell -c "from partners.models import SiteSetting,AboutPageSetting; s=SiteSetting.get_solo(); a=AboutPageSetting.get_solo(); print('\''site_logo='\'', s.logo.name if s.logo else '\'''\'', '\''exists='\'', bool(s.logo and s.logo.storage.exists(s.logo.name))); print('\''member_art='\'', a.member_card_image.name if a.member_card_image else '\'''\'', '\''exists='\'', bool(a.member_card_image and a.member_card_image.storage.exists(a.member_card_image.name)))"'
+
+      - name: Verify public endpoints and membership image
+        run: |
+          python - <<'PY'
+          import hashlib
+          import urllib.error
+          import urllib.request
+          import xml.etree.ElementTree as ET
+
+          checks = [
+              ('https://thepetkorea.co.kr/', False),
+              ('https://thepetkorea.co.kr/about.html', True),
+              ('https://thepetkorea.co.kr/benefits.html', True),
+              ('https://thepetkorea.co.kr/partners.html', True),
+              ('https://thepetkorea.co.kr/doglife/', True),
+              ('https://thepetkorea.co.kr/mypage/', False),
+              ('https://thepetkorea.co.kr/sitemap.xml', True),
+              ('https://thepetkorea.co.kr/robots.txt', True),
+              ('https://thepetkorea.co.kr/static/member_card_stamp.webp?v=20261007-3', True),
+          ]
+          for url, must_be_200 in checks:
+              req = urllib.request.Request(url, method='GET')
+              try:
+                  with urllib.request.urlopen(req, timeout=20) as response:
+                      print(url, response.status, response.headers.get('Content-Type'))
+                      if must_be_200 and response.status != 200:
+                          raise SystemExit(1)
+                      if response.status >= 500:
+                          raise SystemExit(1)
+              except urllib.error.HTTPError as exc:
+                  print(url, exc.code)
+                  if must_be_200 or exc.code >= 500:
+                      raise
+          stamp_url='https://thepetkorea.co.kr/static/member_card_stamp.webp?v=20261007-3'
+          with urllib.request.urlopen(stamp_url, timeout=20) as response:
+              stamp_bytes=response.read()
+              stamp_hash=hashlib.sha256(stamp_bytes).hexdigest()
+              expected_stamp='2f2653b53f25362a2c040665a6a44b226c50cc3b08eeec2b2e1a9b574a217c31'
+              print('MEMBER_CARD_STAMP_SHA256', stamp_hash)
+              if stamp_hash != expected_stamp:
+                  raise SystemExit(f'Membership stamp mismatch: {stamp_hash}')
+
+          # Validate that public pages use the canonical authenticated-aware shell.
+          public_urls = [
+              'https://thepetkorea.co.kr/',
+              'https://thepetkorea.co.kr/about.html',
+              'https://thepetkorea.co.kr/benefits.html',
+              'https://thepetkorea.co.kr/partners.html',
+          ]
+          for url in public_urls:
+              with urllib.request.urlopen(url, timeout=20) as response:
+                  html=response.read().decode('utf-8','replace')
+                  if 'class="site-header ' not in html or 'class="footer"' not in html:
+                      raise SystemExit(f'Public shell validation failed: {url}')
+                  if 'Gyeongnam Pet Dog Association' not in html:
+                      raise SystemExit(f'Canonical footer/header content missing: {url}')
+                  if url == 'https://thepetkorea.co.kr/':
+                      if 'data-member-login' not in html or 'data-member-join' not in html:
+                          raise SystemExit(f'Intro auth controls missing: {url}')
+                  else:
+                      if '/dashboard/login/' not in html or '/#join' not in html:
+                          raise SystemExit(f'Inner-page auth controls missing: {url}')
+                  if 'class="brand-dog"' not in html or ('<img' not in html and '<video' not in html):
+                      raise SystemExit(f'Canonical server-rendered logo media missing: {url}')
+                  if 'class="primary-nav"' not in html:
+                      raise SystemExit(f'Primary navigation missing: {url}')
+                  if '🐶' in html.split('</header>', 1)[0]:
+                      raise SystemExit(f'Legacy header dog fallback still present: {url}')
+
+          with urllib.request.urlopen('https://thepetkorea.co.kr/', timeout=20) as response:
+              home_html=response.read().decode('utf-8','replace')
+              if 'site-header--intro' not in home_html:
+                  raise SystemExit('Intro glass header class missing')
+              if 'quick-nav' in home_html:
+                  raise SystemExit('Legacy lower quick navigation still present')
+              if '--intro-nav-opacity:' not in home_html or '--menu-font-size:' not in home_html:
+                  raise SystemExit('Intro menu presentation controls missing')
+              if home_html.count('id="botButton"') != 1:
+                  raise SystemExit('Homepage must render exactly one chatbot button')
+              if 'class="slider-control"' in home_html:
+                  raise SystemExit('Legacy intro slider controls still present')
+              if 'class="stats"' in home_html:
+                  raise SystemExit('Legacy statistics section still present')
+              if 'class="web-magazine' not in home_html:
+                  raise SystemExit('Dog Life web magazine section missing')
+              if 'class="mag-text-rail"' not in home_html or 'class="mag-media-grid"' not in home_html:
+                  raise SystemExit('Compact magazine rail/grid structure missing')
+              if 'class="mag-overlay"' not in home_html:
+                  raise SystemExit('Magazine image overlay text structure missing')
+          with urllib.request.urlopen('https://thepetkorea.co.kr/about.html', timeout=20) as response:
+              inner_html=response.read().decode('utf-8','replace')
+              if 'site-header--inner' not in inner_html:
+                  raise SystemExit('Inner gray header class missing')
+          with urllib.request.urlopen('https://thepetkorea.co.kr/doglife/', timeout=20) as response:
+              doglife_html=response.read().decode('utf-8','replace')
+              if '견생 · 반려견과 함께 사는 이야기' not in doglife_html:
+                  raise SystemExit('Dog Life heading missing')
+              for layout in ('feature','mosaic','strip','editorial'):
+                  if f'dl-grid--{layout}' not in doglife_html:
+                      raise SystemExit(f'Dog Life layout missing: {layout}')
+              if 'dl-empty-box' in doglife_html:
+                  raise SystemExit('Legacy oversized empty box still present')
+
+          with urllib.request.urlopen('https://thepetkorea.co.kr/partners.html', timeout=20) as response:
+              partners_html=response.read().decode('utf-8','replace')
+              if partners_html.count('id="botButton"') != 1:
+                  raise SystemExit('Partners page must render exactly one chatbot button')
+              if 'RELATED COMPANIES' in partners_html:
+                  raise SystemExit('Legacy partners hero still present')
+              count_pos=partners_html.find('id="count"')
+              regions_pos=partners_html.find('id="regions"')
+              cards_pos=partners_html.find('id="cards"')
+              if not (count_pos >= 0 and regions_pos > count_pos and cards_pos > regions_pos):
+                  raise SystemExit('Partner region filters are not directly below total count')
+
+          # Validate Googlebot-visible homepage and sitemap, not just HTTP 200.
+          googlebot = {'User-Agent': 'Googlebot'}
+          with urllib.request.urlopen(urllib.request.Request('https://thepetkorea.co.kr/', headers=googlebot), timeout=20) as response:
+              html = response.read().decode('utf-8', 'replace')
+              print('GOOGLEBOT_HOME', response.status, 'title_count=', html.lower().count('<title'))
+              if response.status != 200 or html.lower().count('<title') != 1:
+                  raise SystemExit('Googlebot homepage SEO validation failed')
+              if html.lower().count('name="description"') != 1:
+                  raise SystemExit('Duplicate/missing meta description')
+              if 'rel="canonical" href="https://thepetkorea.co.kr/"' not in html:
+                  raise SystemExit('Canonical missing')
+
+          with urllib.request.urlopen(urllib.request.Request('https://thepetkorea.co.kr/sitemap.xml', headers=googlebot), timeout=20) as response:
+              xml_bytes = response.read()
+              root = ET.fromstring(xml_bytes)
+              ns = {'sm': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
+              locs = root.findall('sm:url/sm:loc', ns)
+              print('GOOGLEBOT_SITEMAP', response.status, 'urls=', len(locs))
+              if root.tag != '{http://www.sitemaps.org/schemas/sitemap/0.9}urlset' or not locs:
+                  raise SystemExit('Googlebot sitemap XML validation failed')
+          PY

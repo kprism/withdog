@@ -1,0 +1,163 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}회원 관리{% endblock %}
+{% block header %}회원 관리{% endblock %}
+
+{% block content %}
+
+<style>
+.member-tabs{
+    display:flex;
+    gap:8px;
+    margin:0 0 18px;
+    flex-wrap:wrap;
+}
+.member-tabs a{
+    display:inline-block;
+    padding:9px 15px;
+    border:1px solid #ddd;
+    border-radius:8px;
+    text-decoration:none;
+    color:#555;
+    background:#fff;
+    font-weight:700;
+}
+.member-tabs a.active{
+    background:#222;
+    color:#fff;
+    border-color:#222;
+}
+.member-withdrawn{
+    background:#f3f3f3 !important;
+    color:#999;
+}
+.member-withdrawn td{
+    opacity:.75;
+}
+</style>
+
+<div class="hero">
+    <div>
+        <div class="eyebrow">MEMBERS</div>
+        <h2>회원 관리</h2>
+        <div class="muted">
+            회원가입 양식의 실제 항목 기준으로 회원 정보를 관리합니다.
+        </div>
+    </div>
+
+    <a class="btn"
+       href="{% url 'operator_dashboard:member_new' %}">
+       + 회원 등록
+    </a>
+</div>
+
+<div class="panel">
+
+    <div class="member-tabs">
+        <a href="?status=active{% if q %}&q={{ q|urlencode }}{% endif %}"
+           class="{% if status == 'active' %}active{% endif %}">
+            가입회원
+        </a>
+
+        <a href="?status=withdrawn{% if q %}&q={{ q|urlencode }}{% endif %}"
+           class="{% if status == 'withdrawn' %}active{% endif %}">
+            탈퇴회원
+        </a>
+
+        <a href="?status=all{% if q %}&q={{ q|urlencode }}{% endif %}"
+           class="{% if status == 'all' %}active{% endif %}">
+            전체회원
+        </a>
+    </div>
+
+    <form method="get"
+          style="display:flex;gap:10px;margin-bottom:18px">
+
+        <input type="hidden"
+               name="status"
+               value="{{ status }}">
+
+        <input name="q" value="{{ q }}" placeholder="이름·전화·이메일·주소 검색" style="flex:1;padding:12px;border:1px solid #ddd;border-radius:8px">
+        <select name="region" style="padding:12px;border:1px solid #ddd;border-radius:8px"><option value="">전체 지역</option>{% for x in regions %}<option value="{{ x }}" {% if region == x %}selected{% endif %}>{{ x }}</option>{% endfor %}</select>
+        <select name="grade" style="padding:12px;border:1px solid #ddd;border-radius:8px"><option value="">전체 회원구분</option><option value="general" {% if grade == 'general' %}selected{% endif %}>일반회원</option><option value="pending" {% if grade == 'pending' %}selected{% endif %}>정회원 승인대기</option><option value="regular" {% if grade == 'regular' %}selected{% endif %}>정회원</option><option value="withdrawn" {% if grade == 'withdrawn' %}selected{% endif %}>탈퇴</option></select>
+        <select name="sort" style="padding:12px;border:1px solid #ddd;border-radius:8px"><option value="name_asc" {% if sort == 'name_asc' %}selected{% endif %}>이름 가나다순</option><option value="name_desc" {% if sort == 'name_desc' %}selected{% endif %}>이름 역순</option><option value="region_asc" {% if sort == 'region_asc' %}selected{% endif %}>지역 가나다순</option><option value="region_desc" {% if sort == 'region_desc' %}selected{% endif %}>지역 역순</option><option value="joined_desc" {% if sort == 'joined_desc' %}selected{% endif %}>최근 가입순</option><option value="joined_asc" {% if sort == 'joined_asc' %}selected{% endif %}>오래된 가입순</option></select>
+        <button class="btn dark">필터 적용</button>
+    </form>
+
+    <div style="overflow:auto">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>이름</th>
+                    <th>생년월일</th>
+                    <th>성별</th>
+                    <th>전화번호</th>
+                    <th>이메일/로그인ID</th>
+                    <th>지역</th>
+                    <th>상세주소</th>
+                    <th>회원구분</th>
+                    <th>상태</th>
+                    <th>가입일</th>
+                    <th>관리</th>
+                </tr>
+            </thead>
+
+            <tbody>
+            {% for r in rows %}
+                <tr class="{% if not r.active %}member-withdrawn{% endif %}">
+                    <td><b>{{ r.name }}</b></td>
+                    <td>{{ r.birth }}</td>
+                    <td>{{ r.gender }}</td>
+                    <td>{{ r.phone }}</td>
+                    <td>{{ r.email }}</td>
+                    <td>{{ r.region }}</td>
+                    <td>{{ r.address }}</td>
+                    <td>{{ r.grade }}</td>
+
+                    <td>
+                        {% if r.active %}
+                            <span class="badge green">활성</span>
+                        {% else %}
+                            <span class="badge">탈퇴/비활성</span>
+                        {% endif %}
+                    </td>
+
+                    <td>{{ r.joined|date:'Y.m.d' }}</td>
+
+                    <td style="white-space:nowrap">
+                        <a class="badge green"
+                           href="{% url 'operator_dashboard:member_edit' r.id %}">
+                           수정
+                        </a>
+
+                        {% if r.active %}
+                        <form method="post"
+                              action="{% url 'operator_dashboard:member_withdraw' r.id %}"
+                              style="display:inline"
+                              onsubmit="return confirm('이 회원을 탈퇴 처리하시겠습니까? 로그인도 차단됩니다.')">
+
+                            {% csrf_token %}
+
+                            <button class="badge"
+                                    style="border:0;cursor:pointer">
+                                탈퇴처리
+                            </button>
+                        </form>
+                        {% else %}
+                        <form method="post" action="{% url 'operator_dashboard:member_delete' r.id %}" style="display:inline" onsubmit="return confirm('이 탈퇴회원 계정을 삭제하시겠습니까? 결제·정산 이력은 삭제하지 않고 보존됩니다.')">{% csrf_token %}<button class="badge" style="border:0;cursor:pointer;background:#c91f26;color:#fff">삭제</button></form>
+                        {% endif %}
+                    </td>
+                </tr>
+
+            {% empty %}
+                <tr>
+                    <td colspan="11">
+                        해당 조건의 회원이 없습니다.
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

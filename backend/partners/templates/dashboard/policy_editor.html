@@ -1,0 +1,39 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}약관·규칙관리{% endblock %}
+{% block header %}약관·규칙관리{% endblock %}
+{% block content %}
+<style>
+.policy-grid{display:grid;gap:12px}
+.policy-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden}
+.policy-card summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:19px 20px;font-size:18px;font-weight:900;user-select:none}
+.policy-card summary::-webkit-details-marker{display:none}
+.policy-card summary::after{content:"＋";font-size:22px;line-height:1;color:#777;transition:transform .18s ease}
+.policy-card[open] summary{border-bottom:1px solid #eee}
+.policy-card[open] summary::after{content:"−";color:#c91f26}
+.policy-body-wrap{padding:8px 20px 20px}
+.policy-state{display:flex!important;align-items:center;gap:7px;font-size:13px!important;color:#666;margin:12px 0!important}
+.policy-card label{display:block;font-size:13px;font-weight:800;margin:10px 0 7px}
+.policy-card input[type=text],.policy-card textarea{width:100%;box-sizing:border-box;border:1px solid #d9dce1;border-radius:9px;padding:12px;font:inherit;background:#fff}
+.policy-card textarea{min-height:280px;resize:vertical;line-height:1.7}
+.policy-note{font-size:13px;color:#777;margin:0 0 20px}
+.policy-actions{position:sticky;bottom:18px;display:flex;justify-content:flex-end;margin-top:18px}
+.policy-actions .btn{box-shadow:0 8px 22px #0002}
+@media(max-width:700px){.policy-card summary{padding:16px;font-size:16px}.policy-body-wrap{padding:6px 16px 16px}.policy-card textarea{min-height:220px}}
+</style>
+<div class="hero"><div><div class="eyebrow">POLICY & RULES</div><h2>약관·규칙관리</h2><div class="muted">회원가입 화면에 표시되는 방침·약관·협회 회원규칙을 직접 수정합니다.</div></div></div>
+<p class="policy-note">항목 제목을 클릭하면 편집창이 펼쳐집니다. 저장 즉시 회원가입 약관 영역에 반영됩니다.</p>
+<form method="post">{% csrf_token %}
+<div class="policy-grid">
+{% with item=documents.privacy %}
+<details class="policy-card"><summary>개인정보처리방침</summary><div class="policy-body-wrap"><label class="policy-state"><input type="checkbox" name="privacy_active" {% if item.is_active %}checked{% endif %}>회원에게 표시</label><label>제목</label><input type="text" name="privacy_title" value="{{ item.title }}"><label>내용</label><textarea name="privacy_body">{{ item.body }}</textarea></div></details>
+{% endwith %}
+{% with item=documents.terms %}
+<details class="policy-card"><summary>웹사이트 이용약관</summary><div class="policy-body-wrap"><label class="policy-state"><input type="checkbox" name="terms_active" {% if item.is_active %}checked{% endif %}>회원에게 표시</label><label>제목</label><input type="text" name="terms_title" value="{{ item.title }}"><label>내용</label><textarea name="terms_body">{{ item.body }}</textarea></div></details>
+{% endwith %}
+{% with item=documents.rules %}
+<details class="policy-card"><summary>[협회] 회원규칙</summary><div class="policy-body-wrap"><label class="policy-state"><input type="checkbox" name="rules_active" {% if item.is_active %}checked{% endif %}>회원에게 표시</label><label>제목</label><input type="text" name="rules_title" value="{{ item.title }}"><label>내용</label><textarea name="rules_body">{{ item.body }}</textarea></div></details>
+{% endwith %}
+</div>
+<div class="policy-actions"><button type="submit" class="btn">약관·규칙 저장</button></div>
+</form>
+{% endblock %}

@@ -1,0 +1,709 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}{{ board_label }} 관리{% endblock %}
+
+{% block content %}
+
+<div class="board-admin">
+
+    <div class="board-page-head">
+
+        <div>
+            <h1>{{ board_label }} 관리</h1>
+
+            <p>
+                게시글과 카테고리, 공개 상태를 관리합니다.
+            </p>
+        </div>
+
+        <div class="board-page-actions">
+
+            <a
+                href="{% url 'operator_dashboard:board_category_admin' board_type %}"
+                class="board-btn board-btn-light"
+            >
+                카테고리 관리
+            </a>
+
+            <a
+                href="{% url 'operator_dashboard:board_admin_create' board_type %}"
+                class="board-btn board-btn-primary"
+            >
+                + 새 글 작성
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <form method="get" class="board-search-bar">
+
+        <div class="board-search-input">
+
+            <span>⌕</span>
+
+            <input
+                type="search"
+                name="q"
+                value="{{ keyword }}"
+                placeholder="제목 또는 내용 검색"
+            >
+
+        </div>
+
+        <select name="category">
+
+            <option value="">
+                전체 카테고리
+            </option>
+
+            {% for category in categories %}
+
+                <option
+                    value="{{ category.slug }}"
+                    {% if selected_category == category.slug %}
+                        selected
+                    {% endif %}
+                >
+                    {{ category.name }}
+                </option>
+
+            {% endfor %}
+
+        </select>
+
+        <select name="status">
+
+            <option value="">
+                전체 상태
+            </option>
+
+            <option
+                value="published"
+                {% if selected_status == 'published' %}selected{% endif %}
+            >
+                공개
+            </option>
+
+            <option
+                value="draft"
+                {% if selected_status == 'draft' %}selected{% endif %}
+            >
+                비공개
+            </option>
+
+            <option
+                value="hidden"
+                {% if selected_status == 'hidden' %}selected{% endif %}
+            >
+                숨김
+            </option>
+
+        </select>
+
+        <button
+            type="submit"
+            class="board-btn board-btn-dark"
+        >
+            검색
+        </button>
+
+    </form>
+
+
+    <form
+        method="post"
+        action="{% url 'operator_dashboard:board_admin_bulk_action' board_type %}"
+    >
+
+        {% csrf_token %}
+
+        <div class="board-bulk-bar">
+
+            <div class="board-count">
+                총 <strong>{{ total_count }}</strong>건
+            </div>
+
+            <div class="board-bulk-actions">
+
+                <select name="bulk_action">
+
+                    <option value="">
+                        선택 관리
+                    </option>
+
+                    <option value="publish">
+                        공개
+                    </option>
+
+                    <option value="unpublish">
+                        비공개
+                    </option>
+
+                    <option value="delete">
+                        삭제
+                    </option>
+
+                </select>
+
+                <button
+                    type="submit"
+                    class="board-btn board-btn-light"
+                >
+                    적용
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <div class="board-table-wrap">
+
+            <table class="board-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th class="check">
+                            <input
+                                type="checkbox"
+                                id="boardCheckAll"
+                            >
+                        </th>
+
+                        <th class="number">
+                            번호
+                        </th>
+
+                        <th class="category">
+                            카테고리
+                        </th>
+
+                        <th>
+                            제목
+                        </th>
+
+                        <th class="author">
+                            작성자
+                        </th>
+
+                        <th class="views">
+                            조회수
+                        </th>
+
+                        <th class="status">
+                            상태
+                        </th>
+
+                        <th class="date">
+                            작성일
+                        </th>
+
+                        <th class="manage">
+                            관리
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for post in page_obj %}
+
+                    <tr>
+
+                        <td>
+
+                            <input
+                                type="checkbox"
+                                class="board-row-check"
+                                name="selected_posts"
+                                value="{{ post.pk }}"
+                            >
+
+                        </td>
+
+                        <td>
+                            {{ post.pk }}
+                        </td>
+
+                        <td>
+
+                            {% if post.category %}
+
+                                <span class="board-category-badge">
+                                    {{ post.category.name }}
+                                </span>
+
+                            {% else %}
+
+                                <span class="board-muted">
+                                    미분류
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td class="board-title-cell">
+
+                            <a
+                                href="{% url 'operator_dashboard:board_admin_update' board_type post.pk %}"
+                            >
+                                {% if post.is_pinned %}
+                                    <span class="board-title-mark">고정</span>
+                                {% endif %}
+
+                                {% if post.is_important %}
+                                    <span class="board-title-mark important">중요</span>
+                                {% endif %}
+
+                                {{ post.title }}
+                            </a>
+
+                        </td>
+
+                        <td>
+                            {% if post.author %}
+                                {{ post.author }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+
+                        <td class="views">
+                            {{ post.view_count|default:0 }}
+                        </td>
+
+                        <td>
+
+                            {% if post.is_hidden %}
+
+                                <span class="board-status hidden">
+                                    ● 숨김
+                                </span>
+
+                            {% elif post.is_published %}
+
+                                <span class="board-status published">
+                                    ● 공개
+                                </span>
+
+                            {% else %}
+
+                                <span class="board-status draft">
+                                    ● 비공개
+                                </span>
+
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+                            {{ post.created_at|date:"Y.m.d" }}
+                        </td>
+
+                        <td>
+
+                            <a
+                                href="{% url 'operator_dashboard:board_admin_update' board_type post.pk %}"
+                                class="board-mini-btn"
+                            >
+                                수정
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                    {% empty %}
+
+                    <tr>
+
+                        <td
+                            colspan="8"
+                            class="board-empty"
+                        >
+                            등록된 게시글이 없습니다.
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% if page_obj.paginator.num_pages > 1 %}
+
+<div class="board-pagination">
+
+    {% if page_obj.has_previous %}
+        <a href="?q={{ keyword|urlencode }}&category={{ selected_category|urlencode }}&status={{ selected_status|urlencode }}&page={{ page_obj.previous_page_number }}">
+            이전
+        </a>
+    {% endif %}
+
+    <span>
+        {{ page_obj.number }}
+        /
+        {{ page_obj.paginator.num_pages }}
+    </span>
+
+    {% if page_obj.has_next %}
+        <a href="?q={{ keyword|urlencode }}&category={{ selected_category|urlencode }}&status={{ selected_status|urlencode }}&page={{ page_obj.next_page_number }}">
+            다음
+        </a>
+    {% endif %}
+
+</div>
+
+{% endif %}
+
+<style>
+
+.board-admin{
+    max-width:1400px;
+    margin:0 auto;
+}
+
+.board-page-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:24px;
+    margin-bottom:24px;
+}
+
+.board-page-head h1{
+    margin:0 0 7px;
+    font-size:25px;
+}
+
+.board-page-head p{
+    margin:0;
+    color:#7a7a7a;
+    font-size:14px;
+}
+
+.board-page-actions{
+    display:flex;
+    gap:8px;
+}
+
+.board-btn{
+    display:inline-flex;
+    height:40px;
+    padding:0 15px;
+    align-items:center;
+    justify-content:center;
+    border-radius:9px;
+    border:1px solid #ddd;
+    font-size:13px;
+    font-weight:700;
+    text-decoration:none;
+    cursor:pointer;
+    box-sizing:border-box;
+}
+
+.board-btn-primary{
+    background:#d9232e;
+    border-color:#d9232e;
+    color:#fff;
+}
+
+.board-btn-light{
+    background:#fff;
+    color:#222;
+}
+
+.board-btn-dark{
+    background:#222;
+    border-color:#222;
+    color:#fff;
+}
+
+.board-search-bar{
+    display:grid;
+    grid-template-columns:minmax(260px,1fr) 170px 130px 72px;
+    gap:8px;
+    margin-bottom:16px;
+}
+
+.board-search-input{
+    height:42px;
+    display:flex;
+    align-items:center;
+    gap:9px;
+    padding:0 13px;
+    border:1px solid #ddd;
+    border-radius:9px;
+    background:#fff;
+}
+
+.board-search-input input{
+    flex:1;
+    min-width:0;
+    border:0;
+    outline:0;
+    background:transparent;
+}
+
+.board-search-bar select,
+.board-bulk-actions select{
+    height:42px;
+    padding:0 11px;
+    border:1px solid #ddd;
+    border-radius:9px;
+    background:#fff;
+}
+
+.board-bulk-bar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+}
+
+.board-count{
+    color:#666;
+    font-size:13px;
+}
+
+.board-bulk-actions{
+    display:flex;
+    gap:7px;
+}
+
+.board-table-wrap{
+    overflow:auto;
+    border:1px solid #e5e5e5;
+    border-radius:12px;
+    background:#fff;
+}
+
+.board-table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.board-table th{
+    padding:12px;
+    background:#fafafa;
+    color:#666;
+    font-size:12px;
+    text-align:left;
+    border-bottom:1px solid #e7e7e7;
+    white-space:nowrap;
+}
+
+.board-table td{
+    padding:13px 12px;
+    border-bottom:1px solid #eee;
+    font-size:13px;
+    vertical-align:middle;
+}
+
+.board-table tbody tr:last-child td{
+    border-bottom:0;
+}
+
+.board-table .check{
+    width:36px;
+}
+
+.board-table .number{
+    width:55px;
+}
+
+.board-table .category{
+    width:120px;
+}
+
+.board-table .author{
+    width:110px;
+}
+
+.board-table .status{
+    width:90px;
+}
+
+.board-table .date{
+    width:100px;
+}
+
+.board-table .manage{
+    width:65px;
+}
+
+.board-title-cell{
+    min-width:260px;
+}
+
+.board-title-cell a{
+    color:#111;
+    font-weight:700;
+    text-decoration:none;
+}
+
+.board-category-badge{
+    display:inline-flex;
+    padding:5px 9px;
+    border-radius:20px;
+    background:#f3f4f6;
+    font-size:12px;
+}
+
+.board-status{
+    font-size:12px;
+    font-weight:700;
+}
+
+.board-status.published{
+    color:#0a8c4b;
+}
+
+.board-status.hidden{
+    color:#c5232d;
+}
+
+.board-status.draft{
+    color:#888;
+}
+
+.board-title-mark{
+    display:inline-flex;
+    margin-right:5px;
+    padding:2px 6px;
+    border-radius:5px;
+    background:#f1f3f5;
+    color:#555;
+    font-size:10px;
+    vertical-align:1px;
+}
+
+.board-title-mark.important{
+    background:#fff0f0;
+    color:#c5232d;
+}
+
+.board-mini-btn{
+    display:inline-flex;
+    height:32px;
+    padding:0 10px;
+    align-items:center;
+    justify-content:center;
+    border:1px solid #ddd;
+    border-radius:7px;
+    color:#222;
+    text-decoration:none;
+    font-size:12px;
+    font-weight:700;
+}
+
+.board-muted{
+    color:#999;
+}
+
+.board-empty{
+    padding:55px !important;
+    text-align:center;
+    color:#888;
+}
+
+
+.board-pagination{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:14px;
+    margin-top:18px;
+    font-size:13px;
+}
+
+.board-pagination a{
+    display:inline-flex;
+    height:34px;
+    padding:0 12px;
+    align-items:center;
+    border:1px solid #ddd;
+    border-radius:8px;
+    background:#fff;
+    color:#222;
+    text-decoration:none;
+}
+
+@media(max-width:800px){
+
+    .board-page-head{
+        align-items:flex-start;
+        flex-direction:column;
+    }
+
+    .board-search-bar{
+        grid-template-columns:1fr;
+    }
+
+}
+
+</style>
+
+
+<script>
+
+(function(){
+
+    const checkAll =
+        document.getElementById(
+            'boardCheckAll'
+        );
+
+    if(!checkAll){
+        return;
+    }
+
+    checkAll.addEventListener(
+        'change',
+        function(){
+
+            document
+                .querySelectorAll(
+                    '.board-row-check'
+                )
+                .forEach(
+                    function(check){
+
+                        check.checked =
+                            checkAll.checked;
+
+                    }
+                );
+
+        }
+    );
+
+})();
+
+</script>
+
+
+<style id="board-view-count-style">
+.board-table .views{
+    width:80px;
+    text-align:center;
+    white-space:nowrap;
+}
+</style>
+
+{% endblock %}

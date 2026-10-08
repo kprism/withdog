@@ -1,0 +1,17 @@
+<section class="web-magazine web-magazine--compact" id="doglife">
+  <div class="mag-head mag-head--compact"><div><p class="eyebrow">DOG LIFE MAGAZINE</p><h2>반려견과 함께 사는 이야기</h2><p>회원들이 직접 올린 견생 콘텐츠 중 많이 본 이야기를 모았습니다.</p></div><a class="doglife-more" href="/doglife/">견생 전체보기 →</a></div>
+  <div class="mag-layout">
+    <aside class="mag-text-rail">
+      {% for post in home_text_posts %}
+      <a class="mag-text-item" href="{% url 'public_doglife_detail' post.pk %}"><span class="mag-category">{{ post.category.name }}</span><h3>{{ post.title }}</h3><p>{{ post.body|striptags }}</p><div class="mag-meta"><span>{{ post.created_at|date:"m.d" }}</span><span>조회 {{ post.view_count }}</span><span>♥ {{ post.like_count }}</span></div></a>
+      {% endfor %}
+    </aside>
+    <div class="mag-media-grid">
+      {% for post in home_media_posts %}
+      {% with media=post.attachments.all.0 %}
+      <article class="mag-tile {% if post.display_type == 'image_large' %}mag-tile--wide{% elif post.display_type == 'video_vertical' %}mag-tile--shorts{% endif %}"><a href="{% url 'public_doglife_detail' post.pk %}"><div class="mag-media">{% if media.is_image %}<img src="{{ media.file.url }}" alt="{{ post.title }}">{% else %}<video src="{{ media.file.url }}" muted playsinline preload="metadata"></video><span class="mag-format">{% if post.display_type == 'video_vertical' %}세로영상{% else %}영상{% endif %}</span>{% endif %}<div class="mag-overlay"><span class="mag-category">{{ post.category.name }}</span><h3>{{ post.title }}</h3><p>{{ post.body|striptags }}</p><div class="mag-meta"><span>{{ post.created_at|date:"m.d" }}</span><span>조회 {{ post.view_count }}</span><span>♥ {{ post.like_count }}</span></div></div></div></a></article>
+      {% endwith %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
