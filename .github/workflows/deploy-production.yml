@@ -202,8 +202,8 @@ jobs:
                   else:
                       if '/dashboard/login/' not in html or '/#join' not in html:
                           raise SystemExit(f'Inner-page auth controls missing: {url}')
-                  if 'class="brand-dog"' not in html or '<img' not in html:
-                      raise SystemExit(f'Canonical server-rendered logo missing: {url}')
+                  if 'class="brand-dog"' not in html or ('<img' not in html and '<video' not in html):
+                      raise SystemExit(f'Canonical server-rendered logo media missing: {url}')
                   if 'class="primary-nav"' not in html:
                       raise SystemExit(f'Primary navigation missing: {url}')
                   if '🐶' in html.split('</header>', 1)[0]:
