@@ -14,4 +14,4 @@ class Migration(migrations.Migration):
         migrations.AddField(model_name='sitesetting', name='header_menu_font_weight', field=models.PositiveSmallIntegerField(default=700)),
         migrations.AddField(model_name='sitesetting', name='intro_header_opacity', field=models.PositiveSmallIntegerField(default=82)),
     ]
-}
+    ]
