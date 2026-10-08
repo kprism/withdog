@@ -177,15 +177,25 @@ jobs:
                   raise SystemExit(f'Membership stamp mismatch: {stamp_hash}')
 
           # Validate that public pages use the canonical authenticated-aware shell.
-          for url in ['https://thepetkorea.co.kr/','https://thepetkorea.co.kr/about.html','https://thepetkorea.co.kr/benefits.html','https://thepetkorea.co.kr/partners.html']:
+          public_urls = [
+              'https://thepetkorea.co.kr/',
+              'https://thepetkorea.co.kr/about.html',
+              'https://thepetkorea.co.kr/benefits.html',
+              'https://thepetkorea.co.kr/partners.html',
+          ]
+          for url in public_urls:
               with urllib.request.urlopen(url, timeout=20) as response:
                   html=response.read().decode('utf-8','replace')
-                  if 'class="site-header"' not in html or 'class="footer"' not in html:
+                  if 'class="site-header ' not in html or 'class="footer"' not in html:
                       raise SystemExit(f'Public shell validation failed: {url}')
                   if 'Gyeongnam Pet Dog Association' not in html:
                       raise SystemExit(f'Canonical footer/header content missing: {url}')
-                  if '/dashboard/login/' not in html or '/join.html' not in html:
-                      raise SystemExit(f'Canonical public auth controls missing: {url}')
+                  if url == 'https://thepetkorea.co.kr/':
+                      if 'data-member-login' not in html or 'data-member-join' not in html:
+                          raise SystemExit(f'Intro auth controls missing: {url}')
+                  else:
+                      if '/dashboard/login/' not in html or '/#join' not in html:
+                          raise SystemExit(f'Inner-page auth controls missing: {url}')
                   if 'class="brand-dog"' not in html or '<img' not in html:
                       raise SystemExit(f'Canonical server-rendered logo missing: {url}')
                   if 'class="primary-nav"' not in html:
