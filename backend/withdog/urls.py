@@ -63,6 +63,36 @@ def public_home(request):
     import json
     html=(ROOT / 'index.html').read_text(encoding='utf-8')
     html=_render_public_shell(request, html)
+
+    # Dog Life homepage feed: real member/staff posts ordered by popularity.
+    from django.db.models import Count
+    from django.template.loader import render_to_string
+    from partners.models import BoardPost
+    doglife_qs=(
+        BoardPost.objects
+        .filter(board_type='doglife',is_published=True,is_hidden=False)
+        .select_related('category','author')
+        .prefetch_related('attachments')
+        .annotate(like_count=Count('likes',distinct=True))
+        .order_by('-view_count','-published_at','-created_at')
+    )
+    doglife_posts=list(doglife_qs[:18])
+    if doglife_posts:
+        text_posts=doglife_posts[:5]
+        media_posts=[p for p in doglife_posts if list(p.attachments.all())][:8]
+        feed=render_to_string(
+            'website/includes/doglife_home_feed.html',
+            {'home_text_posts':text_posts,'home_media_posts':media_posts},
+            request=request,
+        )
+        html=re.sub(
+            r'<section class="web-magazine[^"]*" id="doglife">.*?</section>',
+            feed,
+            html,
+            count=1,
+            flags=re.I|re.S,
+        )
+
     html=re.sub(r'<title[^>]*>.*?</title>', '', html, count=1, flags=re.I|re.S)
     html=re.sub(r"""<meta\s+name=["']description["'][^>]*>""", '', html, count=1, flags=re.I)
     title=escape(s.site_name or '경상남도 반려견 협회')
@@ -161,7 +191,7 @@ def sitemap_xml(request):
 
     paths = [
         '/', '/about.html', '/benefits.html', '/partners.html',
-        '/board.html', '/community.html', '/breeds/',
+        '/board.html', '/community.html', '/doglife/', '/breeds/',
     ]
     static_lastmod = timezone.localdate().isoformat()
     entries = [(p, static_lastmod) for p in paths]
@@ -172,6 +202,11 @@ def sitemap_xml(request):
     entries += [
         (f'/breeds/{x.slug}/', x.updated_at.date().isoformat())
         for x in DogBreed.objects.filter(is_published=True).only('slug', 'updated_at')
+    ]
+    from partners.models import BoardPost
+    entries += [
+        (f'/doglife/{x.pk}/', x.updated_at.date().isoformat())
+        for x in BoardPost.objects.filter(board_type='doglife', is_published=True, is_hidden=False).only('pk', 'updated_at')
     ]
 
     urlset = Element('urlset', xmlns='http://www.sitemaps.org/schemas/sitemap/0.9')
@@ -215,6 +250,8 @@ urlpatterns = [
         website_views.public_intro_news_api,
         name='public_intro_news_api',
     ),
+
+    path('api/policies/', website_views.public_policy_data, name='public_policy_data'),
 
     path(
         'api/chatbot/config/',
@@ -285,6 +322,14 @@ urlpatterns = [
     # 홈페이지 첫 화면: / 와 /index.html 모두 최신 HTML을 즉시 제공
     path('', public_home, name='home'),
     path('index.html', public_home, name='home_index'),
+
+    # 견생(Dog Life)
+    path('doglife/', website_views.public_doglife_list, name='public_doglife_list'),
+    path('doglife/write/', website_views.public_doglife_create, name='public_doglife_create'),
+    path('doglife/<int:pk>/', website_views.public_doglife_detail, name='public_doglife_detail'),
+    path('doglife/<int:pk>/edit/', website_views.public_doglife_update, name='public_doglife_update'),
+    path('doglife/<int:pk>/delete/', website_views.public_doglife_delete, name='public_doglife_delete'),
+    path('doglife/<int:pk>/like/', website_views.public_doglife_like_toggle, name='public_doglife_like_toggle'),
 
     # 전 세계 견종 데이터베이스
     path(

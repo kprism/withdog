@@ -2031,3 +2031,394 @@ def public_intro_news_api(request):
             for post in association_posts
         ],
     })
+
+
+# ============================================================
+# POLICY / AGREEMENT MANAGEMENT
+# ============================================================
+
+@staff_member_required
+def policy_editor(request):
+    from django.contrib import messages
+    from .models import PolicyDocument
+
+    defaults = {
+        'privacy': '개인정보처리방침',
+        'terms': '웹사이트 이용약관',
+        'rules': '[협회] 회원규칙',
+    }
+
+    for key, title in defaults.items():
+        PolicyDocument.objects.get_or_create(
+            key=key,
+            defaults={'title': title, 'body': '', 'is_active': True},
+        )
+
+    if request.method == 'POST':
+        for key in defaults:
+            item = PolicyDocument.objects.get(key=key)
+            item.title = (request.POST.get(f'{key}_title') or defaults[key]).strip()
+            item.body = (request.POST.get(f'{key}_body') or '').strip()
+            item.is_active = request.POST.get(f'{key}_active') == 'on'
+            item.save()
+
+        messages.success(request, '약관·규칙이 저장되어 회원가입 화면에 즉시 반영됩니다.')
+        return redirect('operator_dashboard:policy_editor')
+
+    documents = {
+        x.key: x
+        for x in PolicyDocument.objects.filter(key__in=defaults.keys())
+    }
+
+    return render(
+        request,
+        'dashboard/policy_editor.html',
+        {'documents': documents},
+    )
+
+
+def public_policy_data(request):
+    from django.http import JsonResponse
+    from .models import PolicyDocument
+
+    documents = {
+        row.key: {
+            'title': row.title,
+            'body': row.body,
+            'updated_at': row.updated_at.isoformat(),
+        }
+        for row in PolicyDocument.objects.filter(is_active=True)
+    }
+
+    response = JsonResponse({'ok': True, 'documents': documents})
+    response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    return response
+
+
+# ============================================================
+# DOG LIFE
+# ============================================================
+
+DOG_LIFE_DISPLAY_TYPES = {
+    'text',
+    'image_large',
+    'image_small',
+    'video_horizontal',
+    'video_vertical',
+}
+
+
+def _doglife_queryset():
+    from django.db.models import Count
+    from .models import BoardPost
+
+    return (
+        BoardPost.objects
+        .filter(
+            board_type='doglife',
+            is_published=True,
+            is_hidden=False,
+        )
+        .select_related('category', 'author', 'author__member_profile')
+        .prefetch_related('attachments')
+        .annotate(like_count=Count('likes', distinct=True))
+    )
+
+
+def _doglife_save_files(post, request):
+    from .models import BoardAttachment
+
+    uploaded = list(request.FILES.getlist('attachments'))
+
+    for key in ('camera_image', 'camera_video'):
+        item = request.FILES.get(key)
+        if item:
+            uploaded.append(item)
+
+    uploaded = uploaded[:8]
+
+    existing_count = post.attachments.count()
+    saved = 0
+
+    for upload in uploaded:
+        content_type = str(getattr(upload, 'content_type', '') or '')
+        is_image = content_type.startswith('image/')
+        is_video = content_type.startswith('video/')
+
+        if not (is_image or is_video):
+            continue
+
+        BoardAttachment.objects.create(
+            post=post,
+            file=upload,
+            original_name=getattr(upload, 'name', '') or '',
+            is_image=is_image,
+            sort_order=existing_count + saved,
+        )
+        saved += 1
+
+    return saved
+
+
+def public_doglife_list(request):
+    from .models import BoardCategory
+
+    categories = BoardCategory.objects.filter(
+        board_type='doglife',
+        is_active=True,
+    ).order_by('sort_order', 'id')
+
+    selected_category = (request.GET.get('category') or '').strip()
+
+    base = _doglife_queryset().order_by('-published_at', '-created_at')
+
+    if selected_category:
+        selected = categories.filter(slug=selected_category).first()
+        posts = base.filter(category=selected) if selected else base.none()
+        category_groups = [
+            {'category': selected, 'posts': list(posts)}
+        ] if selected else []
+    else:
+        category_groups = []
+        for category in categories:
+            category_groups.append({
+                'category': category,
+                'posts': list(base.filter(category=category)[:12]),
+            })
+
+    context = {
+        'categories': categories,
+        'selected_category': selected_category,
+        'category_groups': category_groups,
+        'seo': _seo_context(
+            request,
+            '견생(Dog Life) | 경상남도 반려견 협회',
+            '반려견과 함께 사는 회원들의 생활팁, 산책, 건강관리, 자랑과 일상을 나누는 견생 콘텐츠입니다.',
+            '/doglife/',
+        ),
+    }
+
+    return render(request, 'website/doglife.html', context)
+
+
+def public_doglife_detail(request, pk):
+    from django.db.models import F
+    from django.shortcuts import get_object_or_404
+    from .models import BoardPost, BoardLike
+
+    post = get_object_or_404(
+        _doglife_queryset(),
+        pk=pk,
+    )
+
+    BoardPost.objects.filter(pk=post.pk).update(
+        view_count=F('view_count') + 1
+    )
+    post.refresh_from_db(fields=['view_count'])
+
+    user_liked = False
+    if request.user.is_authenticated:
+        user_liked = BoardLike.objects.filter(
+            post=post,
+            user=request.user,
+        ).exists()
+
+    return render(
+        request,
+        'website/doglife_detail.html',
+        {
+            'post': post,
+            'attachments': post.attachments.all(),
+            'like_count': post.likes.count(),
+            'user_liked': user_liked,
+            'seo': _seo_context(
+                request,
+                post.title,
+                (post.body or '')[:160],
+                f'/doglife/{post.pk}/',
+            ),
+        },
+    )
+
+
+def _doglife_login_redirect(request):
+    from urllib.parse import quote
+    return redirect('/?login=1&next=' + quote(request.get_full_path(), safe='/' ))
+
+
+def public_doglife_create(request):
+    from django.contrib import messages
+    from django.utils import timezone
+    from .models import BoardCategory, BoardPost
+
+    if not request.user.is_authenticated:
+        return _doglife_login_redirect(request)
+
+    categories = BoardCategory.objects.filter(
+        board_type='doglife',
+        is_active=True,
+    ).order_by('sort_order', 'id')
+
+    if request.method == 'POST':
+        category = get_object_or_404(
+            BoardCategory,
+            pk=request.POST.get('category'),
+            board_type='doglife',
+            is_active=True,
+        )
+
+        title = (request.POST.get('title') or '').strip()
+        body = (request.POST.get('body') or '').strip()
+        display_type = (request.POST.get('display_type') or 'text').strip()
+
+        if display_type not in DOG_LIFE_DISPLAY_TYPES:
+            display_type = 'text'
+
+        if not title:
+            messages.error(request, '제목을 입력해주세요.')
+        elif not body and not request.FILES:
+            messages.error(request, '내용 또는 사진·영상을 등록해주세요.')
+        else:
+            post = BoardPost.objects.create(
+                board_type='doglife',
+                category=category,
+                author=request.user,
+                title=title,
+                body=body,
+                display_type=display_type,
+                view_count=0,
+                is_published=True,
+                is_hidden=False,
+                allow_comments=True,
+                published_at=timezone.now(),
+            )
+            _doglife_save_files(post, request)
+            messages.success(request, '견생 콘텐츠가 바로 등록되었습니다.')
+            return redirect('public_doglife_detail', pk=post.pk)
+
+    return render(
+        request,
+        'website/doglife_form.html',
+        {
+            'categories': categories,
+            'post': None,
+            'mode': 'create',
+        },
+    )
+
+
+def public_doglife_update(request, pk):
+    from django.contrib import messages
+    from django.http import HttpResponseForbidden
+    from .models import BoardAttachment, BoardCategory, BoardPost
+
+    if not request.user.is_authenticated:
+        return _doglife_login_redirect(request)
+
+    post = get_object_or_404(BoardPost, pk=pk, board_type='doglife')
+
+    if post.author_id != request.user.id and not request.user.is_staff:
+        return HttpResponseForbidden('수정 권한이 없습니다.')
+
+    categories = BoardCategory.objects.filter(
+        board_type='doglife',
+        is_active=True,
+    ).order_by('sort_order', 'id')
+
+    if request.method == 'POST':
+        category = get_object_or_404(
+            BoardCategory,
+            pk=request.POST.get('category'),
+            board_type='doglife',
+            is_active=True,
+        )
+        display_type = (request.POST.get('display_type') or 'text').strip()
+        if display_type not in DOG_LIFE_DISPLAY_TYPES:
+            display_type = 'text'
+
+        title = (request.POST.get('title') or '').strip()
+        if not title:
+            messages.error(request, '제목을 입력해주세요.')
+        else:
+            post.category = category
+            post.title = title
+            post.body = (request.POST.get('body') or '').strip()
+            post.display_type = display_type
+            post.is_published = True
+            post.is_hidden = False
+            post.save()
+
+            delete_ids = request.POST.getlist('delete_attachment')
+            if delete_ids:
+                BoardAttachment.objects.filter(
+                    post=post,
+                    pk__in=delete_ids,
+                ).delete()
+
+            _doglife_save_files(post, request)
+            messages.success(request, '견생 콘텐츠를 수정했습니다.')
+            return redirect('public_doglife_detail', pk=post.pk)
+
+    return render(
+        request,
+        'website/doglife_form.html',
+        {
+            'categories': categories,
+            'post': post,
+            'mode': 'update',
+        },
+    )
+
+
+@require_POST
+def public_doglife_delete(request, pk):
+    from django.contrib import messages
+    from django.http import HttpResponseForbidden
+    from .models import BoardPost
+
+    if not request.user.is_authenticated:
+        return _doglife_login_redirect(request)
+
+    post = get_object_or_404(BoardPost, pk=pk, board_type='doglife')
+
+    if post.author_id != request.user.id and not request.user.is_staff:
+        return HttpResponseForbidden('삭제 권한이 없습니다.')
+
+    post.delete()
+    messages.success(request, '견생 콘텐츠를 삭제했습니다.')
+    return redirect('public_doglife_list')
+
+
+@require_POST
+def public_doglife_like_toggle(request, pk):
+    from django.http import JsonResponse
+    from .models import BoardLike, BoardPost
+
+    if not request.user.is_authenticated:
+        return JsonResponse(
+            {'ok': False, 'message': '로그인이 필요합니다.'},
+            status=401,
+        )
+
+    post = get_object_or_404(
+        BoardPost,
+        pk=pk,
+        board_type='doglife',
+        is_published=True,
+        is_hidden=False,
+    )
+
+    like = BoardLike.objects.filter(post=post, user=request.user).first()
+
+    if like:
+        like.delete()
+        liked = False
+    else:
+        BoardLike.objects.create(post=post, user=request.user)
+        liked = True
+
+    return JsonResponse({
+        'ok': True,
+        'liked': liked,
+        'count': post.likes.count(),
+    })

@@ -95,7 +95,7 @@ class ContentItem(models.Model):
 
 class MemberProfile(models.Model):
     GENDERS=[('M','남성'),('F','여성'),('O','기타')]; STATUSES=[('general','일반회원'),('pending','정회원 승인대기'),('regular','정회원'),('withdrawn','탈퇴')]
-    user=models.OneToOneField(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name='member_profile'); name=models.CharField(max_length=80); birth_date=models.DateField(null=True,blank=True); gender=models.CharField(max_length=1,choices=GENDERS,blank=True); phone=models.CharField(max_length=30,blank=True); region=models.CharField(max_length=40,blank=True); address_detail=models.CharField(max_length=250,blank=True); privacy_agreed=models.BooleanField(default=False); regular_member_requested=models.BooleanField(default=False); membership_status=models.CharField(max_length=20,choices=STATUSES,default='general'); joined_at=models.DateTimeField(auto_now_add=True)
+    user=models.OneToOneField(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name='member_profile'); name=models.CharField(max_length=80); birth_date=models.DateField(null=True,blank=True); gender=models.CharField(max_length=1,choices=GENDERS,blank=True); phone=models.CharField(max_length=30,blank=True); region=models.CharField(max_length=40,blank=True); address_detail=models.CharField(max_length=250,blank=True); privacy_agreed=models.BooleanField(default=False); terms_agreed=models.BooleanField(default=False); rules_agreed=models.BooleanField(default=False); agreements_updated_at=models.DateTimeField(null=True,blank=True); regular_member_requested=models.BooleanField(default=False); membership_status=models.CharField(max_length=20,choices=STATUSES,default='general'); joined_at=models.DateTimeField(auto_now_add=True)
     def __str__(self): return self.name or self.user.get_username()
 class MembershipCardGrant(models.Model):
     SOURCES=[('legacy','기존 정회원 예외발급'),('payment','토스 연회비 결제')]
@@ -670,6 +670,7 @@ class BoardCategory(models.Model):
     BOARD_TYPES = [
         ('notice', '공지사항'),
         ('community', '자유게시판'),
+        ('doglife', '견생(Dog Life)'),
     ]
 
     board_type = models.CharField(
@@ -721,6 +722,15 @@ class BoardPost(models.Model):
     BOARD_TYPES = [
         ('notice', '공지사항'),
         ('community', '자유게시판'),
+        ('doglife', '견생(Dog Life)'),
+    ]
+
+    DISPLAY_TYPES = [
+        ('text', '글'),
+        ('image_large', '이미지+글 50%'),
+        ('image_small', '이미지+글 10%'),
+        ('video_horizontal', '가로영상'),
+        ('video_vertical', '세로영상'),
     ]
 
     board_type = models.CharField(
@@ -750,6 +760,13 @@ class BoardPost(models.Model):
     )
 
     body = models.TextField()
+
+    display_type = models.CharField(
+        max_length=30,
+        choices=DISPLAY_TYPES,
+        default='text',
+        db_index=True,
+    )
 
     view_count = models.PositiveIntegerField(
         default=0
@@ -1087,6 +1104,25 @@ class CommunityGroupPost(models.Model):
             '-is_pinned',
             '-created_at',
         ]
+
+
+class PolicyDocument(models.Model):
+    POLICY_KEYS = [
+        ('privacy', '개인정보처리방침'),
+        ('terms', '웹사이트 이용약관'),
+        ('rules', '[협회] 회원규칙'),
+    ]
+    key = models.CharField(max_length=30, choices=POLICY_KEYS, unique=True)
+    title = models.CharField(max_length=120)
+    body = models.TextField()
+    is_active = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['id']
+
+    def __str__(self):
+        return self.title
 
 
 class ChatbotSetting(models.Model):

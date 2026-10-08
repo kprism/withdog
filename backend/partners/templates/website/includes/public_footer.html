@@ -66,7 +66,7 @@
 </footer>
 
 <div class="bot-float">
-    <button id="botButton" type="button" aria-label="챗봇 열기">🐕</button>
+    <button id="botButton" type="button" aria-label="견생 도우미 열기" data-authenticated="{% if request.user.is_authenticated %}1{% else %}0{% endif %}">🐕</button>
 </div>
 
 
@@ -78,4 +78,4 @@
     ▲
 </button>
 
-<script src="/assets/js/chatbot.js?v=20261008-single-bot-v1"></script>
+<script src="/assets/js/chatbot.js?v=20261008-doglife-actions-v1"></script>

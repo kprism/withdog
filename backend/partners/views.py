@@ -103,6 +103,8 @@ def member_register(request):
     address_detail = str(data.get("address_detail", "")).strip()
 
     privacy_agreed = bool(data.get("privacy_agreed"))
+    terms_agreed = bool(data.get("terms_agreed"))
+    rules_agreed = bool(data.get("rules_agreed"))
     regular_member_requested = bool(data.get("regular_member_requested"))
 
     if not name:
@@ -129,9 +131,9 @@ def member_register(request):
             status=400,
         )
 
-    if not privacy_agreed:
+    if not (privacy_agreed and terms_agreed and rules_agreed):
         return JsonResponse(
-            {"ok": False, "message": "개인정보 수집·이용 동의가 필요합니다."},
+            {"ok": False, "message": "필수 방침·약관·회원규칙 동의가 필요합니다."},
             status=400,
         )
 
@@ -198,6 +200,9 @@ def member_register(request):
                 region=region,
                 address_detail=address_detail,
                 privacy_agreed=privacy_agreed,
+                terms_agreed=terms_agreed,
+                rules_agreed=rules_agreed,
+                agreements_updated_at=timezone.now(),
                 regular_member_requested=regular_member_requested,
                 membership_status=(
                     "pending"

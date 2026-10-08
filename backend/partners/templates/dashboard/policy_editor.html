@@ -1,0 +1,24 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}약관·규칙관리{% endblock %}
+{% block header %}약관·규칙관리{% endblock %}
+{% block content %}
+<style>
+.policy-grid{display:grid;gap:16px}.policy-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:20px}.policy-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px}.policy-head h3{margin:0;font-size:18px}.policy-state{display:flex;gap:7px;align-items:center;font-size:13px;color:#666}.policy-card label{display:block;font-size:13px;font-weight:800;margin:10px 0 7px}.policy-card input[type=text],.policy-card textarea{width:100%;box-sizing:border-box;border:1px solid #d9dce1;border-radius:9px;padding:12px;font:inherit;background:#fff}.policy-card textarea{min-height:280px;resize:vertical;line-height:1.7}.policy-note{font-size:13px;color:#777;margin:0 0 20px}.policy-actions{position:sticky;bottom:18px;display:flex;justify-content:flex-end;margin-top:18px}.policy-actions .btn{box-shadow:0 8px 22px #0002}
+</style>
+<div class="hero"><div><div class="eyebrow">POLICY & RULES</div><h2>약관·규칙관리</h2><div class="muted">회원가입 화면에 표시되는 방침·약관·협회 회원규칙을 직접 수정합니다.</div></div></div>
+<p class="policy-note">저장 즉시 회원가입 약관 펼침 영역에 반영됩니다. 법적 효력이 필요한 문구는 협회 정책과 관련 법령에 맞게 최종 검토해 주세요.</p>
+<form method="post">{% csrf_token %}
+<div class="policy-grid">
+{% with item=documents.privacy %}
+<section class="policy-card"><div class="policy-head"><h3>개인정보처리방침</h3><label class="policy-state"><input type="checkbox" name="privacy_active" {% if item.is_active %}checked{% endif %}>회원에게 표시</label></div><label>제목</label><input type="text" name="privacy_title" value="{{ item.title }}"><label>내용</label><textarea name="privacy_body">{{ item.body }}</textarea></section>
+{% endwith %}
+{% with item=documents.terms %}
+<section class="policy-card"><div class="policy-head"><h3>웹사이트 이용약관</h3><label class="policy-state"><input type="checkbox" name="terms_active" {% if item.is_active %}checked{% endif %}>회원에게 표시</label></div><label>제목</label><input type="text" name="terms_title" value="{{ item.title }}"><label>내용</label><textarea name="terms_body">{{ item.body }}</textarea></section>
+{% endwith %}
+{% with item=documents.rules %}
+<section class="policy-card"><div class="policy-head"><h3>[협회] 회원규칙</h3><label class="policy-state"><input type="checkbox" name="rules_active" {% if item.is_active %}checked{% endif %}>회원에게 표시</label></div><label>제목</label><input type="text" name="rules_title" value="{{ item.title }}"><label>내용</label><textarea name="rules_body">{{ item.body }}</textarea></section>
+{% endwith %}
+</div>
+<div class="policy-actions"><button type="submit" class="btn">약관·규칙 저장</button></div>
+</form>
+{% endblock %}

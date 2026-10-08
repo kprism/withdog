@@ -105,6 +105,11 @@ jobs:
           assert ContentItem._meta.get_field('hero_meta1_font_size').default == 16
           assert ContentItem._meta.get_field('hero_meta2_font_size').default == 16
           get_template('dashboard/website_settings.html')
+          get_template('dashboard/policy_editor.html')
+          get_template('website/doglife.html')
+          get_template('website/doglife_detail.html')
+          get_template('website/doglife_form.html')
+          get_template('website/includes/doglife_home_feed.html')
           get_template('website/mypage.html')
           get_template('website/includes/public_header.html')
           get_template('website/includes/public_footer.html')

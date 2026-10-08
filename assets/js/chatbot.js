@@ -172,6 +172,21 @@ async function boot(){
 
 
     /* --------------------------------------------------------
+       FLOATING ACTIONS: 물어봐요 / 자랑해요
+    -------------------------------------------------------- */
+
+    const floatBox = oldButton.closest('.bot-float');
+    const actions = document.createElement('div');
+    actions.className = 'bot-radial-actions';
+    actions.innerHTML = `
+        <button type="button" class="bot-radial-action bot-radial-ask">물어봐요</button>
+        <button type="button" class="bot-radial-action bot-radial-share">자랑해요</button>
+    `;
+    if(floatBox){
+        floatBox.appendChild(actions);
+    }
+
+    /* --------------------------------------------------------
        PANEL
     -------------------------------------------------------- */
 
@@ -451,14 +466,35 @@ async function boot(){
     oldButton.addEventListener(
         'click',
         ()=>{
-            panel.classList.add('open');
-
-            setTimeout(
-                ()=>input.focus(),
-                50
-            );
+            actions.classList.toggle('open');
         }
     );
+
+    actions.querySelector('.bot-radial-ask')?.addEventListener(
+        'click',
+        ()=>{
+            actions.classList.remove('open');
+            panel.classList.add('open');
+            setTimeout(()=>input.focus(),50);
+        }
+    );
+
+    actions.querySelector('.bot-radial-share')?.addEventListener(
+        'click',
+        ()=>{
+            actions.classList.remove('open');
+            if(oldButton.dataset.authenticated === '1'){
+                location.href='/doglife/write/';
+            }else{
+                location.href='/?login=1&next=/doglife/write/';
+            }
+        }
+    );
+
+    document.addEventListener('click',event=>{
+        if(!floatBox || floatBox.contains(event.target))return;
+        actions.classList.remove('open');
+    });
 
 
     panel.querySelector(

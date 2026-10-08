@@ -62,6 +62,28 @@ overlay.addEventListener('click',e=>{
     toggle.setAttribute('aria-expanded',opening?'true':'false');
 });
 
+async function loadPolicyDocuments(){
+    try{
+        const response=await fetch('/api/policies/',{credentials:'same-origin',cache:'no-store'});
+        const data=await response.json();
+        if(!response.ok||!data.ok)return;
+        Object.entries(data.documents||{}).forEach(([key,doc])=>{
+            const panel=overlay.querySelector('[data-term-panel="'+key+'"]');
+            const toggle=overlay.querySelector('[data-term-toggle="'+key+'"]');
+            if(!panel||!doc)return;
+            if(toggle&&doc.title)toggle.textContent=doc.title;
+            panel.innerHTML='';
+            const title=document.createElement('b');
+            title.textContent=doc.title||'';
+            const body=document.createElement('div');
+            body.className='policy-body';
+            body.textContent=doc.body||'';
+            panel.append(title,body);
+        });
+    }catch(_){}
+}
+loadPolicyDocuments();
+
 /* === CSRF SUPPORT === */
 
 function getCookie(name){
@@ -223,6 +245,12 @@ overlay.querySelectorAll('form').forEach(form => {
                 closeAuth();
 
                 await refreshMemberSession();
+                const authParams=new URLSearchParams(location.search);
+                const nextPath=authParams.get('next');
+                if(nextPath && nextPath.startsWith('/')){
+                    location.href=nextPath;
+                    return;
+                }
 if(location.hash==='#join') setTimeout(()=>openAuth('member'),0);
 
             }catch(error){
@@ -335,6 +363,8 @@ if(location.hash==='#join') setTimeout(()=>openAuth('member'),0);
                     region,
                     address_detail,
                     privacy_agreed: privacy,
+                    terms_agreed: termsAgreed,
+                    rules_agreed: rulesAgreed,
                     regular_member_requested: regular
                 })
             });
@@ -529,6 +559,10 @@ async function logoutMember(){
 
 // 페이지 진입 시 Django 세션 확인
 refreshMemberSession();
+const loginParams=new URLSearchParams(location.search);
+if(loginParams.get('login')==='1'){
+    setTimeout(()=>openAuth('login'),80);
+}
 document.querySelectorAll('a[href="#join"],a[href="/#join"],.join .btn-gold,.footer-banner .btn-red').forEach(el=>el.addEventListener('click',e=>{e.preventDefault();openAuth('member');}));document.querySelector('.quick-nav a[href="#partners"]')?.addEventListener('click',e=>{e.preventDefault();location.href='partners.html';});document.querySelector('.quick-nav a[href="#about"]')?.addEventListener('click',e=>{e.preventDefault();location.href='about.html';});document.querySelectorAll('a[href="#benefits"],.btn-dark-outline').forEach(el=>el.addEventListener('click',e=>{e.preventDefault();location.href='benefits.html';}));
 // Shared reveal motion: works automatically on current and future pages using these common components.
 const motionGroups=[['.quick-nav a',55],['.stat-grid article',75],['.service-grid article',90],['.featured,.news-row',55],['.join-benefits span,.join-benefits>div',70],['.footer-banner',0]];const observed=[];motionGroups.forEach(([selector,step])=>{document.querySelectorAll(selector).forEach((el,i)=>{el.classList.add('reveal-motion');el.style.transitionDelay=`${Math.min(i*step,320)}ms`;observed.push(el);});});const revealObserver=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('is-visible');revealObserver.unobserve(entry.target);}});},{threshold:.12,rootMargin:'0px 0px -25px 0px'});observed.forEach(el=>revealObserver.observe(el));
