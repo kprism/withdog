@@ -1148,10 +1148,6 @@ class Advertisement(models.Model):
 
     class Meta:
         ordering = ['target_page', 'placement', 'sort_order', '-created_at']
-        indexes = [
-            models.Index(fields=['target_page', 'placement', 'is_active']),
-            models.Index(fields=['start_date', 'end_date']),
-        ]
 
     def __str__(self):
         return f'{self.advertiser_name} · {self.get_target_page_display()} · {self.get_placement_display()}'
