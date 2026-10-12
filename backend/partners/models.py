@@ -1106,6 +1106,57 @@ class CommunityGroupPost(models.Model):
         ]
 
 
+class Advertisement(models.Model):
+    PAGE_CHOICES = [
+        ('all', '전체 공개페이지'),
+        ('home', '인트로/메인'),
+        ('about', '협회ㆍ임원진 소개'),
+        ('benefits', '회원혜택'),
+        ('partners', '후원업체/관련업체'),
+        ('doglife', '견생(Dog Life)'),
+        ('board', '공지사항'),
+        ('community', '커뮤니티'),
+        ('breeds', '전 세계 견종'),
+        ('mypage', '마이페이지'),
+    ]
+    PLACEMENT_CHOICES = [
+        ('right', '우측 광고 섹션'),
+        ('section_top', '섹션 사이 · 상단'),
+        ('section_middle', '섹션 사이 · 중단'),
+        ('section_bottom', '섹션 사이 · 하단'),
+        ('popup', '팝업 광고'),
+    ]
+    MEDIA_TYPES = [('image', '이미지'), ('video', 'MP4/영상')]
+
+    advertiser_name = models.CharField(max_length=160, verbose_name='광고주 업체명')
+    representative_name = models.CharField(max_length=100, blank=True, default='', verbose_name='대표자명')
+    business_number = models.CharField(max_length=40, blank=True, default='', verbose_name='사업자번호')
+    title = models.CharField(max_length=180, blank=True, default='', verbose_name='광고 제목')
+    target_page = models.CharField(max_length=30, choices=PAGE_CHOICES, default='home', db_index=True)
+    placement = models.CharField(max_length=30, choices=PLACEMENT_CHOICES, default='right', db_index=True)
+    start_date = models.DateField(verbose_name='게재 시작일')
+    end_date = models.DateField(verbose_name='게재 종료일')
+    fee = models.PositiveIntegerField(default=0, verbose_name='광고비')
+    media_type = models.CharField(max_length=20, choices=MEDIA_TYPES, default='image')
+    media_file = models.FileField(upload_to='ads/%Y/%m/', blank=True)
+    link_url = models.URLField(max_length=1000, blank=True, default='')
+    alt_text = models.CharField(max_length=220, blank=True, default='')
+    is_active = models.BooleanField(default=True)
+    sort_order = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['target_page', 'placement', 'sort_order', '-created_at']
+        indexes = [
+            models.Index(fields=['target_page', 'placement', 'is_active']),
+            models.Index(fields=['start_date', 'end_date']),
+        ]
+
+    def __str__(self):
+        return f'{self.advertiser_name} · {self.get_target_page_display()} · {self.get_placement_display()}'
+
+
 class PolicyDocument(models.Model):
     POLICY_KEYS = [
         ('privacy', '개인정보처리방침'),
