@@ -65,6 +65,75 @@
     </div>
 </footer>
 
+{% if public_ads.has_any %}
+<div class="public-ad-infrastructure" id="publicAdInfrastructure" data-page="{{ public_page_key }}">
+    {% if public_ads.right %}
+    <aside class="public-ad-rail" id="publicAdRail" aria-label="광고">
+        {% for ad in public_ads.right %}
+        <div class="public-ad-card public-ad-card--right" data-ad-link="{{ ad.link_url }}">
+            <span class="public-ad-label">광고</span>
+            {% if ad.media_type == 'video' %}
+            <video src="{{ ad.media_file.url }}" autoplay muted loop playsinline preload="metadata"></video>
+            {% else %}
+            <img src="{{ ad.media_file.url }}" alt="{{ ad.alt_text|default:ad.title|default:ad.advertiser_name }}">
+            {% endif %}
+            {% if ad.title %}<div class="public-ad-caption">{{ ad.title }}</div>{% endif %}
+        </div>
+        {% endfor %}
+    </aside>
+    {% endif %}
+
+    {% if public_ads.section_top %}
+    <template id="publicAdTemplate_section_top"><div class="public-inline-ad-slot public-inline-ad-slot--section_top" aria-label="광고">{% for ad in public_ads.section_top %}<div class="public-ad-card public-ad-card--inline" data-ad-link="{{ ad.link_url }}"><span class="public-ad-label">광고</span>{% if ad.media_type == 'video' %}<video src="{{ ad.media_file.url }}" autoplay muted loop playsinline preload="metadata"></video>{% else %}<img src="{{ ad.media_file.url }}" alt="{{ ad.alt_text|default:ad.title|default:ad.advertiser_name }}">{% endif %}{% if ad.title %}<div class="public-ad-caption">{{ ad.title }}</div>{% endif %}</div>{% endfor %}</div></template>
+    {% endif %}
+    {% if public_ads.section_middle %}
+    <template id="publicAdTemplate_section_middle"><div class="public-inline-ad-slot public-inline-ad-slot--section_middle" aria-label="광고">{% for ad in public_ads.section_middle %}<div class="public-ad-card public-ad-card--inline" data-ad-link="{{ ad.link_url }}"><span class="public-ad-label">광고</span>{% if ad.media_type == 'video' %}<video src="{{ ad.media_file.url }}" autoplay muted loop playsinline preload="metadata"></video>{% else %}<img src="{{ ad.media_file.url }}" alt="{{ ad.alt_text|default:ad.title|default:ad.advertiser_name }}">{% endif %}{% if ad.title %}<div class="public-ad-caption">{{ ad.title }}</div>{% endif %}</div>{% endfor %}</div></template>
+    {% endif %}
+    {% if public_ads.section_bottom %}
+    <template id="publicAdTemplate_section_bottom"><div class="public-inline-ad-slot public-inline-ad-slot--section_bottom" aria-label="광고">{% for ad in public_ads.section_bottom %}<div class="public-ad-card public-ad-card--inline" data-ad-link="{{ ad.link_url }}"><span class="public-ad-label">광고</span>{% if ad.media_type == 'video' %}<video src="{{ ad.media_file.url }}" autoplay muted loop playsinline preload="metadata"></video>{% else %}<img src="{{ ad.media_file.url }}" alt="{{ ad.alt_text|default:ad.title|default:ad.advertiser_name }}">{% endif %}{% if ad.title %}<div class="public-ad-caption">{{ ad.title }}</div>{% endif %}</div>{% endfor %}</div></template>
+    {% endif %}
+
+    {% if public_ads.popup %}
+        {% with ad=public_ads.popup.0 %}
+        <div class="public-ad-popup" id="publicAdPopup" data-ad-id="{{ ad.pk }}" hidden>
+            <div class="public-ad-popup__backdrop" data-ad-close></div>
+            <div class="public-ad-popup__dialog" role="dialog" aria-modal="true" aria-label="광고">
+                <button type="button" class="public-ad-popup__close" data-ad-close aria-label="닫기">×</button>
+                <span class="public-ad-label">광고</span>
+                <div class="public-ad-card public-ad-card--popup" data-ad-link="{{ ad.link_url }}">
+                    {% if ad.media_type == 'video' %}<video src="{{ ad.media_file.url }}" autoplay muted loop playsinline controls></video>{% else %}<img src="{{ ad.media_file.url }}" alt="{{ ad.alt_text|default:ad.title|default:ad.advertiser_name }}">{% endif %}
+                    {% if ad.title %}<div class="public-ad-caption">{{ ad.title }}</div>{% endif %}
+                </div>
+            </div>
+        </div>
+        {% endwith %}
+    {% endif %}
+</div>
+<script>
+(()=>{
+ const infrastructure=document.getElementById('publicAdInfrastructure');if(!infrastructure)return;
+ const header=document.querySelector('body > header.site-header'),footer=document.querySelector('body > footer.footer');if(!header||!footer)return;
+ let contentRoot=document.body;const rail=document.getElementById('publicAdRail');
+ if(rail){
+   const frame=document.createElement('div');frame.className='public-ad-layout';
+   const content=document.createElement('div');content.className='public-ad-content';
+   header.insertAdjacentElement('afterend',frame);frame.appendChild(content);
+   let node=frame.nextSibling;
+   while(node&&node!==footer){const next=node.nextSibling;if(node!==infrastructure&&!(node.nodeType===1&&(node.matches('.bot-float')||node.matches('.to-top'))))content.appendChild(node);node=next}
+   frame.appendChild(rail);contentRoot=content;
+ }
+ function targets(){const direct=[...contentRoot.children].filter(el=>el.nodeType===1&&el.matches('section'));if(direct.length)return direct;const main=[...contentRoot.children].find(el=>el.nodeType===1&&el.matches('main'));if(main){const inside=[...main.children].filter(el=>el.nodeType===1&&el.matches('section'));if(inside.length)return inside}return [...contentRoot.children].filter(el=>el.nodeType===1&&!el.matches('script,style,template'))}
+ function take(name){const t=document.getElementById('publicAdTemplate_'+name);if(!t)return null;const h=document.createElement('div');h.appendChild(t.content.cloneNode(true));return h.firstElementChild}
+ const first=targets(),top=take('section_top'),middle=take('section_middle'),bottom=take('section_bottom');
+ if(top){if(first[0])first[0].before(top);else contentRoot.prepend(top)}
+ if(middle){const now=targets(),at=now[Math.max(1,Math.floor(now.length/2))];if(at)at.before(middle);else contentRoot.appendChild(middle)}
+ if(bottom){const now=targets(),last=now[now.length-1];if(last)last.after(bottom);else contentRoot.appendChild(bottom)}
+ document.addEventListener('click',e=>{const card=e.target.closest('.public-ad-card[data-ad-link]');if(!card)return;const href=(card.dataset.adLink||'').trim();if(href)window.open(href,'_blank','noopener')});
+ const popup=document.getElementById('publicAdPopup');if(popup){const key='thepet_ad_popup_'+popup.dataset.adId;if(!sessionStorage.getItem(key))setTimeout(()=>{popup.hidden=false;document.body.classList.add('public-ad-popup-open')},700);popup.querySelectorAll('[data-ad-close]').forEach(btn=>btn.addEventListener('click',()=>{popup.hidden=true;document.body.classList.remove('public-ad-popup-open');sessionStorage.setItem(key,'1')}))}
+})();
+</script>
+{% endif %}
+
 <div class="bot-float">
     <button id="botButton" type="button" aria-label="견생 도우미 열기" data-authenticated="{% if request.user.is_authenticated %}1{% else %}0{% endif %}">🐕</button>
 </div>
