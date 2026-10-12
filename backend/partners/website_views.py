@@ -84,6 +84,7 @@ def site_settings(request):
             setting.header_subtitle_size=_clamped_int(request.POST.get('header_subtitle_size'),setting.header_subtitle_size,9,28)
             setting.header_subtitle_weight=_clamped_int(request.POST.get('header_subtitle_weight'),setting.header_subtitle_weight,400,900)
             setting.header_menu_font_size=_clamped_int(request.POST.get('header_menu_font_size'),setting.header_menu_font_size,11,28)
+            setting.header_mobile_menu_font_size=_clamped_int(request.POST.get('header_mobile_menu_font_size'),setting.header_mobile_menu_font_size,11,20)
             setting.header_menu_font_weight=_clamped_int(request.POST.get('header_menu_font_weight'),setting.header_menu_font_weight,400,900)
             setting.intro_header_opacity=_clamped_int(request.POST.get('intro_header_opacity'),setting.intro_header_opacity,0,100)
             setting.intro_stage_width=_clamped_int(request.POST.get('intro_stage_width'),setting.intro_stage_width,1280,3840)

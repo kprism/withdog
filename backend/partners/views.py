@@ -359,6 +359,7 @@ def site_settings_api(request):
         'header_subtitle_size': x.header_subtitle_size,
         'header_subtitle_weight': x.header_subtitle_weight,
         'header_menu_font_size': x.header_menu_font_size,
+        'header_mobile_menu_font_size': x.header_mobile_menu_font_size,
         'header_menu_font_weight': x.header_menu_font_weight,
         'intro_header_opacity': x.intro_header_opacity,
         'intro_stage_width': x.intro_stage_width,

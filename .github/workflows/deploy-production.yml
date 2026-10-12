@@ -242,6 +242,7 @@ jobs:
           assert SiteSetting._meta.get_field('intro_stage_height').default == 864
           assert SiteSetting._meta.get_field('intro_header_opacity').default == 82
           assert SiteSetting._meta.get_field('header_menu_font_size').default == 16
+          assert SiteSetting._meta.get_field('header_mobile_menu_font_size').default == 13
           assert SiteSetting._meta.get_field('header_menu_font_weight').default == 700
           from partners.models import ContentItem
           assert ContentItem._meta.get_field('hero_meta1_font_size').default == 16
@@ -278,12 +279,19 @@ jobs:
           assert '자유게시판</a></li>' not in footer_html
           print('MOBILE_COMPACT_HEADER_OK')
           assert 'MOBILE FINAL COMPOSITION 2026-10-12' in css
-          assert 'bottom:7.5%!important' in css
-          assert 'min-width:86px!important' in css
           assert 'width:calc(100% + 16px)!important' in css
           assert 'height:34px!important' in css
           assert 'font-size:15px!important' in css
           assert 'background:rgba(238,240,242,.76)!important' in css
+          assert 'MOBILE HERO DOM + ADMIN MENU SIZE FIX 2026-10-12' in css
+          assert '.site-header--intro + main .hero .hero-content' in css
+          assert 'bottom:7%!important' in css
+          assert 'min-width:78px!important' in css
+          assert 'font-size:var(--mobile-menu-font-size,13px)!important' in css
+          header_template = Path('partners/templates/website/includes/public_header.html').read_text(encoding='utf-8')
+          assert '--mobile-menu-font-size:' in header_template
+          admin_template = Path('partners/templates/dashboard/website_settings.html').read_text(encoding='utf-8')
+          assert 'name="header_mobile_menu_font_size"' in admin_template
           print('MOBILE_FINAL_COMPOSITION_OK')
           assert 'publicAdInfrastructure' in footer_html
           assert 'publicAdTemplate_section_middle' in footer_html

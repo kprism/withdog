@@ -1152,3 +1152,73 @@
     .site-header--intro + .hero h1{font-size:28px!important}
     .site-header--intro + .hero .hero-buttons .btn{min-width:82px!important;padding:9px 11px!important;font-size:11px!important}
 }
+
+
+/* ============================================================
+   MOBILE HERO DOM + ADMIN MENU SIZE FIX 2026-10-12
+   Root cause: .site-header--intro + .hero never matched because
+   <main> sits between the header and the hero section.
+   ============================================================ */
+@media(max-width:760px){
+    .site-header .primary-nav a{
+        font-size:var(--mobile-menu-font-size,13px)!important;
+        font-weight:var(--menu-font-weight,700)!important;
+        padding-inline:11px!important;
+    }
+
+    .site-header--intro + main .hero{
+        height:540px!important;
+    }
+    .site-header--intro + main .hero .hero-content{
+        top:auto!important;
+        bottom:7%!important;
+        left:7%!important;
+        right:6%!important;
+        max-width:87%!important;
+        transform:none!important;
+    }
+    .site-header--intro + main .hero .eyebrow{
+        font-size:9.5px!important;
+        letter-spacing:2px!important;
+        margin:0 0 5px!important;
+    }
+    .site-header--intro + main .hero h1{
+        font-size:30px!important;
+        line-height:1.36!important;
+        margin:2px 0 8px!important;
+    }
+    .site-header--intro + main .hero .hero-meta{
+        font-size:11.5px!important;
+        line-height:1.45!important;
+        margin:5px 0!important;
+        max-width:335px!important;
+    }
+    .site-header--intro + main .hero .hero-buttons{
+        gap:7px!important;
+        margin-top:11px!important;
+    }
+    .site-header--intro + main .hero .hero-buttons .btn{
+        min-width:78px!important;
+        padding:8px 10px!important;
+        border-radius:7px!important;
+        font-size:11px!important;
+        line-height:1!important;
+    }
+}
+@media(max-width:390px){
+    .site-header .primary-nav a{
+        font-size:var(--mobile-menu-font-size,13px)!important;
+        padding-inline:10px!important;
+    }
+    .site-header--intro + main .hero .hero-content{
+        bottom:6%!important;
+    }
+    .site-header--intro + main .hero h1{
+        font-size:28px!important;
+    }
+    .site-header--intro + main .hero .hero-buttons .btn{
+        min-width:72px!important;
+        padding:7px 9px!important;
+        font-size:10.5px!important;
+    }
+}

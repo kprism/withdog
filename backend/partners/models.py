@@ -148,6 +148,7 @@ class SiteSetting(models.Model):
     header_subtitle_size = models.PositiveSmallIntegerField(default=12)
     header_subtitle_weight = models.PositiveSmallIntegerField(default=500)
     header_menu_font_size = models.PositiveSmallIntegerField(default=16)
+    header_mobile_menu_font_size = models.PositiveSmallIntegerField(default=13)
     header_menu_font_weight = models.PositiveSmallIntegerField(default=700)
     intro_header_opacity = models.PositiveSmallIntegerField(default=82)
 
