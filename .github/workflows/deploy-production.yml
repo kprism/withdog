@@ -109,6 +109,72 @@ jobs:
           print('ADVERTISEMENT_SLOT_RENDERED')
           print('RESERVED_RIGHT_RAIL_RENDERED')
           PY
+      - name: Verify Dog Life linked media
+        working-directory: backend
+        run: |
+          python manage.py shell <<'PY'
+          from django.contrib.auth import get_user_model
+          from django.test import Client
+          from django.utils import timezone
+          from partners.models import BoardAttachment, BoardCategory, BoardPost
+          from partners.website_views import _doglife_external_link_info
+
+          yt=_doglife_external_link_info('https://youtu.be/dQw4w9WgXcQ')
+          assert yt['provider']=='youtube'
+          assert yt['media_id']=='dQw4w9WgXcQ'
+          direct=_doglife_external_link_info('https://cdn.example.com/sample.mp4')
+          assert direct['provider']=='video'
+
+          User=get_user_model()
+          user=User.objects.create_user(username='ci-doglife-link@example.com',email='ci-doglife-link@example.com',password='test12345')
+          category,_=BoardCategory.objects.get_or_create(
+              board_type='doglife',
+              slug='ci-linked-media',
+              defaults={'name':'CI 링크영상','sort_order':999,'is_active':True},
+          )
+          post=BoardPost.objects.create(
+              board_type='doglife',
+              category=category,
+              author=user,
+              title='CI 링크 영상 테스트',
+              body='링크 영상 테스트',
+              display_type='video_horizontal',
+              is_published=True,
+              is_hidden=False,
+              published_at=timezone.now(),
+          )
+          media=BoardAttachment.objects.create(
+              post=post,
+              external_url='https://youtu.be/dQw4w9WgXcQ',
+              external_provider='youtube',
+              external_media_id='dQw4w9WgXcQ',
+              original_name='https://youtu.be/dQw4w9WgXcQ',
+              sort_order=0,
+          )
+          assert media.external_embed_url=='https://www.youtube.com/embed/dQw4w9WgXcQ'
+          assert 'i.ytimg.com/vi/dQw4w9WgXcQ' in media.external_thumbnail_url
+
+          client=Client()
+          detail=client.get(f'/doglife/{post.pk}/')
+          detail_html=detail.content.decode('utf-8','replace')
+          assert detail.status_code==200
+          assert 'https://www.youtube.com/embed/dQw4w9WgXcQ' in detail_html
+
+          listing=client.get('/doglife/')
+          listing_html=listing.content.decode('utf-8','replace')
+          assert listing.status_code==200
+          assert 'i.ytimg.com/vi/dQw4w9WgXcQ' in listing_html
+
+          form_html=open('partners/templates/website/doglife_form.html',encoding='utf-8').read()
+          assert '🔗 링크 삽입' in form_html
+          assert 'grid-template-columns:repeat(2,minmax(0,1fr))' in form_html
+          assert form_html.count('class="upload-btn"') >= 4
+
+          post.delete()
+          user.delete()
+          category.delete()
+          print('DOG_LIFE_LINKED_MEDIA_OK')
+          PY
       - name: Collect and verify static assets
         working-directory: backend
         run: |
@@ -211,6 +277,14 @@ jobs:
           assert '관련분야' not in footer_html
           assert '자유게시판</a></li>' not in footer_html
           print('MOBILE_COMPACT_HEADER_OK')
+          assert 'MOBILE FINAL COMPOSITION 2026-10-12' in css
+          assert 'bottom:7.5%!important' in css
+          assert 'min-width:86px!important' in css
+          assert 'width:calc(100% + 16px)!important' in css
+          assert 'height:34px!important' in css
+          assert 'font-size:15px!important' in css
+          assert 'background:rgba(238,240,242,.76)!important' in css
+          print('MOBILE_FINAL_COMPOSITION_OK')
           assert 'publicAdInfrastructure' in footer_html
           assert 'publicAdTemplate_section_middle' in footer_html
           print('MOBILE_HEADER_AD_CSS_OK')
