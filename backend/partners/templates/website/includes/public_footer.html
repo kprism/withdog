@@ -65,10 +65,10 @@
     </div>
 </footer>
 
-{% if public_ads.has_any %}
+{% if public_ads.has_any or public_ads.reserve_right %}
 <div class="public-ad-infrastructure" id="publicAdInfrastructure" data-page="{{ public_page_key }}">
-    {% if public_ads.right %}
-    <aside class="public-ad-rail" id="publicAdRail" aria-label="광고">
+    {% if public_ads.right or public_ads.reserve_right %}
+    <aside class="public-ad-rail{% if not public_ads.right %} public-ad-rail--empty{% endif %}" id="publicAdRail" aria-label="광고">
         {% for ad in public_ads.right %}
         <div class="public-ad-card public-ad-card--right" data-ad-link="{{ ad.link_url }}">
             <span class="public-ad-label">광고</span>
