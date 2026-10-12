@@ -2125,6 +2125,57 @@ def _doglife_queryset():
     )
 
 
+def _doglife_external_link_info(raw_url):
+    """Validate and classify a linked Dog Life media URL."""
+    import re
+    from urllib.parse import parse_qs, urlparse
+
+    raw_url = (raw_url or '').strip()
+    if not raw_url:
+        return None
+
+    parsed = urlparse(raw_url)
+    if parsed.scheme not in {'http', 'https'} or not parsed.netloc:
+        raise ValueError('링크는 http:// 또는 https://로 시작하는 올바른 주소를 입력해주세요.')
+
+    host = parsed.netloc.lower().split(':', 1)[0]
+    if host.startswith('www.'):
+        host = host[4:]
+
+    media_id = ''
+    provider = 'link'
+
+    if host in {'youtu.be', 'youtube.com', 'm.youtube.com', 'music.youtube.com'}:
+        if host == 'youtu.be':
+            media_id = parsed.path.strip('/').split('/')[0]
+        else:
+            parts = [x for x in parsed.path.split('/') if x]
+            if parsed.path == '/watch':
+                media_id = (parse_qs(parsed.query).get('v') or [''])[0]
+            elif parts and parts[0] in {'shorts', 'embed', 'live'} and len(parts) > 1:
+                media_id = parts[1]
+        if media_id and re.fullmatch(r'[A-Za-z0-9_-]{6,32}', media_id):
+            provider = 'youtube'
+        else:
+            media_id = ''
+
+    elif host in {'vimeo.com', 'player.vimeo.com'} or host.endswith('.vimeo.com'):
+        parts = [x for x in parsed.path.split('/') if x]
+        numeric = [x for x in parts if x.isdigit()]
+        if numeric:
+            media_id = numeric[-1]
+            provider = 'vimeo'
+
+    elif parsed.path.lower().endswith(('.mp4', '.webm', '.mov', '.m4v', '.ogv')):
+        provider = 'video'
+
+    return {
+        'url': raw_url,
+        'provider': provider,
+        'media_id': media_id,
+    }
+
+
 def _doglife_save_files(post, request):
     from .models import BoardAttachment
 
@@ -2135,7 +2186,8 @@ def _doglife_save_files(post, request):
         if item:
             uploaded.append(item)
 
-    uploaded = uploaded[:8]
+    capacity = max(0, 8 - post.attachments.count())
+    uploaded = uploaded[:capacity]
 
     existing_count = post.attachments.count()
     saved = 0
@@ -2158,6 +2210,28 @@ def _doglife_save_files(post, request):
         saved += 1
 
     return saved
+
+
+def _doglife_save_external_link(post, link_info):
+    from .models import BoardAttachment
+
+    if not link_info or post.attachments.count() >= 8:
+        return 0
+
+    url = link_info['url']
+    if post.attachments.filter(external_url=url).exists():
+        return 0
+
+    BoardAttachment.objects.create(
+        post=post,
+        external_url=url,
+        external_provider=link_info['provider'],
+        external_media_id=link_info['media_id'],
+        original_name=url,
+        is_image=False,
+        sort_order=post.attachments.count(),
+    )
+    return 1
 
 
 def public_doglife_list(request):
@@ -2286,14 +2360,25 @@ def public_doglife_create(request):
         title = (request.POST.get('title') or '').strip()
         body = (request.POST.get('body') or '').strip()
         display_type = (request.POST.get('display_type') or 'text').strip()
+        media_link = (request.POST.get('media_link') or '').strip()
 
         if display_type not in DOG_LIFE_DISPLAY_TYPES:
             display_type = 'text'
 
+        link_info = None
+        link_error = ''
+        if media_link:
+            try:
+                link_info = _doglife_external_link_info(media_link)
+            except ValueError as exc:
+                link_error = str(exc)
+
         if not title:
             messages.error(request, '제목을 입력해주세요.')
-        elif not body and not request.FILES:
-            messages.error(request, '내용 또는 사진·영상을 등록해주세요.')
+        elif link_error:
+            messages.error(request, link_error)
+        elif not body and not request.FILES and not link_info:
+            messages.error(request, '내용, 사진·영상 또는 링크를 등록해주세요.')
         else:
             post = BoardPost.objects.create(
                 board_type='doglife',
@@ -2309,6 +2394,7 @@ def public_doglife_create(request):
                 published_at=timezone.now(),
             )
             _doglife_save_files(post, request)
+            _doglife_save_external_link(post, link_info)
             messages.success(request, '견생 콘텐츠가 바로 등록되었습니다.')
             return redirect('public_doglife_detail', pk=post.pk)
 
@@ -2319,6 +2405,7 @@ def public_doglife_create(request):
             'categories': categories,
             'post': None,
             'mode': 'create',
+            'link_value': (request.POST.get('media_link') or '').strip() if request.method == 'POST' else '',
         },
     )
 
@@ -2353,8 +2440,19 @@ def public_doglife_update(request, pk):
             display_type = 'text'
 
         title = (request.POST.get('title') or '').strip()
+        media_link = (request.POST.get('media_link') or '').strip()
+        link_info = None
+        link_error = ''
+        if media_link:
+            try:
+                link_info = _doglife_external_link_info(media_link)
+            except ValueError as exc:
+                link_error = str(exc)
+
         if not title:
             messages.error(request, '제목을 입력해주세요.')
+        elif link_error:
+            messages.error(request, link_error)
         else:
             post.category = category
             post.title = title
@@ -2372,6 +2470,7 @@ def public_doglife_update(request, pk):
                 ).delete()
 
             _doglife_save_files(post, request)
+            _doglife_save_external_link(post, link_info)
             messages.success(request, '견생 콘텐츠를 수정했습니다.')
             return redirect('public_doglife_detail', pk=post.pk)
 
@@ -2382,6 +2481,7 @@ def public_doglife_update(request, pk):
             'categories': categories,
             'post': post,
             'mode': 'update',
+            'link_value': (request.POST.get('media_link') or '').strip() if request.method == 'POST' else '',
         },
     )
 
