@@ -799,3 +799,22 @@
 @media(max-width:1180px){.public-ad-layout{grid-template-columns:minmax(0,1fr) 240px;gap:14px}}
 @media(max-width:900px){.public-ad-layout{display:block}.public-ad-rail{position:relative;top:auto;padding:14px 12px 22px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.public-ad-card--right{aspect-ratio:16/7}.public-inline-ad-slot{width:calc(100% - 24px);margin:14px auto;overflow-x:auto}.public-ad-card--inline{min-width:78vw;height:130px}}
 @media(max-width:520px){.public-ad-rail{grid-template-columns:1fr}.public-ad-card--right{aspect-ratio:16/8}}
+
+
+/* ============================================================
+   RESERVED RIGHT AD RAIL 2026-10-12
+   Public content pages keep the desktop ad column even empty.
+   ============================================================ */
+.public-ad-rail--empty{
+    min-height:1px;
+    visibility:hidden;
+    pointer-events:none;
+}
+@media(max-width:900px){
+    .public-ad-rail--empty{
+        display:none!important;
+        padding:0!important;
+        margin:0!important;
+        min-height:0!important;
+    }
+}
