@@ -122,7 +122,7 @@
    while(node&&node!==footer){const next=node.nextSibling;if(node!==infrastructure&&!(node.nodeType===1&&(node.matches('.bot-float')||node.matches('.to-top'))))content.appendChild(node);node=next}
    frame.appendChild(rail);contentRoot=content;
  }
- function targets(){const direct=[...contentRoot.children].filter(el=>el.nodeType===1&&el.matches('section'));if(direct.length)return direct;const main=[...contentRoot.children].find(el=>el.nodeType===1&&el.matches('main'));if(main){const inside=[...main.children].filter(el=>el.nodeType===1&&el.matches('section'));if(inside.length)return inside}return [...contentRoot.children].filter(el=>el.nodeType===1&&!el.matches('script,style,template'))}
+ function targets(){const direct=[...contentRoot.children].filter(el=>el.nodeType===1&&el.matches('section'));if(direct.length)return direct;const main=[...contentRoot.children].find(el=>el.nodeType===1&&el.matches('main'));if(main){const inside=[...main.children].filter(el=>el.nodeType===1&&el.matches('section'));if(inside.length)return inside}return [...contentRoot.children].filter(el=>el.nodeType===1&&!el.matches('script,style,template,header.site-header,footer.footer,.bot-float,.to-top,.public-ad-infrastructure'))}
  function take(name){const t=document.getElementById('publicAdTemplate_'+name);if(!t)return null;const h=document.createElement('div');h.appendChild(t.content.cloneNode(true));return h.firstElementChild}
  const first=targets(),top=take('section_top'),middle=take('section_middle'),bottom=take('section_bottom');
  if(top){if(first[0])first[0].before(top);else contentRoot.prepend(top)}
