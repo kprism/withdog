@@ -839,7 +839,33 @@ class BoardAttachment(models.Model):
     )
 
     file = models.FileField(
-        upload_to='board/%Y/%m/%d/'
+        upload_to='board/%Y/%m/%d/',
+        blank=True,
+    )
+
+    external_url = models.URLField(
+        max_length=2000,
+        blank=True,
+        default='',
+    )
+
+    external_provider = models.CharField(
+        max_length=20,
+        choices=[
+            ('', '파일'),
+            ('youtube', 'YouTube'),
+            ('vimeo', 'Vimeo'),
+            ('video', '직접 영상 링크'),
+            ('link', '외부 링크'),
+        ],
+        blank=True,
+        default='',
+    )
+
+    external_media_id = models.CharField(
+        max_length=128,
+        blank=True,
+        default='',
     )
 
     original_name = models.CharField(
@@ -850,6 +876,24 @@ class BoardAttachment(models.Model):
     is_image = models.BooleanField(
         default=False
     )
+
+    @property
+    def is_external_video(self):
+        return self.external_provider in {'youtube', 'vimeo', 'video'}
+
+    @property
+    def external_embed_url(self):
+        if self.external_provider == 'youtube' and self.external_media_id:
+            return f'https://www.youtube.com/embed/{self.external_media_id}'
+        if self.external_provider == 'vimeo' and self.external_media_id:
+            return f'https://player.vimeo.com/video/{self.external_media_id}'
+        return ''
+
+    @property
+    def external_thumbnail_url(self):
+        if self.external_provider == 'youtube' and self.external_media_id:
+            return f'https://i.ytimg.com/vi/{self.external_media_id}/hqdefault.jpg'
+        return ''
 
     sort_order = models.PositiveIntegerField(
         default=0
