@@ -1028,3 +1028,127 @@
 .footer-top>div:first-child{
     max-width:760px;
 }
+
+
+/* ============================================================
+   MOBILE FINAL COMPOSITION 2026-10-12
+   ============================================================ */
+.doglife-external-media{
+    width:100%;
+    height:100%;
+    min-height:180px;
+    display:grid;
+    place-items:center;
+    background:linear-gradient(145deg,#202936,#0f141a);
+    color:#fff;
+    text-align:center;
+}
+.doglife-external-media span{display:block;font-size:34px;line-height:1;margin-bottom:7px}
+.doglife-external-media small{font-size:11px;opacity:.78}
+
+@media(max-width:760px){
+    .site-header{
+        height:90px!important;
+        grid-template-rows:56px 34px!important;
+        padding:0 8px!important;
+        row-gap:0!important;
+        overflow:visible!important;
+    }
+    .site-header .brand b{
+        font-size:15px!important;
+        line-height:1.08!important;
+        letter-spacing:-.04em!important;
+    }
+
+    /* Full-bleed, thinner semi-transparent menu rail */
+    .site-header .primary-nav{
+        width:calc(100% + 16px)!important;
+        max-width:none!important;
+        height:34px!important;
+        min-height:34px!important;
+        margin:0 -8px!important;
+        padding:0 7px!important;
+        gap:0!important;
+        border-left:0!important;
+        border-right:0!important;
+        border-radius:0!important;
+        background:rgba(238,240,242,.76)!important;
+        border-top:1px solid rgba(255,255,255,.5)!important;
+        border-bottom:1px solid rgba(65,70,76,.12)!important;
+        box-shadow:0 3px 9px rgba(0,0,0,.045)!important;
+        -webkit-backdrop-filter:blur(12px)!important;
+        backdrop-filter:blur(12px)!important;
+    }
+    .site-header .primary-nav a{
+        min-height:32px!important;
+        padding:0 10px!important;
+        font-size:10.5px!important;
+        line-height:1!important;
+        border-radius:6px!important;
+    }
+
+    /* Never render mobile signup as a red CTA in the account row */
+    .site-header .header-actions [data-member-login],
+    .site-header .header-actions [data-member-join],
+    .site-header .header-actions .auth-link--plain{
+        appearance:none!important;
+        background:transparent!important;
+        background-color:transparent!important;
+        color:#2f3338!important;
+        border:0!important;
+        box-shadow:none!important;
+        min-width:0!important;
+        min-height:0!important;
+        padding:4px 2px!important;
+        border-radius:0!important;
+        font-size:9px!important;
+        font-weight:700!important;
+    }
+    .site-header .header-actions [data-member-login] + [data-member-join]{
+        margin-left:5px!important;
+    }
+
+    /* Anchor intro copy to the lower part of the video, not the upper third */
+    .site-header--intro + .hero .hero-content{
+        top:auto!important;
+        bottom:7.5%!important;
+        left:7%!important;
+        right:6%!important;
+        max-width:87%!important;
+        transform:none!important;
+    }
+    .site-header--intro + .hero .eyebrow{
+        font-size:9.5px!important;
+        letter-spacing:2px!important;
+        margin:0 0 5px!important;
+    }
+    .site-header--intro + .hero h1{
+        font-size:30px!important;
+        line-height:1.38!important;
+        margin:2px 0 9px!important;
+    }
+    .site-header--intro + .hero .hero-meta{
+        font-size:11.5px!important;
+        line-height:1.48!important;
+        margin:6px 0!important;
+        max-width:335px!important;
+    }
+    .site-header--intro + .hero .hero-buttons{
+        gap:8px!important;
+        margin-top:14px!important;
+    }
+    .site-header--intro + .hero .hero-buttons .btn{
+        min-width:86px!important;
+        padding:9px 12px!important;
+        border-radius:7px!important;
+        font-size:11.5px!important;
+        line-height:1!important;
+    }
+}
+@media(max-width:390px){
+    .site-header .brand b{font-size:14.5px!important}
+    .site-header .primary-nav a{font-size:10px!important;padding-inline:9px!important}
+    .site-header--intro + .hero .hero-content{bottom:6.5%!important}
+    .site-header--intro + .hero h1{font-size:28px!important}
+    .site-header--intro + .hero .hero-buttons .btn{min-width:82px!important;padding:9px 11px!important;font-size:11px!important}
+}
