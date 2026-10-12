@@ -2438,3 +2438,103 @@ def public_doglife_like_toggle(request, pk):
         'liked': liked,
         'count': post.likes.count(),
     })
+
+
+# ============================================================
+# ADVERTISEMENT MANAGEMENT
+# ============================================================
+
+AD_SLOT_SPECS = {
+    'right': {'label': '우측 광고 섹션', 'size': '300 × 600 px 권장', 'description': '페이지 본문을 줄이고 우측에 세로 광고 레일을 만듭니다.'},
+    'section_top': {'label': '섹션 사이 · 상단', 'size': '1200 × 180 px 권장', 'description': '첫 주요 섹션 앞에 가로형 광고를 삽입합니다.'},
+    'section_middle': {'label': '섹션 사이 · 중단', 'size': '1200 × 180 px 권장', 'description': '페이지 주요 섹션의 중간 지점에 광고를 삽입합니다.'},
+    'section_bottom': {'label': '섹션 사이 · 하단', 'size': '1200 × 180 px 권장', 'description': '마지막 주요 섹션 뒤에 광고를 삽입합니다.'},
+    'popup': {'label': '팝업 광고', 'size': '600 × 700 px 이내 권장', 'description': '페이지 진입 후 팝업으로 노출되며 사용자가 닫을 수 있습니다.'},
+}
+
+
+@staff_member_required
+def advertisement_manager(request):
+    from django.utils import timezone
+    from django.utils.dateparse import parse_date
+    from .models import Advertisement
+
+    edit_id = request.GET.get('edit')
+    item = Advertisement.objects.filter(pk=edit_id).first() if edit_id else None
+
+    if request.method == 'POST':
+        action = request.POST.get('action', 'save')
+        if action == 'delete':
+            target = get_object_or_404(Advertisement, pk=request.POST.get('id'))
+            name = target.advertiser_name
+            if target.media_file:
+                _delete_file(target.media_file)
+            target.delete()
+            messages.success(request, f'{name} 광고를 삭제했습니다.')
+            return redirect('operator_dashboard:advertisement_manager')
+
+        obj = item or Advertisement()
+        obj.advertiser_name = (request.POST.get('advertiser_name') or '').strip()
+        obj.representative_name = (request.POST.get('representative_name') or '').strip()
+        obj.business_number = (request.POST.get('business_number') or '').strip()
+        obj.title = (request.POST.get('title') or '').strip()
+        obj.target_page = request.POST.get('target_page') if request.POST.get('target_page') in dict(Advertisement.PAGE_CHOICES) else 'home'
+        obj.placement = request.POST.get('placement') if request.POST.get('placement') in dict(Advertisement.PLACEMENT_CHOICES) else 'right'
+        obj.media_type = request.POST.get('media_type') if request.POST.get('media_type') in dict(Advertisement.MEDIA_TYPES) else 'image'
+        obj.start_date = parse_date(request.POST.get('start_date') or '')
+        obj.end_date = parse_date(request.POST.get('end_date') or '')
+        obj.link_url = (request.POST.get('link_url') or '').strip()
+        obj.alt_text = (request.POST.get('alt_text') or '').strip()
+        obj.is_active = 'is_active' in request.POST
+        try:
+            obj.fee = max(0, int(request.POST.get('fee') or 0))
+        except (TypeError, ValueError):
+            obj.fee = 0
+        try:
+            obj.sort_order = int(request.POST.get('sort_order') or 0)
+        except (TypeError, ValueError):
+            obj.sort_order = 0
+
+        upload = request.FILES.get('media_file')
+        errors = []
+        if not obj.advertiser_name:
+            errors.append('광고주 업체명을 입력해 주세요.')
+        if not obj.start_date or not obj.end_date:
+            errors.append('광고 시작일과 종료일을 입력해 주세요.')
+        elif obj.end_date < obj.start_date:
+            errors.append('광고 종료일은 시작일보다 빠를 수 없습니다.')
+        if not upload and not getattr(obj.media_file, 'name', ''):
+            errors.append('광고 이미지 또는 MP4 영상을 등록해 주세요.')
+
+        if upload:
+            name = str(getattr(upload, 'name', '') or '').lower()
+            image_ext = ('.jpg', '.jpeg', '.png', '.webp', '.gif')
+            video_ext = ('.mp4', '.webm', '.mov')
+            if obj.media_type == 'image' and not name.endswith(image_ext):
+                errors.append('이미지 광고는 JPG, PNG, WEBP, GIF 파일을 사용할 수 있습니다.')
+            if obj.media_type == 'video' and not name.endswith(video_ext):
+                errors.append('영상 광고는 MP4, WEBM, MOV 파일을 사용할 수 있습니다.')
+
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+        else:
+            if upload:
+                if obj.pk and obj.media_file:
+                    _delete_file(obj.media_file)
+                obj.media_file = upload
+            obj.save()
+            messages.success(request, '광고가 저장되어 설정한 기간과 위치에 자동 반영됩니다.')
+            return redirect(f'/dashboard/website/ads/?edit={obj.pk}')
+
+    today = timezone.localdate()
+    items = Advertisement.objects.all().order_by('-is_active', '-start_date', 'target_page', 'placement')
+    return render(request, 'dashboard/advertisement_manager.html', {
+        'item': item,
+        'items': items,
+        'today': today,
+        'page_choices': Advertisement.PAGE_CHOICES,
+        'placement_choices': Advertisement.PLACEMENT_CHOICES,
+        'media_choices': Advertisement.MEDIA_TYPES,
+        'slot_specs': AD_SLOT_SPECS,
+    })
