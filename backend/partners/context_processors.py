@@ -52,6 +52,15 @@ def public_site(request):
         'section_bottom': [],
         'popup': [],
         'has_any': False,
+        'reserve_right': page_key in {
+            'about',
+            'benefits',
+            'partners',
+            'doglife',
+            'board',
+            'community',
+            'breeds',
+        },
     }
 
     if not request.path.startswith('/dashboard/'):
