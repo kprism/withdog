@@ -33,4 +33,3 @@ class Migration(migrations.Migration):
             options={'ordering': ['target_page', 'placement', 'sort_order', '-created_at']},
         ),
     ]
-}
