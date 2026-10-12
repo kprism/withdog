@@ -199,7 +199,18 @@ jobs:
           assert 'font-size:14px!important' in css
           assert 'background:rgba(255,255,255,.72)!important' in css
           print('MOBILE_NAVBAR_REFINEMENT_OK')
+          header_html = Path('partners/templates/website/includes/public_header.html').read_text(encoding='utf-8')
+          assert '>LOGIN<' in header_html
+          assert 'data-member-join>회원가입</button>' in header_html
+          assert 'auth-link auth-link--accent" data-member-join' not in header_html
+          assert 'MOBILE HEADER COMPACT HERO 2026-10-12' in css
+          assert 'height:96px!important' in css
+          assert 'font-size:31px!important' in css
+          assert 'min-width:100px!important' in css
           footer_html = Path('partners/templates/website/includes/public_footer.html').read_text(encoding='utf-8')
+          assert '관련분야' not in footer_html
+          assert '자유게시판</a></li>' not in footer_html
+          print('MOBILE_COMPACT_HEADER_OK')
           assert 'publicAdInfrastructure' in footer_html
           assert 'publicAdTemplate_section_middle' in footer_html
           print('MOBILE_HEADER_AD_CSS_OK')
