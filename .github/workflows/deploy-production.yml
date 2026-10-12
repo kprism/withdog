@@ -93,7 +93,21 @@ jobs:
           assert 'public-ad-layout' in open('../assets/css/style.css',encoding='utf-8').read()
           ad.media_file.delete(save=False)
           ad.delete()
+
+          # Public menu/content pages reserve the desktop right ad rail
+          # even when there is currently no active advertisement.
+          about=Client().get('/about.html')
+          about_html=about.content.decode('utf-8','replace')
+          assert about.status_code == 200
+          assert 'public-ad-rail--empty' in about_html
+          assert 'data-page="about"' in about_html
+
+          # Homepage stays full-width unless an actual homepage ad exists.
+          home=Client().get('/')
+          home_html=home.content.decode('utf-8','replace')
+          assert 'public-ad-rail--empty' not in home_html
           print('ADVERTISEMENT_SLOT_RENDERED')
+          print('RESERVED_RIGHT_RAIL_RENDERED')
           PY
       - name: Collect and verify static assets
         working-directory: backend
