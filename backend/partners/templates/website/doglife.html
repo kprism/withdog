@@ -29,7 +29,7 @@
 .dl-card>a{display:block;height:100%;color:inherit;text-decoration:none}
 .dl-media,.dl-text-card{height:100%;min-height:160px;border-radius:14px;overflow:hidden}
 .dl-media{position:relative;background:#111}
-.dl-media img,.dl-media video{width:100%;height:100%;object-fit:cover;display:block;transition:transform .32s ease}
+.dl-media img,.dl-media video{width:100%;height:100%;object-fit:cover;display:block;transition:transform .32s ease}.dl-external-placeholder{width:100%;height:100%;display:grid;place-items:center;background:linear-gradient(145deg,#1c2530,#111);color:#fff;text-align:center;font-weight:900}.dl-external-placeholder span{display:block;font-size:34px;margin-bottom:6px}.dl-external-placeholder small{font-size:11px;opacity:.75}
 .dl-card:hover .dl-media img,.dl-card:hover .dl-media video{transform:scale(1.025)}
 .dl-overlay{position:absolute;inset:auto 0 0;padding:58px 14px 13px;background:linear-gradient(transparent,rgba(0,0,0,.88));color:#fff}
 .dl-category{font-size:10px;font-weight:900;margin-bottom:5px}
@@ -129,7 +129,15 @@
     <a href="{% url 'public_doglife_detail' post.pk %}">
      {% if media %}
       <div class="dl-media">
-       {% if media.is_image %}
+       {% if media.external_provider == 'youtube' %}
+        <img src="{{ media.external_thumbnail_url }}" alt="{{ post.title }}" loading="lazy"><span class="dl-format">YouTube</span>
+       {% elif media.external_provider == 'vimeo' %}
+        <div class="dl-external-placeholder"><div><span>▶</span><small>Vimeo 영상</small></div></div><span class="dl-format">Vimeo</span>
+       {% elif media.external_provider == 'video' %}
+        <video src="{{ media.external_url }}" muted playsinline preload="metadata"></video><span class="dl-format">링크 영상</span>
+       {% elif media.external_provider == 'link' %}
+        <div class="dl-external-placeholder"><div><span>🔗</span><small>외부 링크</small></div></div>
+       {% elif media.is_image %}
         <img src="{{ media.file.url }}" alt="{{ post.title }}" loading="lazy">
        {% else %}
         <video src="{{ media.file.url }}" muted playsinline preload="metadata"></video>
