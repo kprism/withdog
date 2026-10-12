@@ -62,6 +62,39 @@ jobs:
           r.delete()
           print('MEMBER_DELETE_LEDGER_PRESERVED')
           PY
+      - name: Verify advertisement slot rendering
+        working-directory: backend
+        run: |
+          python manage.py shell <<'PY'
+          from django.core.files.uploadedfile import SimpleUploadedFile
+          from django.test import Client
+          from django.utils import timezone
+          from partners.models import Advertisement
+          today=timezone.localdate()
+          ad=Advertisement.objects.create(
+              advertiser_name='CI 광고주',
+              representative_name='테스트',
+              business_number='000-00-00000',
+              title='CI 우측 광고',
+              target_page='home',
+              placement='right',
+              start_date=today,
+              end_date=today,
+              fee=10000,
+              media_type='image',
+              media_file=SimpleUploadedFile('ci-ad.png',b'fake-image',content_type='image/png'),
+              is_active=True,
+          )
+          response=Client().get('/')
+          html=response.content.decode('utf-8','replace')
+          assert response.status_code == 200
+          assert 'id="publicAdRail"' in html
+          assert 'CI 우측 광고' in html
+          assert 'public-ad-layout' in open('../assets/css/style.css',encoding='utf-8').read()
+          ad.media_file.delete(save=False)
+          ad.delete()
+          print('ADVERTISEMENT_SLOT_RENDERED')
+          PY
       - name: Collect and verify static assets
         working-directory: backend
         run: |
@@ -135,6 +168,7 @@ jobs:
           assert ContentItem._meta.get_field('hero_meta2_font_size').default == 16
           get_template('dashboard/website_settings.html')
           get_template('dashboard/policy_editor.html')
+          get_template('dashboard/advertisement_manager.html')
           get_template('website/doglife.html')
           get_template('website/doglife_detail.html')
           get_template('website/doglife_form.html')
@@ -142,6 +176,15 @@ jobs:
           get_template('website/mypage.html')
           get_template('website/includes/public_header.html')
           get_template('website/includes/public_footer.html')
+          css = Path('../assets/css/style.css').read_text(encoding='utf-8')
+          assert '.public-ad-layout' in css
+          assert '.public-ad-rail' in css
+          assert '.primary-nav a:active' in css
+          assert 'font-size:9px!important' in css
+          footer_html = Path('partners/templates/website/includes/public_footer.html').read_text(encoding='utf-8')
+          assert 'publicAdInfrastructure' in footer_html
+          assert 'publicAdTemplate_section_middle' in footer_html
+          print('MOBILE_HEADER_AD_CSS_OK')
           PY
 
   deploy:
