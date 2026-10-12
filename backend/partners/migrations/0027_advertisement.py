@@ -32,7 +32,5 @@ class Migration(migrations.Migration):
             ],
             options={'ordering': ['target_page', 'placement', 'sort_order', '-created_at']},
         ),
-        migrations.AddIndex(model_name='advertisement', index=models.Index(fields=['target_page', 'placement', 'is_active'], name='partners_ad_target_061be6_idx')),
-        migrations.AddIndex(model_name='advertisement', index=models.Index(fields=['start_date', 'end_date'], name='partners_ad_start_d_8d9683_idx')),
     ]
 }
