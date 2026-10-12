@@ -195,6 +195,10 @@ jobs:
           assert '.public-ad-rail' in css
           assert '.primary-nav a:active' in css
           assert 'font-size:9px!important' in css
+          assert 'MOBILE NAVBAR REFINEMENT 2026-10-12' in css
+          assert 'font-size:14px!important' in css
+          assert 'background:rgba(255,255,255,.72)!important' in css
+          print('MOBILE_NAVBAR_REFINEMENT_OK')
           footer_html = Path('partners/templates/website/includes/public_footer.html').read_text(encoding='utf-8')
           assert 'publicAdInfrastructure' in footer_html
           assert 'publicAdTemplate_section_middle' in footer_html
