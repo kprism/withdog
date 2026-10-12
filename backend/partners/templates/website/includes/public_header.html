@@ -53,8 +53,8 @@
                 <button type="button" class="auth-link auth-link--plain" data-member-login>LOGIN</button>
                 <button type="button" class="auth-link auth-link--plain" data-member-join>회원가입</button>
             {% else %}
-                <a class="auth-link auth-link--plain" href="/dashboard/login/">LOGIN</a>
-                <a class="auth-link auth-link--plain" href="/#join">회원가입</a>
+                <a class="auth-link auth-link--plain" data-member-login href="/dashboard/login/">LOGIN</a>
+                <a class="auth-link auth-link--plain" data-member-join href="/#join">회원가입</a>
             {% endif %}
         {% endif %}
     </nav>
