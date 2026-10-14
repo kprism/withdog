@@ -439,7 +439,7 @@ jobs:
                   raise SystemExit('Legacy statistics section still present')
               if 'class="web-magazine' not in home_html:
                   raise SystemExit('Dog Life web magazine section missing')
-              if 'class="doglife-portal"' not in home_html:
+              if 'class="web-magazine doglife-portal"' not in home_html:
                   raise SystemExit('Dog Life portal structure missing')
               if 'class="doglife-cover-row"' not in home_html or 'class="doglife-rank-panel"' not in home_html:
                   raise SystemExit('Dog Life portal cover/ranking structure missing')
