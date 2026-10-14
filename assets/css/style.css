@@ -861,15 +861,19 @@
     }
     .doglife-cover-card:nth-child(5){display:block}
     .doglife-cover-media{height:160px}
-    .doglife-cover-card h3{font-size:12px}
+    .doglife-cover-card h3{font-size:15px;line-height:1.45}
     .doglife-portal-body{display:block}
     .doglife-feed-grid{
         grid-template-columns:repeat(2,minmax(0,1fr));
         gap:14px 10px;
     }
     .doglife-feed-thumb{height:128px}
-    .doglife-feed-copy h3{font-size:12px}
+    .doglife-feed-copy h3{font-size:14px;line-height:1.45}
     .doglife-feed-copy p{display:none}
+    .doglife-cover-card .doglife-card-category,
+    .doglife-feed-copy .doglife-card-category{font-size:11px}
+    .doglife-cover-card .doglife-card-meta,
+    .doglife-feed-copy .doglife-card-meta{font-size:10px}
     .doglife-rank-panel{
         padding-left:0;
         margin-top:28px;

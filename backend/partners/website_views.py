@@ -2248,18 +2248,19 @@ def public_doglife_list(request):
     selected_category = (request.GET.get('category') or '').strip()
     base = _doglife_queryset().order_by('-published_at', '-created_at')
 
-    # 카테고리는 유지하되 매 섹션의 편집 리듬이 반복되지 않도록
-    # 네 가지 매거진 레이아웃을 순환한다.
-    layouts = ('feature', 'mosaic', 'strip', 'editorial')
-
-    def group_for(category, index, limit=None):
+    # 홈 인트로의 견생 섹션과 같은 편집 감각을 유지하되,
+    # /doglife/에서는 카테고리별로 대표 1 + 보조 2 + 그리드 묶음으로 보여준다.
+    def group_for(category, limit=None):
         qs = base.filter(category=category)
         if limit:
             qs = qs[:limit]
+        posts = list(qs)
         return {
             'category': category,
-            'posts': list(qs),
-            'layout': layouts[index % len(layouts)],
+            'lead_post': posts[0] if posts else None,
+            'side_posts': posts[1:3],
+            'grid_posts': posts[3:],
+            'visible_count': len(posts),
         }
 
     if selected_category:
@@ -2267,15 +2268,13 @@ def public_doglife_list(request):
             (x for x in categories if x.slug == selected_category),
             None,
         )
-        if selected:
-            selected_index = categories.index(selected)
-            category_groups = [group_for(selected, selected_index)]
-        else:
-            category_groups = []
+        category_groups = [group_for(selected)] if selected else []
     else:
+        # 전체 보기에서는 카테고리당 7개까지 노출해 페이지가 지나치게 길어지지 않게 한다.
+        # 대표 1 + 보조 2 + 하단 4개가 한 묶음으로 완성된다.
         category_groups = [
-            group_for(category, index, 12)
-            for index, category in enumerate(categories)
+            group_for(category, 7)
+            for category in categories
         ]
 
     context = {
