@@ -76,22 +76,19 @@ def public_home(request):
         .annotate(like_count=Count('likes',distinct=True))
         .order_by('-view_count','-published_at','-created_at')
     )
-    doglife_posts=list(doglife_qs[:18])
-    if doglife_posts:
-        text_posts=doglife_posts[:5]
-        media_posts=[p for p in doglife_posts if list(p.attachments.all())][:8]
-        feed=render_to_string(
-            'website/includes/doglife_home_feed.html',
-            {'home_text_posts':text_posts,'home_media_posts':media_posts},
-            request=request,
-        )
-        html=re.sub(
-            r'<section class="web-magazine[^"]*" id="doglife">.*?</section>',
-            feed,
-            html,
-            count=1,
-            flags=re.I|re.S,
-        )
+    doglife_posts=list(doglife_qs[:12])
+    feed=render_to_string(
+        'website/includes/doglife_home_feed.html',
+        {'home_posts':doglife_posts},
+        request=request,
+    )
+    html=re.sub(
+        r'<section class="web-magazine[^"]*" id="doglife">.*?</section>',
+        feed,
+        html,
+        count=1,
+        flags=re.I|re.S,
+    )
 
     html=re.sub(r'<title[^>]*>.*?</title>', '', html, count=1, flags=re.I|re.S)
     html=re.sub(r"""<meta\s+name=["']description["'][^>]*>""", '', html, count=1, flags=re.I)
