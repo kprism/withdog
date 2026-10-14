@@ -885,13 +885,7 @@ class BoardAttachment(models.Model):
     @property
     def external_embed_url(self):
         if self.external_provider == 'youtube' and self.external_media_id:
-            from urllib.parse import urlencode
-            params = urlencode({
-                'origin': 'https://thepetkorea.co.kr',
-                'widget_referrer': 'https://thepetkorea.co.kr',
-                'playsinline': '1',
-            })
-            return f'https://www.youtube.com/embed/{self.external_media_id}?{params}'
+            return f'https://www.youtube.com/embed/{self.external_media_id}'
         if self.external_provider == 'vimeo' and self.external_media_id:
             return f'https://player.vimeo.com/video/{self.external_media_id}'
         return ''
