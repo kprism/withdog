@@ -432,8 +432,10 @@ jobs:
                   raise SystemExit('Legacy statistics section still present')
               if 'class="web-magazine' not in home_html:
                   raise SystemExit('Dog Life web magazine section missing')
-              if 'class="mag-text-rail"' not in home_html or 'class="mag-media-grid"' not in home_html:
-                  raise SystemExit('Compact magazine rail/grid structure missing')
+              if 'class="mag-mosaic-grid"' not in home_html or 'class="mag-story ' not in home_html:
+                  raise SystemExit('Dog Life mixed mosaic structure missing')
+              if 'class="mag-text-rail"' in home_html or 'class="mag-media-grid"' in home_html:
+                  raise SystemExit('Legacy Dog Life split rail/grid structure still present')
               if 'class="mag-overlay"' not in home_html:
                   raise SystemExit('Magazine image overlay text structure missing')
           with urllib.request.urlopen('https://thepetkorea.co.kr/about.html', timeout=20) as response:
