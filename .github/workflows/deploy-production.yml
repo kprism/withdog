@@ -173,6 +173,16 @@ jobs:
           post.delete()
           user.delete()
           category.delete()
+          from partners.models import BoardAttachment
+          probe = BoardAttachment(external_provider='youtube', external_media_id='dQw4w9WgXcQ')
+          embed = probe.external_embed_url
+          assert embed.startswith('https://www.youtube.com/embed/dQw4w9WgXcQ?')
+          assert 'origin=https%3A%2F%2Fthepetkorea.co.kr' in embed
+          assert 'widget_referrer=https%3A%2F%2Fthepetkorea.co.kr' in embed
+          settings_text = Path('withdog/settings.py').read_text(encoding='utf-8')
+          assert "SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'" in settings_text
+          detail_template = Path('partners/templates/website/doglife_detail.html').read_text(encoding='utf-8')
+          assert 'referrerpolicy="strict-origin-when-cross-origin"' in detail_template
           print('DOG_LIFE_LINKED_MEDIA_OK')
           PY
       - name: Collect and verify static assets

@@ -9,3 +9,7 @@ ROOT_URLCONF='withdog.urls'; TEMPLATES=[{'BACKEND':'django.template.backends.dja
 
 # Production static files
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+
+# YouTube embedded players require a Referer/API client identity.
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
