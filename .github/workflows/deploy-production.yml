@@ -258,6 +258,15 @@ jobs:
           get_template('website/includes/public_header.html')
           get_template('website/includes/public_footer.html')
           css = Path('../assets/css/style.css').read_text(encoding='utf-8')
+          doglife_feed = Path('partners/templates/website/includes/doglife_home_feed.html').read_text(encoding='utf-8')
+          public_urls_py = Path('withdog/urls.py').read_text(encoding='utf-8')
+          assert 'mag-mosaic-grid' in doglife_feed
+          assert 'mag-text-rail' not in doglife_feed
+          assert '{% for post in home_posts %}' in doglife_feed
+          assert 'grid-auto-flow:dense' in css
+          assert '.mag-story--video_vertical' in css
+          assert "'home_posts':doglife_posts" in public_urls_py
+          print('DOG_LIFE_MOSAIC_LAYOUT_OK')
           assert '.public-ad-layout' in css
           assert '.public-ad-rail' in css
           assert '.primary-nav a:active' in css
