@@ -260,13 +260,20 @@ jobs:
           css = Path('../assets/css/style.css').read_text(encoding='utf-8')
           doglife_feed = Path('partners/templates/website/includes/doglife_home_feed.html').read_text(encoding='utf-8')
           public_urls_py = Path('withdog/urls.py').read_text(encoding='utf-8')
-          assert 'mag-mosaic-grid' in doglife_feed
-          assert 'mag-text-rail' not in doglife_feed
-          assert '{% for post in home_posts %}' in doglife_feed
-          assert 'grid-auto-flow:dense' in css
-          assert '.mag-story--video_vertical' in css
-          assert "'home_posts':doglife_posts" in public_urls_py
-          print('DOG_LIFE_MOSAIC_LAYOUT_OK')
+          assert 'doglife-portal' in doglife_feed
+          assert 'doglife-sort-tabs' in doglife_feed
+          assert 'doglife-cover-row' in doglife_feed
+          assert 'doglife-rank-panel' in doglife_feed
+          assert 'doglife_sort=popular' in doglife_feed
+          assert 'doglife_sort=latest' in doglife_feed
+          assert '.doglife-portal-body' in css
+          assert '.doglife-rank-panel' in css
+          assert "doglife_sort=(request.GET.get('doglife_sort') or 'popular')" in public_urls_py
+          assert "popularity_score=ExpressionWrapper" in public_urls_py
+          assert "'home_featured_posts':home_featured_posts" in public_urls_py
+          assert "'home_feed_posts':home_feed_posts" in public_urls_py
+          assert "'home_rank_posts':home_rank_posts" in public_urls_py
+          print('DOG_LIFE_PORTAL_SORT_OK')
           assert '.public-ad-layout' in css
           assert '.public-ad-rail' in css
           assert '.primary-nav a:active' in css
@@ -432,12 +439,23 @@ jobs:
                   raise SystemExit('Legacy statistics section still present')
               if 'class="web-magazine' not in home_html:
                   raise SystemExit('Dog Life web magazine section missing')
-              if 'class="mag-mosaic-grid"' not in home_html or 'class="mag-story ' not in home_html:
-                  raise SystemExit('Dog Life mixed mosaic structure missing')
-              if 'class="mag-text-rail"' in home_html or 'class="mag-media-grid"' in home_html:
-                  raise SystemExit('Legacy Dog Life split rail/grid structure still present')
-              if 'class="mag-overlay"' not in home_html:
-                  raise SystemExit('Magazine image overlay text structure missing')
+              if 'class="doglife-portal"' not in home_html:
+                  raise SystemExit('Dog Life portal structure missing')
+              if 'class="doglife-cover-row"' not in home_html or 'class="doglife-rank-panel"' not in home_html:
+                  raise SystemExit('Dog Life portal cover/ranking structure missing')
+              if 'class="doglife-sort-tabs"' not in home_html:
+                  raise SystemExit('Dog Life sort tabs missing')
+              if 'class="active" href="/?doglife_sort=popular#doglife">인기순</a>' not in home_html:
+                  raise SystemExit('Dog Life popularity default is not active')
+              if 'mag-mosaic-grid' in home_html or 'mag-text-rail' in home_html:
+                  raise SystemExit('Legacy Dog Life homepage layout still present')
+          with urllib.request.urlopen('https://thepetkorea.co.kr/?doglife_sort=latest', timeout=20) as response:
+              latest_home_html=response.read().decode('utf-8','replace')
+              if 'class="active" href="/?doglife_sort=latest#doglife">최신순</a>' not in latest_home_html:
+                  raise SystemExit('Dog Life latest sort tab did not activate')
+              if '최신 견생' not in latest_home_html:
+                  raise SystemExit('Dog Life latest sort content heading missing')
+
           with urllib.request.urlopen('https://thepetkorea.co.kr/about.html', timeout=20) as response:
               inner_html=response.read().decode('utf-8','replace')
               if 'site-header--inner' not in inner_html:

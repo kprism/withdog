@@ -64,22 +64,50 @@ def public_home(request):
     html=(ROOT / 'index.html').read_text(encoding='utf-8')
     html=_render_public_shell(request, html)
 
-    # Dog Life homepage feed: real member/staff posts ordered by popularity.
-    from django.db.models import Count
+    # Dog Life homepage feed.
+    # Default is popularity; users can switch to latest without leaving the homepage.
+    from django.db.models import Count, ExpressionWrapper, F, IntegerField
     from django.template.loader import render_to_string
     from partners.models import BoardPost
-    doglife_qs=(
+
+    doglife_sort=(request.GET.get('doglife_sort') or 'popular').strip().lower()
+    if doglife_sort not in {'popular','latest'}:
+        doglife_sort='popular'
+
+    doglife_base=(
         BoardPost.objects
         .filter(board_type='doglife',is_published=True,is_hidden=False)
         .select_related('category','author')
         .prefetch_related('attachments')
         .annotate(like_count=Count('likes',distinct=True))
-        .order_by('-view_count','-published_at','-created_at')
+        .annotate(
+            popularity_score=ExpressionWrapper(
+                F('view_count') + F('like_count') * 12,
+                output_field=IntegerField(),
+            )
+        )
     )
-    doglife_posts=list(doglife_qs[:12])
+    popular_qs=doglife_base.order_by(
+        '-popularity_score','-view_count','-published_at','-created_at'
+    )
+    if doglife_sort == 'latest':
+        selected_qs=doglife_base.order_by('-published_at','-created_at')
+    else:
+        selected_qs=popular_qs
+
+    doglife_posts=list(selected_qs[:15])
+    home_featured_posts=doglife_posts[:5]
+    home_feed_posts=doglife_posts[5:15]
+    home_rank_posts=list(popular_qs[:5])
+
     feed=render_to_string(
         'website/includes/doglife_home_feed.html',
-        {'home_posts':doglife_posts},
+        {
+            'doglife_sort':doglife_sort,
+            'home_featured_posts':home_featured_posts,
+            'home_feed_posts':home_feed_posts,
+            'home_rank_posts':home_rank_posts,
+        },
         request=request,
     )
     html=re.sub(
