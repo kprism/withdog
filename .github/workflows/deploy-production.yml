@@ -261,6 +261,7 @@ jobs:
           css = Path('../assets/css/style.css').read_text(encoding='utf-8')
           doglife_feed = Path('partners/templates/website/includes/doglife_home_feed.html').read_text(encoding='utf-8')
           public_urls_py = Path('withdog/urls.py').read_text(encoding='utf-8')
+          website_views_py = Path('partners/website_views.py').read_text(encoding='utf-8')
           assert 'doglife-portal' in doglife_feed
           assert 'doglife-sort-tabs' in doglife_feed
           assert 'doglife-cover-row' in doglife_feed
@@ -283,7 +284,9 @@ jobs:
           assert 'object-fit:contain' in doglife_page
           assert 'doglife_magazine_card.html' in doglife_page
           assert 'dl-play' in doglife_card
-          assert "'lead_post': posts[0] if posts else None" in public_urls_py or True
+          assert "'lead_post': posts[0] if posts else None" in website_views_py
+          assert "'side_posts': posts[1:3]" in website_views_py
+          assert "'grid_posts': posts[3:]" in website_views_py
           assert "doglife_sort=(request.GET.get('doglife_sort') or 'popular')" in public_urls_py
           assert "popularity_score=ExpressionWrapper" in public_urls_py
           assert "'home_featured_posts':home_featured_posts" in public_urls_py
