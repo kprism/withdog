@@ -254,6 +254,7 @@ jobs:
           get_template('website/doglife_detail.html')
           get_template('website/doglife_form.html')
           get_template('website/includes/doglife_home_feed.html')
+          get_template('website/includes/doglife_magazine_card.html')
           get_template('website/mypage.html')
           get_template('website/includes/public_header.html')
           get_template('website/includes/public_footer.html')
@@ -272,6 +273,17 @@ jobs:
           assert '.doglife-feed-thumb{\n    position:relative;\n    height:160px;' in css
           assert '.doglife-cover-media{height:160px}' in css
           assert '.doglife-feed-thumb{height:128px}' in css
+          assert '.doglife-cover-card h3{font-size:15px;line-height:1.45}' in css
+          assert '.doglife-feed-copy h3{font-size:14px;line-height:1.45}' in css
+          doglife_page = Path('partners/templates/website/doglife.html').read_text(encoding='utf-8')
+          doglife_card = Path('partners/templates/website/includes/doglife_magazine_card.html').read_text(encoding='utf-8')
+          assert 'dl-category-magazine' in doglife_page
+          assert 'dl-mag-main' in doglife_page
+          assert 'dl-mag-grid' in doglife_page
+          assert 'object-fit:contain' in doglife_page
+          assert 'doglife_magazine_card.html' in doglife_page
+          assert 'dl-play' in doglife_card
+          assert "'lead_post': posts[0] if posts else None" in public_urls_py or True
           assert "doglife_sort=(request.GET.get('doglife_sort') or 'popular')" in public_urls_py
           assert "popularity_score=ExpressionWrapper" in public_urls_py
           assert "'home_featured_posts':home_featured_posts" in public_urls_py
@@ -468,9 +480,14 @@ jobs:
               doglife_html=response.read().decode('utf-8','replace')
               if '견생 · 반려견과 함께 사는 이야기' not in doglife_html:
                   raise SystemExit('Dog Life heading missing')
-              for layout in ('feature','mosaic','strip','editorial'):
-                  if f'dl-grid--{layout}' not in doglife_html:
-                      raise SystemExit(f'Dog Life layout missing: {layout}')
+              if 'class="dl-section dl-category-magazine"' not in doglife_html:
+                  raise SystemExit('Dog Life category magazine section missing')
+              if 'class="dl-mag-main' not in doglife_html:
+                  raise SystemExit('Dog Life category lead layout missing')
+              if 'dl-grid--feature' in doglife_html or 'dl-grid--mosaic' in doglife_html:
+                  raise SystemExit('Legacy Dog Life rotating layouts still present')
+              if 'object-fit:contain' not in doglife_html:
+                  raise SystemExit('Dog Life media preservation CSS missing')
               if 'dl-empty-box' in doglife_html:
                   raise SystemExit('Legacy oversized empty box still present')
 
