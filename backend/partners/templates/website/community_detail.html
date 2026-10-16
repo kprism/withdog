@@ -82,6 +82,35 @@
     height:auto;
 }
 
+.community-inline-images{
+    display:grid;
+    gap:18px;
+    margin:28px 0 0;
+}
+
+.community-inline-image{
+    margin:0;
+    padding:0;
+}
+
+.community-inline-image img{
+    display:block;
+    width:auto;
+    max-width:100%;
+    max-height:900px;
+    margin:0 auto;
+    object-fit:contain;
+    border-radius:12px;
+    background:#f5f5f5;
+}
+
+.community-inline-image figcaption{
+    margin-top:7px;
+    color:#999;
+    font-size:12px;
+    text-align:center;
+}
+
 .community-attachments{
     padding:20px 22px;
     border-top:1px solid #eee;
@@ -311,6 +340,16 @@
     .reply-item{
         margin-left:14px;
     }
+
+    .community-inline-images{
+        gap:12px;
+        margin-top:22px;
+    }
+
+    .community-inline-image img{
+        max-height:70vh;
+        border-radius:9px;
+    }
 }
 </style>
 
@@ -394,17 +433,38 @@
 
         <div class="community-body">
             {{ post.body|safe }}
+
+            {% if image_files %}
+            <div class="community-inline-images">
+                {% for attachment in image_files %}
+                    {% if attachment.file %}
+                    <figure class="community-inline-image">
+                        <img
+                            src="{{ attachment.file.url }}"
+                            alt="{{ attachment.original_name|default:post.title }}"
+                            loading="lazy"
+                        >
+                        {% if attachment.original_name %}
+                        <figcaption>
+                            {{ attachment.original_name }}
+                        </figcaption>
+                        {% endif %}
+                    </figure>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
         </div>
 
 
-        {% if attachments %}
+        {% if download_files %}
         <section class="community-attachments">
 
             <h3>
                 📎 첨부파일
             </h3>
 
-            {% for attachment in attachments %}
+            {% for attachment in download_files %}
 
                 {% if attachment.file %}
                 <a
