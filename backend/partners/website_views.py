@@ -2018,10 +2018,38 @@ def public_intro_news_api(request):
 
     def serialize(post, source):
         dt = post.published_at or post.created_at
-        has_image = any(
-            bool(getattr(item, 'is_image', False))
-            for item in post.attachments.all()
-        )
+        image_extensions = {
+            'jpg', 'jpeg', 'png', 'gif',
+            'webp', 'bmp', 'svg',
+        }
+        image_url = ''
+
+        for item in post.attachments.all():
+            file_obj = getattr(item, 'file', None)
+            if not file_obj:
+                continue
+
+            name = str(getattr(file_obj, 'name', '') or '')
+            ext = (
+                name.rsplit('.', 1)[-1].lower()
+                if '.' in name
+                else ''
+            )
+            is_image = (
+                bool(getattr(item, 'is_image', False))
+                or ext in image_extensions
+            )
+
+            if not is_image:
+                continue
+
+            try:
+                image_url = file_obj.url
+            except (ValueError, FileNotFoundError):
+                image_url = ''
+
+            if image_url:
+                break
 
         return {
             'id': post.pk,
@@ -2030,7 +2058,8 @@ def public_intro_news_api(request):
             'category_slug': post.category.slug if post.category else '',
             'date': dt.strftime('%Y.%m.%d') if dt else '',
             'comment_count': int(getattr(post, 'comment_count', 0) or 0),
-            'has_image': has_image,
+            'has_image': bool(image_url),
+            'image_url': image_url,
             'source': source,
             'url': (
                 f'/community/{post.pk}/'
