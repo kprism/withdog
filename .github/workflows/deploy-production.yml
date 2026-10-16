@@ -179,11 +179,25 @@ jobs:
           assert pet_row['source'] == 'community'
           assert pet_row['url'] == f'/community/{pet.pk}/'
           assert pet_row['has_image'] is True
+          assert pet_row['image_url'] == pet_image.file.url
           assert pet_row['comment_count'] == 1
           assert notice_row['source'] == 'notice'
           assert notice_row['url'] == f'/board/{notice.pk}/'
           assert notice_row['has_image'] is True
+          assert notice_row['image_url'] == notice_image.file.url
           assert notice_row['comment_count'] == 1
+
+          community_detail=Client().get(f'/community/{pet.pk}/')
+          community_html=community_detail.content.decode('utf-8','replace')
+          assert community_detail.status_code == 200
+          assert 'community-inline-images' in community_html
+          assert pet_image.file.url in community_html
+
+          cms_js=open('../assets/js/cms.js',encoding='utf-8').read()
+          style_css=open('../assets/css/style.css',encoding='utf-8').read()
+          assert 'intro-news-thumb' in cms_js
+          assert 'post.image_url' in cms_js
+          assert '.intro-news-thumb{' in style_css
 
           pet_image.file.delete(save=False)
           notice_image.file.delete(save=False)
