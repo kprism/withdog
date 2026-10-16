@@ -1,0 +1,165 @@
+{% load static %}
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+{% include "website/includes/seo_meta.html" %}
+<link rel="stylesheet" href="/assets/css/style.css?v=20261014-doglife-category-v4">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+{% include "website/includes/public_layout_css.html" %}
+<style>
+.dl-page{width:min(1420px,calc(100% - 38px));margin:0 auto;padding:38px 0 100px}
+.dl-hero{display:flex;align-items:end;justify-content:space-between;gap:24px;border-bottom:2px solid #202124;padding-bottom:20px;margin-bottom:16px}
+.dl-hero h1{font-size:34px;margin:5px 0 7px;letter-spacing:-.04em}
+.dl-hero p{margin:0;color:#777}
+.dl-hint{font-size:12px;color:#888}
+.dl-tabs{display:flex;gap:8px;overflow-x:auto;padding:0 0 12px;scrollbar-width:none;position:sticky;top:0;z-index:8;background:#fff}
+.dl-tabs::-webkit-scrollbar{display:none}
+.dl-tab{flex:0 0 auto;padding:9px 14px;border:1px solid #ddd;border-radius:999px;background:#fff;font-size:13px;font-weight:800;text-decoration:none;color:#222}
+.dl-tab.active{background:#111;color:#fff;border-color:#111}
+
+.dl-section{margin:42px 0 66px}
+.dl-section-head{display:flex;align-items:end;justify-content:space-between;gap:18px;margin-bottom:15px;padding-bottom:11px;border-bottom:1px solid #dfe1e5}
+.dl-section-kicker{font-size:10px;letter-spacing:.18em;color:#d1282d;font-weight:900;text-transform:uppercase}
+.dl-section-title-row{display:flex;align-items:center;gap:9px}
+.dl-section-head h2{margin:4px 0 0;font-size:24px;letter-spacing:-.035em}
+.dl-section-count{margin-top:5px;color:#aaa;font-size:10px}
+.dl-section-head a{font-size:12px;color:#777;text-decoration:none;white-space:nowrap;font-weight:700}
+
+.dl-mag-main{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(310px,.85fr);gap:16px;align-items:stretch}
+.dl-mag-main.is-single{grid-template-columns:1fr}
+.dl-mag-side{display:grid;grid-template-rows:repeat(2,minmax(0,1fr));gap:16px}
+.dl-mag-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px 14px;margin-top:16px}
+
+.dl-card{min-width:0}
+.dl-card>a{display:block;height:100%;color:inherit;text-decoration:none}
+.dl-card--lead,.dl-card--side,.dl-card--grid{border-radius:15px;background:#fff;overflow:hidden;border:1px solid #e6e8eb;transition:transform .2s ease,box-shadow .2s ease}
+.dl-card:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(0,0,0,.08)}
+.dl-media,.dl-text-visual{position:relative;width:100%;overflow:hidden;background:#111}
+.dl-card--lead .dl-media,.dl-card--lead .dl-text-visual{height:390px}
+.dl-card--side .dl-media,.dl-card--side .dl-text-visual{height:170px}
+.dl-card--grid .dl-media,.dl-card--grid .dl-text-visual{height:168px}
+
+/* /doglife/는 썸네일 내용 보존을 우선한다. */
+.dl-media img,.dl-media video{width:100%;height:100%;object-fit:contain;display:block;background:#111}
+.dl-text-visual{box-sizing:border-box;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;padding:20px;background:linear-gradient(145deg,#f5f0e8,#e8edf2);color:#2d3238}
+.dl-text-visual span{color:#d1282d;font-size:11px;font-weight:900}
+.dl-text-visual small{font-size:12px;line-height:1.55;color:#555}
+.dl-external-placeholder{width:100%;height:100%;display:grid;place-items:center;background:linear-gradient(145deg,#1c2530,#111);color:#fff;text-align:center;font-weight:900}
+.dl-external-placeholder span{display:block;font-size:34px;margin-bottom:6px}
+.dl-external-placeholder small{font-size:11px;opacity:.75}
+.dl-format{position:absolute;z-index:3;left:10px;top:10px;background:#000b;color:#fff;border-radius:999px;padding:5px 8px;font-size:9px;font-weight:900}
+.dl-play{position:absolute;z-index:3;left:50%;top:50%;transform:translate(-50%,-50%);width:42px;height:42px;display:grid;place-items:center;border-radius:50%;background:#fffffff0;color:#d1282d;font-size:14px;padding-left:2px;box-shadow:0 6px 18px #0003}
+
+.dl-card-copy{padding:13px 14px 14px}
+.dl-card--lead .dl-card-copy{padding:17px 19px 18px}
+.dl-category{color:#d1282d;font-size:10px;font-weight:900;margin-bottom:5px}
+.dl-card-copy h3{margin:0 0 6px;font-size:15px;line-height:1.42;letter-spacing:-.025em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.dl-card--lead .dl-card-copy h3{font-size:22px}
+.dl-card--side .dl-card-copy h3{font-size:15px}
+.dl-card-copy p{margin:0 0 9px;color:#6c7075;font-size:11px;line-height:1.55;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}
+.dl-card--lead .dl-card-copy p{-webkit-line-clamp:2;font-size:12px}
+.dl-card--side .dl-card-copy p{-webkit-line-clamp:1}
+.dl-meta{display:flex;gap:9px;flex-wrap:wrap;color:#9a9da1;font-size:9px}
+.dl-empty-mini{font-size:13px;color:#999;padding:22px 0;border-top:1px solid #eee;border-bottom:1px solid #eee}
+
+@media(max-width:1050px){
+ .dl-mag-main{grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr)}
+ .dl-card--lead .dl-media,.dl-card--lead .dl-text-visual{height:340px}
+ .dl-mag-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:760px){
+ .dl-page{width:calc(100% - 24px);padding-top:24px}
+ .dl-hero{display:block}.dl-hero h1{font-size:27px}.dl-hint{margin-top:9px}
+ .dl-tabs{margin:0 -12px;padding:4px 12px 12px}
+ .dl-section{margin:30px 0 46px}
+ .dl-section-head h2{font-size:21px}
+ .dl-section-head a{font-size:11px}
+ .dl-mag-main{display:block}
+ .dl-card--lead{margin-bottom:12px}
+ .dl-card--lead .dl-media,.dl-card--lead .dl-text-visual{height:245px}
+ .dl-mag-side{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:none;gap:10px}
+ .dl-card--side .dl-media,.dl-card--side .dl-text-visual{height:145px}
+ .dl-mag-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 10px;margin-top:12px}
+ .dl-card--grid .dl-media,.dl-card--grid .dl-text-visual{height:135px}
+ .dl-card-copy{padding:11px 10px 12px}
+ .dl-card--lead .dl-card-copy{padding:14px 14px 15px}
+ .dl-card-copy h3{font-size:14px;line-height:1.45}
+ .dl-card--lead .dl-card-copy h3{font-size:19px}
+ .dl-card--side .dl-card-copy h3{font-size:14px}
+ .dl-card-copy p{display:none}
+ .dl-category{font-size:10px}
+ .dl-meta{font-size:9px;gap:7px}
+ .dl-play{width:36px;height:36px;font-size:12px}
+}
+@media(max-width:390px){
+ .dl-card--lead .dl-media,.dl-card--lead .dl-text-visual{height:225px}
+ .dl-card--side .dl-media,.dl-card--side .dl-text-visual{height:132px}
+ .dl-card--grid .dl-media,.dl-card--grid .dl-text-visual{height:128px}
+ .dl-card-copy h3,.dl-card--side .dl-card-copy h3{font-size:13.5px}
+}
+</style>
+</head>
+<body>
+{% include "website/includes/public_header.html" %}
+<main class="dl-page">
+<header class="dl-hero">
+ <div>
+   <div class="eyebrow">DOG LIFE</div>
+   <h1>견생 · 반려견과 함께 사는 이야기</h1>
+   <p>생활팁부터 산책, 건강, 자랑과 일상까지 회원들의 실제 이야기를 카테고리별 매거진으로 만나보세요.</p>
+ </div>
+ <div class="dl-hint">우측 하단 반려견 아이콘 → <b>자랑해요</b>에서 바로 올릴 수 있어요.</div>
+</header>
+
+<nav class="dl-tabs" aria-label="견생 카테고리">
+ <a class="dl-tab {% if not selected_category %}active{% endif %}" href="/doglife/">전체</a>
+ {% for category in categories %}
+ <a class="dl-tab {% if selected_category == category.slug %}active{% endif %}" href="/doglife/?category={{ category.slug }}">{{ category.name }}</a>
+ {% endfor %}
+</nav>
+
+{% for group in category_groups %}
+<section class="dl-section dl-category-magazine" id="category-{{ group.category.slug }}">
+ <div class="dl-section-head">
+   <div>
+     <span class="dl-section-kicker">DOG LIFE CATEGORY</span>
+     <div class="dl-section-title-row"><h2>{{ group.category.name }}</h2></div>
+     <div class="dl-section-count">이 카테고리의 최신 이야기 {{ group.visible_count }}개</div>
+   </div>
+   {% if not selected_category %}<a href="/doglife/?category={{ group.category.slug }}">이 카테고리 더보기 →</a>{% endif %}
+ </div>
+
+ {% if group.lead_post %}
+ <div class="dl-mag-main {% if not group.side_posts %}is-single{% endif %}">
+   {% include "website/includes/doglife_magazine_card.html" with post=group.lead_post variant="lead" only %}
+   {% if group.side_posts %}
+   <div class="dl-mag-side">
+     {% for post in group.side_posts %}
+       {% include "website/includes/doglife_magazine_card.html" with post=post variant="side" only %}
+     {% endfor %}
+   </div>
+   {% endif %}
+ </div>
+
+ {% if group.grid_posts %}
+ <div class="dl-mag-grid">
+   {% for post in group.grid_posts %}
+     {% include "website/includes/doglife_magazine_card.html" with post=post variant="grid" only %}
+   {% endfor %}
+ </div>
+ {% endif %}
+ {% else %}
+ <div class="dl-empty-mini">아직 등록된 이야기가 없습니다. 이 카테고리의 첫 이야기를 올려보세요.</div>
+ {% endif %}
+</section>
+{% empty %}
+<div class="dl-empty-mini">표시할 견생 카테고리가 없습니다.</div>
+{% endfor %}
+</main>
+{% include "website/includes/public_footer.html" %}
+</body>
+</html>

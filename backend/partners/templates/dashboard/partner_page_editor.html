@@ -1,0 +1,746 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}관련업체 안내 편집{% endblock %}
+{% block header %}홈페이지 편집 · 관련업체 안내{% endblock %}
+
+{% block content %}
+
+<!-- KAKAO MAP API SETTINGS -->
+<div class="panel" style="margin-bottom:18px">
+    <div class="eyebrow">KAKAO MAP CONNECTION</div>
+    <h3 style="margin:8px 0 8px">🗺️ 카카오 지도 연동 설정</h3>
+
+    <p class="muted" style="margin-bottom:18px">
+        관련업체 지도 표시와 업체 주소 좌표 변환에 사용할 카카오 개발자 API 키를 관리합니다.
+    </p>
+
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="save_kakao_settings">
+
+        <div class="form-grid">
+
+            <div class="field">
+                <label>JavaScript 키</label>
+
+                {% if site_setting.kakao_javascript_key %}
+                    <div style="margin:0 0 8px;font-size:13px;color:#23753a;font-weight:800">
+                        ✓ 등록됨 · ••••••••{{ site_setting.kakao_javascript_key|slice:"-4:" }}
+                    </div>
+                {% else %}
+                    <div style="margin:0 0 8px;font-size:13px;color:#b3261e;font-weight:800">
+                        미등록
+                    </div>
+                {% endif %}
+
+                <input
+                    type="password"
+                    name="kakao_javascript_key"
+                    autocomplete="new-password"
+                    placeholder="새 JavaScript 키를 입력하면 변경됩니다."
+                >
+
+                {% if site_setting.kakao_javascript_key %}
+                <label style="font-weight:400;margin-top:9px">
+                    <input
+                        type="checkbox"
+                        name="delete_kakao_javascript_key"
+                        value="1"
+                        style="width:auto"
+                    >
+                    현재 JavaScript 키 삭제
+                </label>
+                {% endif %}
+            </div>
+
+            <div class="field">
+                <label>REST API 키</label>
+
+                {% if site_setting.kakao_rest_api_key %}
+                    <div style="margin:0 0 8px;font-size:13px;color:#23753a;font-weight:800">
+                        ✓ 등록됨 · ••••••••{{ site_setting.kakao_rest_api_key|slice:"-4:" }}
+                    </div>
+                {% else %}
+                    <div style="margin:0 0 8px;font-size:13px;color:#b3261e;font-weight:800">
+                        미등록
+                    </div>
+                {% endif %}
+
+                <input
+                    type="password"
+                    name="kakao_rest_api_key"
+                    autocomplete="new-password"
+                    placeholder="새 REST API 키를 입력하면 변경됩니다."
+                >
+
+                {% if site_setting.kakao_rest_api_key %}
+                <label style="font-weight:400;margin-top:9px">
+                    <input
+                        type="checkbox"
+                        name="delete_kakao_rest_api_key"
+                        value="1"
+                        style="width:auto"
+                    >
+                    현재 REST API 키 삭제
+                </label>
+                {% endif %}
+            </div>
+
+        </div>
+
+        <div style="margin-top:16px;display:flex;justify-content:flex-end">
+            <button type="submit" class="btn">
+                카카오 API 설정 저장
+            </button>
+        </div>
+    </form>
+</div>
+
+
+<style>
+.partner-stat-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:14px;
+    margin:18px 0;
+}
+.partner-stat{
+    background:#fff;
+    border:1px solid #e8e8e8;
+    border-radius:15px;
+    padding:20px;
+}
+.partner-stat b{
+    display:block;
+    font-size:30px;
+    margin-top:6px;
+    color:#c91f26;
+}
+.category-stats{
+    display:flex;
+    flex-wrap:wrap;
+    gap:9px;
+    margin-top:12px;
+}
+.category-stat{
+    padding:9px 13px;
+    border:1px solid #e4e4e4;
+    background:#fafafa;
+    border-radius:20px;
+    font-size:13px;
+}
+.partner-search{
+    display:grid;
+    grid-template-columns:2fr 1fr 1fr auto;
+    gap:10px;
+}
+.partner-search input,
+.partner-search select{
+    width:100%;
+    padding:11px;
+    border:1px solid #ddd;
+    border-radius:8px;
+}
+.ad-table input,
+.ad-table select{
+    width:100%;
+    min-width:110px;
+    padding:8px;
+    border:1px solid #ddd;
+    border-radius:7px;
+}
+.ad-money{
+    min-width:140px !important;
+}
+.ad-row{
+    background:#fffdf5;
+}
+.ad-mark{
+    display:inline-block;
+    font-size:10px;
+    font-weight:900;
+    color:#c91f26;
+    background:#fff0f0;
+    border-radius:5px;
+    padding:3px 6px;
+    margin-right:5px;
+}
+@media(max-width:1000px){
+    .partner-stat-grid{grid-template-columns:1fr 1fr}
+    .partner-search{grid-template-columns:1fr}
+}
+</style>
+
+<div class="hero">
+    <div>
+        <div class="eyebrow">RELATED COMPANIES CMS</div>
+        <h2>관련업체 안내</h2>
+        <div class="muted">
+            업체 데이터 · 엑셀 업로드 · 협력업체 광고 · 지도 노출을 관리합니다.
+        </div>
+    </div>
+
+    <a class="btn ghost"
+       href="/partners.html"
+       target="_blank">
+        ↗ 실제 페이지 보기
+    </a>
+</div>
+
+
+<!-- PARTNER EXCEL CMS UPLOAD -->
+<div class="panel" style="margin-bottom:18px">
+
+    <div class="eyebrow">EXCEL DATABASE</div>
+
+    <h3 style="margin:8px 0 6px">
+        📊 관련업체 엑셀 업로드
+    </h3>
+
+    <p class="muted" style="margin-bottom:18px">
+        업로드할 분류를 선택한 뒤 엑셀 파일을 등록하면
+        업체 데이터와 카카오 지도 좌표가 자동으로 저장됩니다.
+    </p>
+
+    <form
+        method="post"
+        enctype="multipart/form-data"
+    >
+        {% csrf_token %}
+
+        <input
+            type="hidden"
+            name="action"
+            value="upload_partner_excel"
+        >
+
+        <div
+            style="
+                display:grid;
+                grid-template-columns:1fr 2fr auto;
+                gap:12px;
+                align-items:end;
+            "
+        >
+
+            <div class="field">
+                <label>업체 분류</label>
+
+                <select
+                    name="category"
+                    required
+                >
+                    <option value="">
+                        분류 선택
+                    </option>
+
+                    {% for category in categories %}
+                    <option value="{{ category.pk }}">
+                        {{ category.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="field">
+                <label>Excel 파일</label>
+
+                <input
+                    type="file"
+                    name="excel_file"
+                    accept=".xlsx,.xlsm"
+                    required
+                >
+            </div>
+
+            <button
+                type="submit"
+                class="btn"
+                onclick="
+                    return confirm(
+                        '선택한 분류로 업체 데이터를 업로드하시겠습니까?'
+                    );
+                "
+            >
+                엑셀 업로드
+            </button>
+
+        </div>
+
+        <div
+            class="muted"
+            style="margin-top:12px"
+        >
+            시트별 지역명을 자동 인식하고,
+            주소를 기준으로 카카오 지도 좌표를 생성합니다.
+            이미 동일한 분류·업체명·주소가 있으면 갱신합니다.
+        </div>
+
+    </form>
+
+</div>
+
+<div class="partner-stat-grid">
+
+    <div class="partner-stat">
+        <span class="muted">총 관련업체</span>
+        <b>{{ total }}</b>
+        <span class="muted">등록 업체 전체</span>
+    </div>
+
+    <div class="partner-stat">
+        <span class="muted">현재 노출</span>
+        <b>{{ active }}</b>
+        <span class="muted">활성 업체</span>
+    </div>
+
+    <div class="partner-stat">
+        <span class="muted">협력업체</span>
+        <b>{{ affiliated }}</b>
+        <span class="muted">현재 광고 노출 대상</span>
+    </div>
+
+    <div class="partner-stat">
+        <span class="muted">지도 좌표 미등록</span>
+        <b>{{ no_coordinates }}</b>
+        <span class="muted">카카오 지도 좌표 필요</span>
+    </div>
+
+</div>
+
+<div class="panel">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap">
+        <div>
+            <div class="eyebrow">CATEGORY STATUS</div>
+            <h3 style="margin-bottom:5px">세부분류 현황</h3>
+            <div class="muted">
+                관련업체의 분류를 추가·수정·삭제할 수 있습니다.
+            </div>
+        </div>
+
+        <button
+            type="button"
+            class="btn"
+            onclick="document.getElementById('category-add-box').style.display =
+            document.getElementById('category-add-box').style.display === 'none'
+            ? 'block' : 'none';"
+        >
+            ＋ 새 분류 추가
+        </button>
+    </div>
+
+
+    <div
+        id="category-add-box"
+        style="display:none;margin-top:18px;padding:18px;background:#f8f8f8;border-radius:12px"
+    >
+        <form
+            method="post"
+            action="{% url 'operator_dashboard:partner_category_create' %}"
+            style="display:grid;grid-template-columns:2fr 1fr auto;gap:10px;align-items:end"
+        >
+            {% csrf_token %}
+
+            <div class="field">
+                <label>새 분류명</label>
+                <input
+                    type="text"
+                    name="name"
+                    placeholder="예: 🐕 반려견 유치원"
+                    required
+                >
+            </div>
+
+            <div class="field">
+                <label>정렬순서</label>
+                <input
+                    type="number"
+                    name="sort_order"
+                    value="80"
+                    min="0"
+                >
+            </div>
+
+            <button class="btn" type="submit">
+                분류 추가
+            </button>
+        </form>
+    </div>
+
+
+    <div style="overflow:auto;margin-top:18px">
+
+        <table class="table">
+
+            <thead>
+                <tr>
+                    <th>분류명</th>
+                    <th>등록 업체</th>
+                    <th>정렬순서</th>
+                    <th style="width:190px">관리</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for c in categories %}
+
+                <tr>
+
+                    <form
+                        method="post"
+                        action="{% url 'operator_dashboard:partner_category_update' c.pk %}"
+                    >
+                        {% csrf_token %}
+
+                        <td>
+                            <input
+                                type="text"
+                                name="name"
+                                value="{{ c.name }}"
+                                required
+                                style="width:100%;min-width:180px;padding:9px;border:1px solid #ddd;border-radius:7px"
+                            >
+                        </td>
+
+                        <td>
+                            <b>{{ c.partner_count }}</b>곳
+                        </td>
+
+                        <td>
+                            <input
+                                type="number"
+                                name="sort_order"
+                                value="{{ c.sort_order }}"
+                                min="0"
+                                style="width:90px;padding:9px;border:1px solid #ddd;border-radius:7px"
+                            >
+                        </td>
+
+                        <td style="white-space:nowrap">
+
+                            <button
+                                type="submit"
+                                class="badge green"
+                                style="border:0;cursor:pointer"
+                            >
+                                수정
+                            </button>
+
+                    </form>
+
+                            {% if c.partner_count == 0 %}
+
+                            <form
+                                method="post"
+                                action="{% url 'operator_dashboard:partner_category_delete' c.pk %}"
+                                style="display:inline"
+                                onsubmit="return confirm('{{ c.name }} 분류를 삭제하시겠습니까?');"
+                            >
+                                {% csrf_token %}
+
+                                <button
+                                    type="submit"
+                                    class="badge"
+                                    style="border:0;cursor:pointer"
+                                >
+                                    삭제
+                                </button>
+                            </form>
+
+                            {% else %}
+
+                            <span
+                                class="badge"
+                                title="등록 업체가 있는 분류는 삭제할 수 없습니다."
+                                style="opacity:.45;cursor:not-allowed"
+                            >
+                                삭제
+                            </span>
+
+                            {% endif %}
+
+                        </td>
+
+                </tr>
+
+                {% empty %}
+
+                <tr>
+                    <td colspan="4">
+                        등록된 분류가 없습니다.
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<div class="panel">
+
+    <div class="eyebrow">EXCEL DATABASE</div>
+    <h3>업체 엑셀 업로드</h3>
+
+    <p class="muted">
+        먼저 업로드할 업체 분류를 선택한 뒤 Excel 파일을 등록합니다.
+        해당 파일의 업체는 선택한 카테고리로 저장됩니다.
+    </p>
+
+    <form
+        method="post"
+        enctype="multipart/form-data"
+        action="{% url 'operator_dashboard:partner_upload' %}"
+        style="display:grid;grid-template-columns:1fr 2fr auto;gap:10px;align-items:end"
+    >
+        {% csrf_token %}
+
+        <div class="field">
+            <label>업체 분류</label>
+            <select name="category" required>
+                <option value="">분류 선택</option>
+                {% for c in categories %}
+                <option value="{{ c.pk }}">
+                    {{ c.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="field">
+            <label>Excel 파일</label>
+            <input
+                type="file"
+                name="file"
+                accept=".xlsx,.xls"
+                required
+            >
+        </div>
+
+        <button class="btn">
+            Excel DB 등록
+        </button>
+
+    </form>
+
+</div>
+
+<div class="panel">
+
+    <div class="eyebrow">PARTNER SEARCH</div>
+    <h3>업체 검색 및 협력업체 관리</h3>
+
+    <form method="get" class="partner-search">
+
+        <input
+            name="q"
+            value="{{ q }}"
+            placeholder="상호명 · 주소 · 전화번호 검색"
+        >
+
+        <select name="category">
+            <option value="">전체 분류</option>
+            {% for c in categories %}
+            <option
+                value="{{ c.pk }}"
+                {% if selected_category == c.pk|stringformat:"s" %}
+                selected
+                {% endif %}
+            >
+                {{ c.name }}
+            </option>
+            {% endfor %}
+        </select>
+
+        <select name="city">
+            <option value="">전체 지역</option>
+            {% for c in cities %}
+            <option
+                value="{{ c }}"
+                {% if selected_city == c %}
+                selected
+                {% endif %}
+            >
+                {{ c }}
+            </option>
+            {% endfor %}
+        </select>
+
+        <button class="btn">
+            검색
+        </button>
+
+    </form>
+
+</div>
+
+<div class="panel" style="overflow:auto">
+
+<table class="table ad-table">
+
+<thead>
+<tr>
+    <th>업체</th>
+    <th>분류</th>
+    <th>지역</th>
+    <th>전화번호</th>
+    <th>협력</th>
+    <th>월 광고금액</th>
+    <th>계약 시작</th>
+    <th>계약 종료</th>
+    <th>납부</th>
+    <th>카카오 상세</th>
+    <th>저장</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for p in partners %}
+
+<tr class="{% if p.is_affiliated %}ad-row{% endif %}">
+
+<form
+    method="post"
+    action="{% url 'operator_dashboard:partner_ad_update' p.pk %}"
+>
+
+{% csrf_token %}
+
+<td>
+    {% if p.is_affiliated %}
+    <span class="ad-mark">AD</span>
+    {% endif %}
+
+    <b>{{ p.name }}</b>
+
+    <div class="muted">
+        {{ p.address }}
+    </div>
+</td>
+
+<td>{{ p.category.name }}</td>
+
+<td>{{ p.city }}</td>
+
+<td>{{ p.phone|default:"-" }}</td>
+
+<td>
+    <select name="is_affiliated">
+        <option
+            value="0"
+            {% if not p.is_affiliated %}selected{% endif %}
+        >
+            일반
+        </option>
+
+        <option
+            value="1"
+            {% if p.is_affiliated %}selected{% endif %}
+        >
+            협력업체
+        </option>
+    </select>
+</td>
+
+<td>
+    <input
+        class="ad-money"
+        type="number"
+        min="0"
+        step="1000"
+        name="ad_monthly_fee"
+        value="{{ p.ad_monthly_fee }}"
+    >
+</td>
+
+<td>
+    <input
+        type="date"
+        name="ad_start_date"
+        value="{{ p.ad_start_date|date:'Y-m-d' }}"
+    >
+</td>
+
+<td>
+    <input
+        type="date"
+        name="ad_end_date"
+        value="{{ p.ad_end_date|date:'Y-m-d' }}"
+    >
+</td>
+
+<td>
+    <select name="ad_payment_type">
+
+        <option value="">선택</option>
+
+        <option
+            value="monthly"
+            {% if p.ad_payment_type == 'monthly' %}
+            selected
+            {% endif %}
+        >
+            월납
+        </option>
+
+        <option
+            value="annual"
+            {% if p.ad_payment_type == 'annual' %}
+            selected
+            {% endif %}
+        >
+            연납
+        </option>
+
+    </select>
+</td>
+
+<td class="kakao-place-cell">
+    {% if p.is_affiliated %}
+    <input
+        type="url"
+        name="kakao_place_url"
+        value="{{ p.kakao_place_url|default:'' }}"
+        placeholder="카카오 상세보기 URL"
+        class="kakao-place-input"
+        autocomplete="off"
+    >
+    {% else %}
+    <span class="muted">-</span>
+    {% endif %}
+</td>
+
+<td>
+    <button class="btn" style="padding:8px 11px">
+        저장
+    </button>
+</td>
+
+</form>
+
+</tr>
+
+{% empty %}
+
+<tr>
+    <td colspan="11">
+        검색된 업체가 없습니다.
+    </td>
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+{% endblock %}
