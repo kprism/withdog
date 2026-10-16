@@ -77,23 +77,32 @@ fetch('/api/content/?kind=popup').then(r=>r.json()).then(d=>{const x=d.results[0
         }
 
         target.innerHTML = posts.map(function (post) {
-            const photo =
-                post.has_image
-                    ? '<span class="intro-news-photo">[사진]</span>'
-                    : '';
-
             const comments =
                 '<span class="intro-news-comments">(' +
                 Number(post.comment_count || 0) +
                 ')</span>';
 
+            const thumb =
+                post.image_url
+                    ? (
+                        '<span class="intro-news-thumb">' +
+                            '<img src="' +
+                            escapeHtml(post.image_url) +
+                            '" alt="" loading="lazy">' +
+                        '</span>'
+                    )
+                    : '';
+
             return (
-                '<a class="intro-news-item" href="' +
+                '<a class="intro-news-item' +
+                (post.image_url ? ' has-thumb' : '') +
+                '" href="' +
                 escapeHtml(post.url) +
                 '">' +
 
+                    thumb +
+
                     '<strong class="intro-news-title">' +
-                    photo +
                     '<span class="intro-news-title-text">' +
                     escapeHtml(post.title) +
                     '</span>' +
