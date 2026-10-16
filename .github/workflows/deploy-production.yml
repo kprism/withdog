@@ -109,6 +109,92 @@ jobs:
           print('ADVERTISEMENT_SLOT_RENDERED')
           print('RESERVED_RIGHT_RAIL_RENDERED')
           PY
+      - name: Verify homepage notice and pet news feed
+        working-directory: backend
+        run: |
+          python manage.py shell <<'PY'
+          from django.contrib.auth import get_user_model
+          from django.core.files.uploadedfile import SimpleUploadedFile
+          from django.test import Client
+          from django.utils import timezone
+          from partners.models import BoardAttachment, BoardCategory, BoardComment, BoardPost
+
+          event = BoardCategory.objects.get(board_type='community', slug='event')
+          assert event.name == '행사'
+          assert event.is_active is True
+
+          notice_category, notice_created = BoardCategory.objects.get_or_create(
+              board_type='notice',
+              slug='notice',
+              defaults={'name':'공지사항','sort_order':0,'is_active':True},
+          )
+
+          User=get_user_model()
+          user=User.objects.create(username='ci-intro-news-user')
+
+          pet=BoardPost.objects.create(
+              board_type='community',
+              category=event,
+              author=user,
+              title='CI 펫 소식 테스트',
+              body='자유게시판 글이 메인 펫 소식에 노출되는지 확인',
+              is_published=True,
+              is_hidden=False,
+              published_at=timezone.now(),
+          )
+          pet_image=BoardAttachment.objects.create(
+              post=pet,
+              file=SimpleUploadedFile('ci-pet.jpg', b'fake-image', content_type='image/jpeg'),
+              original_name='ci-pet.jpg',
+              is_image=True,
+              sort_order=0,
+          )
+          BoardComment.objects.create(post=pet, author=user, body='댓글 테스트')
+
+          notice=BoardPost.objects.create(
+              board_type='notice',
+              category=notice_category,
+              author=user,
+              title='CI 공지 테스트',
+              body='공지 메인 노출 확인',
+              is_published=True,
+              is_hidden=False,
+              published_at=timezone.now(),
+          )
+          notice_image=BoardAttachment.objects.create(
+              post=notice,
+              file=SimpleUploadedFile('ci-notice.jpg', b'fake-image', content_type='image/jpeg'),
+              original_name='ci-notice.jpg',
+              is_image=True,
+              sort_order=0,
+          )
+          BoardComment.objects.create(post=notice, author=user, body='공지 댓글 테스트')
+
+          response=Client().get('/api/intro-news/')
+          assert response.status_code == 200
+          data=response.json()
+          pet_row=next(x for x in data['pet_news'] if x['id'] == pet.pk)
+          notice_row=next(x for x in data['notice'] if x['id'] == notice.pk)
+
+          assert pet_row['source'] == 'community'
+          assert pet_row['url'] == f'/community/{pet.pk}/'
+          assert pet_row['has_image'] is True
+          assert pet_row['comment_count'] == 1
+          assert notice_row['source'] == 'notice'
+          assert notice_row['url'] == f'/board/{notice.pk}/'
+          assert notice_row['has_image'] is True
+          assert notice_row['comment_count'] == 1
+
+          pet_image.file.delete(save=False)
+          notice_image.file.delete(save=False)
+          pet.delete()
+          notice.delete()
+          user.delete()
+          if notice_created:
+              notice_category.delete()
+
+          print('INTRO_NOTICE_PET_NEWS_OK')
+          PY
       - name: Verify Dog Life linked media
         working-directory: backend
         run: |

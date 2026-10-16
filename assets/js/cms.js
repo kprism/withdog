@@ -41,12 +41,11 @@ fetch('/api/content/?kind=hero').then(r=>r.json()).then(d=>{
  if(prev)prev.onclick=e=>{e.preventDefault();show(i-1);restart()};if(next)next.onclick=e=>{e.preventDefault();show(i+1);restart()};if(pause)pause.onclick=e=>{e.preventDefault();paused=!paused;pause.textContent=paused?'▶':'Ⅱ';restart()};show(0);restart();
 }).catch(()=>{});
 fetch('/api/content/?kind=intro').then(r=>r.json()).then(d=>{if(!d.results.length)return;const grid=document.querySelector('.service-grid');if(!grid)return;grid.innerHTML=d.results.map(x=>`<article>${media(x,'service-media')}<div><em>${esc(x.label)}</em><h3>${esc(x.title)}</h3><p>${esc(x.body)}</p></div></article>`).join('');grid.querySelectorAll('video[autoplay]').forEach(v=>v.play().catch(()=>{}))}).catch(()=>{});
-fetch('/api/content/?kind=notice').then(r=>r.json()).then(d=>{if(!d.results.length)return;const box=document.querySelector('.news-cols>div');if(!box)return;const head=box.querySelector('header');box.innerHTML='';box.appendChild(head);d.results.slice(0,5).forEach(x=>{const a=document.createElement('a');a.className='news-row';a.href='board.html?tab=notice';a.innerHTML=`<em>공지</em><span>${esc(x.title)}</span><small>${esc(x.created_at)}</small>`;box.appendChild(a)})}).catch(()=>{});
 fetch('/api/content/?kind=popup').then(r=>r.json()).then(d=>{const x=d.results[0];if(!x)return;const wrap=document.createElement('div');wrap.style.cssText='position:fixed;inset:0;background:#0008;z-index:99999;display:grid;place-items:center;padding:20px';wrap.innerHTML=`<div style="width:min(520px,94vw);background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 25px 80px #0006"><div style="position:relative">${media(x,'popup-media')}<button data-close style="position:absolute;right:12px;top:12px;border:0;border-radius:50%;width:36px;height:36px;font-size:20px;cursor:pointer">×</button></div><div style="padding:24px"><h2 style="margin:0 0 10px">${esc(x.title)}</h2><p style="white-space:pre-line;color:#666">${esc(x.body)}</p>${x.link?`<a href="${esc(x.link)}" style="display:inline-block;background:#c91f26;color:#fff;padding:11px 16px;border-radius:8px;text-decoration:none">자세히 보기</a>`:''}</div></div>`;document.body.appendChild(wrap);wrap.querySelector('[data-close]').onclick=()=>wrap.remove();wrap.onclick=e=>{if(e.target===wrap)wrap.remove()}}).catch(()=>{})})();
 
 
 /* =========================================================
-   INTRO NOTICE / ASSOCIATION NEWS
+   INTRO NOTICE / PET NEWS
    ========================================================= */
 
 (function () {
@@ -78,18 +77,27 @@ fetch('/api/content/?kind=popup').then(r=>r.json()).then(d=>{const x=d.results[0
         }
 
         target.innerHTML = posts.map(function (post) {
+            const photo =
+                post.has_image
+                    ? '<span class="intro-news-photo">[사진]</span>'
+                    : '';
+
+            const comments =
+                '<span class="intro-news-comments">(' +
+                Number(post.comment_count || 0) +
+                ')</span>';
 
             return (
                 '<a class="intro-news-item" href="' +
                 escapeHtml(post.url) +
                 '">' +
 
-                    '<span class="intro-news-category">' +
-                    escapeHtml(post.category) +
-                    '</span>' +
-
                     '<strong class="intro-news-title">' +
+                    photo +
+                    '<span class="intro-news-title-text">' +
                     escapeHtml(post.title) +
+                    '</span>' +
+                    comments +
                     '</strong>' +
 
                     '<time class="intro-news-date">' +
@@ -106,7 +114,7 @@ fetch('/api/content/?kind=popup').then(r=>r.json()).then(d=>{const x=d.results[0
 
         if (
             !document.getElementById('introNoticeList') &&
-            !document.getElementById('introAssociationList')
+            !document.getElementById('introPetNewsList')
         ) {
             return;
         }
@@ -136,8 +144,8 @@ fetch('/api/content/?kind=popup').then(r=>r.json()).then(d=>{const x=d.results[0
             );
 
             renderIntroNews(
-                'introAssociationList',
-                data.association || []
+                'introPetNewsList',
+                data.pet_news || []
             );
         })
         .catch(function (error) {
@@ -150,8 +158,8 @@ fetch('/api/content/?kind=popup').then(r=>r.json()).then(d=>{const x=d.results[0
             const notice =
                 document.getElementById('introNoticeList');
 
-            const association =
-                document.getElementById('introAssociationList');
+            const petNews =
+                document.getElementById('introPetNewsList');
 
             if (notice) {
                 notice.innerHTML =
@@ -160,10 +168,10 @@ fetch('/api/content/?kind=popup').then(r=>r.json()).then(d=>{const x=d.results[0
                     '</p>';
             }
 
-            if (association) {
-                association.innerHTML =
+            if (petNews) {
+                petNews.innerHTML =
                     '<p class="intro-news-empty">' +
-                    '협회 소식을 불러오지 못했습니다.' +
+                    '펫 소식을 불러오지 못했습니다.' +
                     '</p>';
             }
         });

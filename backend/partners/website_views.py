@@ -1978,39 +1978,50 @@ def public_chatbot_message(request):
 
 def public_intro_news_api(request):
     """
-    메인 인트로 공지 및 소식 API
+    메인 인트로 공지 및 펫 소식 API
 
-    공지사항:
-      - notice
-
-    협회 소식:
-      - news
-      - event
-      - policy
+    - 공지사항: 공지사항 게시판의 notice 카테고리
+    - 펫 소식: 자유게시판의 최신 공개 게시글
+    - 사진 첨부 여부와 댓글 수를 함께 내려 메인에서
+      [사진] 제목(댓글수) 날짜 형식으로 표시한다.
     """
+    from django.db.models import Count
     from django.http import JsonResponse
     from .models import BoardPost
 
-    base_qs = BoardPost.objects.filter(
-        board_type='notice',
-        is_published=True,
-        is_hidden=False,
-    ).select_related('category')
-
-    notice_posts = (
-        base_qs
-        .filter(category__slug='notice')
-        .order_by('-is_pinned', '-published_at', '-created_at')[:5]
+    notice_posts = list(
+        BoardPost.objects
+        .filter(
+            board_type='notice',
+            category__slug='notice',
+            is_published=True,
+            is_hidden=False,
+        )
+        .select_related('category')
+        .prefetch_related('attachments')
+        .annotate(comment_count=Count('comments', distinct=True))
+        .order_by('-is_pinned', '-is_important', '-published_at', '-created_at')[:5]
     )
 
-    association_posts = (
-        base_qs
-        .filter(category__slug__in=['news', 'event', 'policy'])
-        .order_by('-is_pinned', '-published_at', '-created_at')[:5]
+    pet_news_posts = list(
+        BoardPost.objects
+        .filter(
+            board_type='community',
+            is_published=True,
+            is_hidden=False,
+        )
+        .select_related('category', 'author')
+        .prefetch_related('attachments')
+        .annotate(comment_count=Count('comments', distinct=True))
+        .order_by('-is_pinned', '-is_important', '-published_at', '-created_at')[:5]
     )
 
-    def serialize(post):
+    def serialize(post, source):
         dt = post.published_at or post.created_at
+        has_image = any(
+            bool(getattr(item, 'is_image', False))
+            for item in post.attachments.all()
+        )
 
         return {
             'id': post.pk,
@@ -2018,20 +2029,29 @@ def public_intro_news_api(request):
             'category': post.category.name if post.category else '',
             'category_slug': post.category.slug if post.category else '',
             'date': dt.strftime('%Y.%m.%d') if dt else '',
-            'url': f'/board/{post.pk}/',
+            'comment_count': int(getattr(post, 'comment_count', 0) or 0),
+            'has_image': has_image,
+            'source': source,
+            'url': (
+                f'/community/{post.pk}/'
+                if source == 'community'
+                else f'/board/{post.pk}/'
+            ),
         }
 
-    return JsonResponse({
+    response = JsonResponse({
         'ok': True,
         'notice': [
-            serialize(post)
+            serialize(post, 'notice')
             for post in notice_posts
         ],
-        'association': [
-            serialize(post)
-            for post in association_posts
+        'pet_news': [
+            serialize(post, 'community')
+            for post in pet_news_posts
         ],
     })
+    response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    return response
 
 
 # ============================================================
