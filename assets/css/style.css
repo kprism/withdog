@@ -99,11 +99,33 @@
 .intro-news-title {
     flex: 1 1 auto;
     min-width: 0;
+    display:flex;
+    align-items:baseline;
+    gap:5px;
     font-size: 15px;
     font-weight: 600;
     overflow: hidden;
     white-space: nowrap;
-    text-overflow: ellipsis;
+}
+
+.intro-news-title-text{
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.intro-news-photo{
+    flex:0 0 auto;
+    color:#d71920;
+    font-size:12px;
+    font-weight:900;
+}
+
+.intro-news-comments{
+    flex:0 0 auto;
+    color:#8b8f94;
+    font-size:12px;
+    font-weight:700;
 }
 
 .intro-news-date {
@@ -132,6 +154,12 @@
 
     .intro-news-title {
         font-size: 14px;
+        gap:4px;
+    }
+
+    .intro-news-photo,
+    .intro-news-comments{
+        font-size:11px;
     }
 
     .intro-news-date {
