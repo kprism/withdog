@@ -985,7 +985,7 @@ def public_community_detail(request, pk):
         .order_by('created_at')
     )
 
-    attachments = (
+    attachments = list(
         BoardAttachment.objects
         .filter(post=post)
         .order_by(
@@ -993,6 +993,35 @@ def public_community_detail(request, pk):
             'pk',
         )
     )
+
+    image_extensions = {
+        'jpg', 'jpeg', 'png', 'gif',
+        'webp', 'bmp', 'svg',
+    }
+    image_files = []
+    download_files = []
+
+    for attachment in attachments:
+        file_obj = getattr(attachment, 'file', None)
+        name = (
+            str(getattr(file_obj, 'name', '') or '')
+            if file_obj
+            else ''
+        )
+        extension = (
+            name.rsplit('.', 1)[-1].lower()
+            if '.' in name
+            else ''
+        )
+        attachment.is_image_public = (
+            bool(getattr(attachment, 'is_image', False))
+            or extension in image_extensions
+        )
+
+        if attachment.is_image_public:
+            image_files.append(attachment)
+        else:
+            download_files.append(attachment)
 
     like_count = (
         BoardLike.objects
@@ -1019,6 +1048,8 @@ def public_community_detail(request, pk):
             'post': post,
             'comments': comments,
             'attachments': attachments,
+            'image_files': image_files,
+            'download_files': download_files,
             'like_count': like_count,
             'user_liked': user_liked,
             'seo': _seo_context(request, f'{post.title} | 경상남도 반려견 협회', post.body, f'/community/{post.pk}/', robots='noindex,follow'),
