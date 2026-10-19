@@ -12,7 +12,7 @@ def partner_list(request):
  if category:qs=qs.filter(category__code=category)
  if city:qs=qs.filter(city=city)
  if q:qs=qs.filter(name__icontains=q)
- data=[{'id':p.id,'name':p.name,'address':p.address,'phone':p.phone,'city':p.city,'category':p.category.code,'category_name':p.category.name,'latitude':float(p.latitude) if p.latitude is not None else None,'longitude':float(p.longitude) if p.longitude is not None else None,'is_affiliated':p.is_affiliated} for p in qs[:2000]]
+ data=[{'id':p.id,'name':p.name,'address':p.address,'phone':p.phone,'city':p.city,'discount_percent':max(0,min(100,int(p.discount_percent or 0))),'category':p.category.code,'category_name':p.category.name,'latitude':float(p.latitude) if p.latitude is not None else None,'longitude':float(p.longitude) if p.longitude is not None else None,'is_affiliated':p.is_affiliated} for p in qs[:2000]]
  return JsonResponse({'count':qs.count(),'results':data})
 @require_GET
 def content_feed(request):
