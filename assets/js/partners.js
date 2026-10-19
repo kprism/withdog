@@ -40,6 +40,91 @@
     }
 
 
+    function showMapMessage(message) {
+        if (!mapBox) {
+            return;
+        }
+
+        mapBox.classList.add('kakao-map-status');
+        mapBox.innerHTML =
+            '<div class="kakao-map-status-message">' +
+            escapeHtml(message) +
+            '</div>';
+    }
+
+
+    function loadKakaoMapSdk() {
+        if (
+            window.kakao &&
+            window.kakao.maps
+        ) {
+            return Promise.resolve();
+        }
+
+        return fetch(
+            '/api/site-settings/?_=' + Date.now(),
+            {
+                credentials: 'same-origin',
+                cache: 'no-store'
+            }
+        )
+            .then(function (response) {
+                if (!response.ok) {
+                    throw new Error(
+                        'site settings HTTP ' + response.status
+                    );
+                }
+
+                return response.json();
+            })
+            .then(function (settings) {
+                var key = String(
+                    settings.kakao_javascript_key || ''
+                ).trim();
+
+                if (!key) {
+                    throw new Error(
+                        '카카오 JavaScript 키가 등록되지 않았습니다.'
+                    );
+                }
+
+                return new Promise(function (resolve, reject) {
+                    var script = document.createElement('script');
+
+                    script.dataset.kakaoMapSdk = '1';
+                    script.async = true;
+                    script.src =
+                        'https://dapi.kakao.com/v2/maps/sdk.js' +
+                        '?appkey=' + encodeURIComponent(key) +
+                        '&libraries=services&autoload=false';
+
+                    script.onload = function () {
+                        if (
+                            window.kakao &&
+                            window.kakao.maps &&
+                            typeof window.kakao.maps.load === 'function'
+                        ) {
+                            window.kakao.maps.load(resolve);
+                            return;
+                        }
+
+                        reject(
+                            new Error('카카오 지도 SDK 초기화 실패')
+                        );
+                    };
+
+                    script.onerror = function () {
+                        reject(
+                            new Error('카카오 지도 SDK 로드 실패')
+                        );
+                    };
+
+                    document.head.appendChild(script);
+                });
+            });
+    }
+
+
     function clearMarkers() {
         state.markers.forEach(function (marker) {
             marker.setMap(null);
@@ -59,6 +144,9 @@
         }
 
         if (!state.map) {
+            mapBox.classList.remove('kakao-map-status');
+            mapBox.innerHTML = '';
+
             state.map = new kakao.maps.Map(
                 mapBox,
                 {
@@ -219,6 +307,19 @@
             ? '<span class="partner-affiliated-badge">AD</span>'
             : '';
 
+        const discountPercent = Math.max(
+            0,
+            Math.min(
+                100,
+                Number(p.discount_percent || 0)
+            )
+        );
+
+        const discountHtml =
+            '<span class="partner-discount">' +
+            escapeHtml(discountPercent) +
+            '% 할인</span>';
+
         const phoneHtml = p.phone
             ? '<p class="partner-phone">☎ ' +
               escapeHtml(p.phone) +
@@ -234,9 +335,12 @@
                     </span>
                 </div>
 
-                <span class="partner-city">
-                    ${escapeHtml(city)}
-                </span>
+                <div class="partner-card-location">
+                    ${discountHtml}
+                    <span class="partner-city">
+                        ${escapeHtml(city)}
+                    </span>
+                </div>
             </div>
 
             <h3 class="partner-name">
@@ -528,6 +632,19 @@
     }
 
 
-    loadPartners();
+    loadKakaoMapSdk()
+        .catch(function (error) {
+            console.error(
+                'Kakao Map SDK error:',
+                error
+            );
+
+            showMapMessage(
+                '카카오 지도를 불러오지 못했습니다. 관리자에서 카카오 JavaScript 키와 등록 도메인을 확인해 주세요.'
+            );
+        })
+        .then(function () {
+            loadPartners();
+        });
 
 })();
