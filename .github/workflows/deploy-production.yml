@@ -727,8 +727,62 @@ jobs:
 
           with urllib.request.urlopen('https://thepetkorea.co.kr/api/site-settings/', timeout=20) as response:
               site_settings=json.loads(response.read().decode('utf-8','replace'))
-              if not str(site_settings.get('kakao_javascript_key') or '').strip():
+              kakao_js_key=str(site_settings.get('kakao_javascript_key') or '').strip()
+              if not kakao_js_key:
                   raise SystemExit('Production Kakao JavaScript key is missing')
+              print(
+                  'KAKAO_JS_KEY',
+                  'length=', len(kakao_js_key),
+                  'last4=', kakao_js_key[-4:],
+              )
+
+          # Browser-equivalent Kakao Maps SDK authorization probe.
+          # Referer is required because Kakao validates the JavaScript SDK domain.
+          kakao_sdk_url=(
+              'https://dapi.kakao.com/v2/maps/sdk.js'
+              '?appkey=' + kakao_js_key +
+              '&libraries=services&autoload=false'
+          )
+          kakao_req=urllib.request.Request(
+              kakao_sdk_url,
+              headers={
+                  'Referer':'https://thepetkorea.co.kr/partners.html',
+                  'Origin':'https://thepetkorea.co.kr',
+                  'User-Agent':'Mozilla/5.0',
+              },
+          )
+          try:
+              with urllib.request.urlopen(kakao_req, timeout=20) as response:
+                  sdk_body=response.read(1200).decode('utf-8','replace')
+                  print(
+                      'KAKAO_MAP_SDK',
+                      response.status,
+                      response.headers.get('Content-Type'),
+                      sdk_body[:300].replace('\n',' '),
+                  )
+                  lower=sdk_body.lower()
+                  if response.status != 200:
+                      raise SystemExit(
+                          f'Kakao Map SDK HTTP {response.status}'
+                      )
+                  if (
+                      'domain mismatched' in lower
+                      or 'invalid' in lower
+                      or 'wrong appkey' in lower
+                      or 'error_code' in lower
+                  ):
+                      raise SystemExit(
+                          'Kakao Map SDK authorization error: ' +
+                          sdk_body[:500]
+                      )
+          except urllib.error.HTTPError as exc:
+              error_body=exc.read(1200).decode('utf-8','replace')
+              print(
+                  'KAKAO_MAP_SDK_HTTP_ERROR',
+                  exc.code,
+                  error_body[:500].replace('\n',' '),
+              )
+              raise
 
           with urllib.request.urlopen('https://thepetkorea.co.kr/api/partners/public-map/', timeout=20) as response:
               partner_data=json.loads(response.read().decode('utf-8','replace'))
