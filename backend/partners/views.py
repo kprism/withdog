@@ -372,6 +372,7 @@ def site_settings_api(request):
         'hero_button1_link': x.hero_button1_link,
         'hero_button2_text': x.hero_button2_text,
         'hero_button2_link': x.hero_button2_link,
+        'kakao_javascript_key': x.kakao_javascript_key,
         'updated_at': x.updated_at.isoformat(),
     })
 
