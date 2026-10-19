@@ -682,7 +682,10 @@ def partner_list(request):
 def partner_edit(request,pk=None):
  p=get_object_or_404(Partner,pk=pk) if pk else None; categories=PartnerCategory.objects.order_by('sort_order','name')
  if request.method=='POST':
-  obj=p or Partner(); obj.name=request.POST.get('name','').strip(); obj.address=request.POST.get('address','').strip(); obj.phone=request.POST.get('phone','').strip(); obj.city=request.POST.get('city','').strip(); obj.category=get_object_or_404(PartnerCategory,pk=request.POST.get('category')); obj.latitude=request.POST.get('latitude') or None; obj.longitude=request.POST.get('longitude') or None; obj.is_affiliated='is_affiliated' in request.POST; obj.is_active='is_active' in request.POST; obj.save(); messages.success(request,'업체 정보가 저장되었습니다.'); return redirect('operator_dashboard:partners')
+  obj=p or Partner(); obj.name=request.POST.get('name','').strip(); obj.address=request.POST.get('address','').strip(); obj.phone=request.POST.get('phone','').strip(); obj.city=request.POST.get('city','').strip(); obj.category=get_object_or_404(PartnerCategory,pk=request.POST.get('category')); obj.latitude=request.POST.get('latitude') or None; obj.longitude=request.POST.get('longitude') or None
+  try: obj.discount_percent=max(0,min(100,int(request.POST.get('discount_percent') or 0)))
+  except (TypeError,ValueError): obj.discount_percent=0
+  obj.is_affiliated='is_affiliated' in request.POST; obj.is_active='is_active' in request.POST; obj.save(); messages.success(request,'업체 정보가 저장되었습니다.'); return redirect('operator_dashboard:partners')
  return render(request,'dashboard/partner_form.html',locals())
 
 @staff_member_required
