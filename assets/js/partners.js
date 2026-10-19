@@ -201,7 +201,10 @@
                     '<b>' +
                     escapeHtml(partner.name) +
                     '</b><br>' +
-                    escapeHtml(cleanCity(partner.city)) +
+                    escapeHtml(
+                        partner.city_unit ||
+                        cleanCity(partner.city)
+                    ) +
                     '</div>'
             });
 
@@ -248,7 +251,9 @@
             (p.category && p.category.name)
                 ? p.category.name
                 : (p.category_name || '');
-        const city = cleanCity(p.city);
+        const city =
+            p.city_unit ||
+            cleanCity(p.city);
 
         const lat = Number(p.latitude);
         const lng = Number(p.longitude);
@@ -518,7 +523,10 @@
 
             if (
                 state.city &&
-                partner.city !== state.city
+                (
+                    partner.city_unit ||
+                    cleanCity(partner.city)
+                ) !== state.city
             ) {
                 return false;
             }

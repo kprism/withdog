@@ -129,6 +129,7 @@ jobs:
               ('김해시 업체','김해시',11),
               ('창원시 업체','창원시',12),
               ('합천군 업체','합천군',13),
+              ('창원 세부지역 업체','경상남도 창원시 성산구',14),
           ]
 
           created=[]
@@ -163,6 +164,7 @@ jobs:
           assert cities == [
               '창원시','김해시','진주시','양산시','밀양시','거제시','합천군'
           ], cities
+          assert cities.count('창원시') == 1
 
           rows={
               row['name']:row
@@ -170,7 +172,19 @@ jobs:
               if row['name'].startswith(('창원시','김해시','진주시','양산시','밀양시','거제시','합천군'))
           }
           assert rows['창원시 업체']['discount_percent'] == 12
+          assert rows['창원시 업체']['city_unit'] == '창원시'
           assert rows['거제시 업체']['discount_percent'] == 7
+
+          city_response=client.get(
+              '/api/partners/public-map/?city=창원시'
+          )
+          assert city_response.status_code == 200
+          city_names={
+              row['name']
+              for row in city_response.json()['partners']
+          }
+          assert '창원시 업체' in city_names
+          assert '창원 세부지역 업체' in city_names
 
           header=open('partners/templates/website/includes/public_header.html',encoding='utf-8').read()
           partner_form=open('partners/templates/dashboard/partner_form.html',encoding='utf-8').read()
@@ -726,6 +740,8 @@ jobs:
                   str(city).replace('경상남도 ','').replace('경남 ','').strip()
                   for city in (partner_data.get('cities') or [])
               ]
+              if len(normalized) != len(set(normalized)):
+                  raise SystemExit(f'Duplicate partner city units remain: {normalized}')
               present=[city for city in priority if city in normalized]
               actual=[city for city in normalized if city in priority]
               if actual != present:
