@@ -1143,6 +1143,17 @@ def partner_ad_update(request, pk):
     p.is_affiliated = request.POST.get('is_affiliated') == '1'
 
     try:
+        p.discount_percent = max(
+            0,
+            min(
+                100,
+                int(request.POST.get('discount_percent') or 0),
+            ),
+        )
+    except (TypeError, ValueError):
+        p.discount_percent = 0
+
+    try:
         p.ad_monthly_fee = max(
             0,
             int(request.POST.get('ad_monthly_fee') or 0)
