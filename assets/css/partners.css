@@ -97,6 +97,22 @@
     overflow:hidden;
 }
 
+#kakaoMap.kakao-map-status{
+    display:grid;
+    place-items:center;
+    border:1px solid #e3e6e8;
+    background:#f7f8f9;
+}
+
+.kakao-map-status-message{
+    max-width:520px;
+    padding:24px;
+    color:#777;
+    text-align:center;
+    font-size:13px;
+    line-height:1.7;
+}
+
 @media(max-width:760px){
     #kakaoMap{
         height:330px;
@@ -160,6 +176,25 @@
     color:#777;
     font-size:13px;
     font-weight:700;
+}
+
+.partner-card-location{
+    flex:0 0 auto;
+    display:flex;
+    align-items:center;
+    gap:6px;
+}
+
+.partner-discount{
+    display:inline-flex;
+    align-items:center;
+    padding:5px 9px;
+    border-radius:999px;
+    background:#fff0f0;
+    color:#c91f26;
+    font-size:11px;
+    font-weight:900;
+    white-space:nowrap;
 }
 
 .partner-city{
@@ -347,6 +382,20 @@
 
     .partner-name{
         font-size:19px;
+    }
+
+    .partner-card-top{
+        gap:9px;
+    }
+
+    .partner-card-location{
+        gap:4px;
+    }
+
+    .partner-discount,
+    .partner-city{
+        padding:5px 7px;
+        font-size:10px;
     }
 
     .partner-actions{
