@@ -248,7 +248,7 @@
             (p.category && p.category.name)
                 ? p.category.name
                 : (p.category_name || '');
-        const city = (p.city || '').replace(/^경남\s*/, '');
+        const city = cleanCity(p.city);
 
         const lat = Number(p.latitude);
         const lng = Number(p.longitude);
