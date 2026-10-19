@@ -1102,13 +1102,40 @@ def partner_page_editor(request):
         'name'
     )
 
-    cities = (
+    cities = list(
         Partner.objects
         .exclude(city='')
         .values_list('city', flat=True)
         .distinct()
-        .order_by('city')
     )
+
+    priority_cities = [
+        '창원시',
+        '김해시',
+        '진주시',
+        '양산시',
+        '밀양시',
+    ]
+
+    def _clean_partner_city(value):
+        value = str(value or '').strip()
+        if value.startswith('경상남도 '):
+            return value[len('경상남도 '):].strip()
+        if value.startswith('경남 '):
+            return value[len('경남 '):].strip()
+        return value
+
+    def _partner_city_key(value):
+        city_name = _clean_partner_city(value)
+        if city_name in priority_cities:
+            return (0, priority_cities.index(city_name), city_name)
+        if city_name.endswith('시'):
+            return (1, city_name)
+        if city_name.endswith('군'):
+            return (2, city_name)
+        return (3, city_name)
+
+    cities.sort(key=_partner_city_key)
 
     context = {
         'site_setting': site_setting,
