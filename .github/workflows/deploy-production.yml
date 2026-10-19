@@ -109,6 +109,93 @@ jobs:
           print('ADVERTISEMENT_SLOT_RENDERED')
           print('RESERVED_RIGHT_RAIL_RENDERED')
           PY
+      - name: Verify partner menu, city order, discount, and Kakao loader
+        working-directory: backend
+        run: |
+          python manage.py shell <<'PY'
+          from django.test import Client
+          from partners.models import Partner, PartnerCategory, SiteSetting
+
+          category,_=PartnerCategory.objects.get_or_create(
+              code='ci-partner-order',
+              defaults={'name':'CI 제휴업체','sort_order':999},
+          )
+
+          samples=[
+              ('거제시 업체','거제시',7),
+              ('밀양시 업체','밀양시',8),
+              ('양산시 업체','양산시',9),
+              ('진주시 업체','진주시',10),
+              ('김해시 업체','김해시',11),
+              ('창원시 업체','창원시',12),
+              ('합천군 업체','합천군',13),
+          ]
+
+          created=[]
+          for index,(name,city,discount) in enumerate(samples):
+              partner=Partner.objects.create(
+                  category=category,
+                  name=name,
+                  address=f'CI 테스트 주소 {index}',
+                  city=city,
+                  discount_percent=discount,
+                  is_active=True,
+              )
+              created.append(partner)
+
+          setting=SiteSetting.get_solo()
+          original_key=setting.kakao_javascript_key
+          setting.kakao_javascript_key='ci-kakao-js-key'
+          setting.save(update_fields=['kakao_javascript_key','updated_at'])
+
+          client=Client()
+          settings_response=client.get('/api/site-settings/')
+          assert settings_response.status_code == 200
+          assert settings_response.json()['kakao_javascript_key'] == 'ci-kakao-js-key'
+
+          response=client.get('/api/partners/public-map/')
+          assert response.status_code == 200
+          data=response.json()
+
+          cities=[x for x in data['cities'] if x in {
+              '창원시','김해시','진주시','양산시','밀양시','거제시','합천군'
+          }]
+          assert cities == [
+              '창원시','김해시','진주시','양산시','밀양시','거제시','합천군'
+          ], cities
+
+          rows={
+              row['name']:row
+              for row in data['partners']
+              if row['name'].startswith(('창원시','김해시','진주시','양산시','밀양시','거제시','합천군'))
+          }
+          assert rows['창원시 업체']['discount_percent'] == 12
+          assert rows['거제시 업체']['discount_percent'] == 7
+
+          header=open('partners/templates/website/includes/public_header.html',encoding='utf-8').read()
+          partner_form=open('partners/templates/dashboard/partner_form.html',encoding='utf-8').read()
+          partner_page=open('../partners.html',encoding='utf-8').read()
+          partner_js=open('../assets/js/partners.js',encoding='utf-8').read()
+          partner_css=open('../assets/css/partners.css',encoding='utf-8').read()
+
+          assert '>제휴업체</a>' in header
+          assert '>후원업체</a>' not in header
+          assert 'name="discount_percent"' in partner_form
+          assert '회원 할인율 (%)' in partner_form
+          assert '//dapi.kakao.com/v2/maps/sdk.js?appkey=' not in partner_page
+          assert "fetch(\n            '/api/site-settings/" in partner_js
+          assert 'kakao_javascript_key' in partner_js
+          assert 'autoload=false' in partner_js
+          assert 'partner-discount' in partner_js
+          assert '.partner-discount{' in partner_css
+
+          setting.kakao_javascript_key=original_key
+          setting.save(update_fields=['kakao_javascript_key','updated_at'])
+          Partner.objects.filter(pk__in=[p.pk for p in created]).delete()
+          category.delete()
+
+          print('PARTNER_MENU_CITY_DISCOUNT_KAKAO_OK')
+          PY
       - name: Verify homepage notice and pet news feed
         working-directory: backend
         run: |
@@ -359,6 +446,13 @@ jobs:
           get_template('website/includes/public_header.html')
           get_template('website/includes/public_footer.html')
           css = Path('../assets/css/style.css').read_text(encoding='utf-8')
+          partner_model = Path('partners/models.py').read_text(encoding='utf-8')
+          partner_views = Path('partners/views.py').read_text(encoding='utf-8')
+          partner_dashboard_views = Path('partners/dashboard_views.py').read_text(encoding='utf-8')
+          assert "discount_percent=models.PositiveSmallIntegerField" in partner_model
+          assert "'discount_percent': max(" in partner_views
+          assert "priority_cities = [" in partner_views
+          assert "obj.discount_percent=max(0,min(100" in partner_dashboard_views
           doglife_feed = Path('partners/templates/website/includes/doglife_home_feed.html').read_text(encoding='utf-8')
           public_urls_py = Path('withdog/urls.py').read_text(encoding='utf-8')
           website_views_py = Path('partners/website_views.py').read_text(encoding='utf-8')
@@ -478,6 +572,7 @@ jobs:
         run: |
           python - <<'PY'
           import hashlib
+          import json
           import urllib.error
           import urllib.request
           import xml.etree.ElementTree as ET
@@ -539,6 +634,10 @@ jobs:
                       raise SystemExit(f'Canonical server-rendered logo media missing: {url}')
                   if 'class="primary-nav"' not in html:
                       raise SystemExit(f'Primary navigation missing: {url}')
+                  if 'href="/partners.html">제휴업체</a>' not in html:
+                      raise SystemExit(f'Affiliated partner menu label missing: {url}')
+                  if 'href="/partners.html">후원업체</a>' in html:
+                      raise SystemExit(f'Legacy sponsor menu label still present: {url}')
                   if '🐶' in html.split('</header>', 1)[0]:
                       raise SystemExit(f'Legacy header dog fallback still present: {url}')
 
@@ -605,6 +704,32 @@ jobs:
               cards_pos=partners_html.find('id="cards"')
               if not (count_pos >= 0 and regions_pos > count_pos and cards_pos > regions_pos):
                   raise SystemExit('Partner region filters are not directly below total count')
+              if '제휴업체 안내' not in partners_html:
+                  raise SystemExit('Affiliated partner page heading missing')
+              if '//dapi.kakao.com/v2/maps/sdk.js?appkey=' in partners_html:
+                  raise SystemExit('Legacy hardcoded Kakao map SDK still present')
+              if 'partners.js?v=20261019-partner-v2' not in partners_html:
+                  raise SystemExit('New partner map loader asset missing')
+
+          with urllib.request.urlopen('https://thepetkorea.co.kr/api/site-settings/', timeout=20) as response:
+              site_settings=json.loads(response.read().decode('utf-8','replace'))
+              if not str(site_settings.get('kakao_javascript_key') or '').strip():
+                  raise SystemExit('Production Kakao JavaScript key is missing')
+
+          with urllib.request.urlopen('https://thepetkorea.co.kr/api/partners/public-map/', timeout=20) as response:
+              partner_data=json.loads(response.read().decode('utf-8','replace'))
+              partner_rows=partner_data.get('partners') or []
+              if partner_rows and 'discount_percent' not in partner_rows[0]:
+                  raise SystemExit('Partner discount field missing from public API')
+              priority=['창원시','김해시','진주시','양산시','밀양시']
+              normalized=[
+                  str(city).replace('경상남도 ','').replace('경남 ','').strip()
+                  for city in (partner_data.get('cities') or [])
+              ]
+              present=[city for city in priority if city in normalized]
+              actual=[city for city in normalized if city in priority]
+              if actual != present:
+                  raise SystemExit(f'Priority partner city order mismatch: {actual}')
 
           # Validate Googlebot-visible homepage and sitemap, not just HTTP 200.
           googlebot = {'User-Agent': 'Googlebot'}

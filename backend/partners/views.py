@@ -12,7 +12,7 @@ def partner_list(request):
  if category:qs=qs.filter(category__code=category)
  if city:qs=qs.filter(city=city)
  if q:qs=qs.filter(name__icontains=q)
- data=[{'id':p.id,'name':p.name,'address':p.address,'phone':p.phone,'city':p.city,'category':p.category.code,'category_name':p.category.name,'latitude':float(p.latitude) if p.latitude is not None else None,'longitude':float(p.longitude) if p.longitude is not None else None,'is_affiliated':p.is_affiliated} for p in qs[:2000]]
+ data=[{'id':p.id,'name':p.name,'address':p.address,'phone':p.phone,'city':p.city,'discount_percent':max(0,min(100,int(p.discount_percent or 0))),'category':p.category.code,'category_name':p.category.name,'latitude':float(p.latitude) if p.latitude is not None else None,'longitude':float(p.longitude) if p.longitude is not None else None,'is_affiliated':p.is_affiliated} for p in qs[:2000]]
  return JsonResponse({'count':qs.count(),'results':data})
 @require_GET
 def content_feed(request):
@@ -372,6 +372,7 @@ def site_settings_api(request):
         'hero_button1_link': x.hero_button1_link,
         'hero_button2_text': x.hero_button2_text,
         'hero_button2_link': x.hero_button2_link,
+        'kakao_javascript_key': x.kakao_javascript_key,
         'updated_at': x.updated_at.isoformat(),
     })
 
@@ -521,6 +522,13 @@ def public_partner_map_api(request):
             'address': partner.address,
             'phone': partner.phone or '',
             'city': partner.city or '',
+            'discount_percent': max(
+                0,
+                min(
+                    100,
+                    int(partner.discount_percent or 0),
+                ),
+            ),
 
             'kakao_place_id': partner.kakao_place_id or '',
             'kakao_place_url': partner.kakao_place_url or '',
@@ -580,8 +588,51 @@ def public_partner_map_api(request):
         .exclude(city='')
         .values_list('city', flat=True)
         .distinct()
-        .order_by('city')
     )
+
+    # 공개 지역 메뉴는 사용 빈도가 높은 도시를 먼저 보여주고,
+    # 이후 나머지 시/군을 가나다순으로 정렬한다.
+    priority_cities = [
+        '창원시',
+        '김해시',
+        '진주시',
+        '양산시',
+        '밀양시',
+    ]
+
+    def normalize_city(value):
+        value = str(value or '').strip()
+        if value.startswith('경상남도 '):
+            value = value[len('경상남도 '):].strip()
+        elif value.startswith('경남 '):
+            value = value[len('경남 '):].strip()
+        return value
+
+    def city_sort_key(value):
+        normalized = normalize_city(value)
+
+        if normalized in priority_cities:
+            return (
+                0,
+                priority_cities.index(normalized),
+                normalized,
+            )
+
+        # 우선순위 도시 다음에는 다른 시, 그 뒤에는 군.
+        area_group = (
+            1
+            if normalized.endswith('시')
+            else 2
+            if normalized.endswith('군')
+            else 3
+        )
+
+        return (
+            area_group,
+            normalized,
+        )
+
+    cities.sort(key=city_sort_key)
 
     return JsonResponse({
         'ok': True,

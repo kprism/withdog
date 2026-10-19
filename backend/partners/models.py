@@ -19,6 +19,10 @@ class Partner(models.Model):
     address=models.CharField(max_length=300)
     phone=models.CharField(max_length=40,blank=True)
     city=models.CharField(max_length=30,db_index=True)
+    discount_percent=models.PositiveSmallIntegerField(
+        default=0,
+        verbose_name='회원 할인율(%)',
+    )
 
     latitude=models.DecimalField(
         max_digits=10,

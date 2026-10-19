@@ -590,6 +590,7 @@
     <th>분류</th>
     <th>지역</th>
     <th>전화번호</th>
+    <th>할인율</th>
     <th>협력</th>
     <th>월 광고금액</th>
     <th>계약 시작</th>
@@ -630,6 +631,18 @@
 <td>{{ p.city }}</td>
 
 <td>{{ p.phone|default:"-" }}</td>
+
+<td>
+    <input
+        type="number"
+        min="0"
+        max="100"
+        step="1"
+        name="discount_percent"
+        value="{{ p.discount_percent|default:0 }}"
+        style="width:84px"
+    >
+</td>
 
 <td>
     <select name="is_affiliated">
@@ -730,7 +743,7 @@
 {% empty %}
 
 <tr>
-    <td colspan="11">
+    <td colspan="12">
         검색된 업체가 없습니다.
     </td>
 </tr>

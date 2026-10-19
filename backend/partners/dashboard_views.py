@@ -682,7 +682,10 @@ def partner_list(request):
 def partner_edit(request,pk=None):
  p=get_object_or_404(Partner,pk=pk) if pk else None; categories=PartnerCategory.objects.order_by('sort_order','name')
  if request.method=='POST':
-  obj=p or Partner(); obj.name=request.POST.get('name','').strip(); obj.address=request.POST.get('address','').strip(); obj.phone=request.POST.get('phone','').strip(); obj.city=request.POST.get('city','').strip(); obj.category=get_object_or_404(PartnerCategory,pk=request.POST.get('category')); obj.latitude=request.POST.get('latitude') or None; obj.longitude=request.POST.get('longitude') or None; obj.is_affiliated='is_affiliated' in request.POST; obj.is_active='is_active' in request.POST; obj.save(); messages.success(request,'업체 정보가 저장되었습니다.'); return redirect('operator_dashboard:partners')
+  obj=p or Partner(); obj.name=request.POST.get('name','').strip(); obj.address=request.POST.get('address','').strip(); obj.phone=request.POST.get('phone','').strip(); obj.city=request.POST.get('city','').strip(); obj.category=get_object_or_404(PartnerCategory,pk=request.POST.get('category')); obj.latitude=request.POST.get('latitude') or None; obj.longitude=request.POST.get('longitude') or None
+  try: obj.discount_percent=max(0,min(100,int(request.POST.get('discount_percent') or 0)))
+  except (TypeError,ValueError): obj.discount_percent=0
+  obj.is_affiliated='is_affiliated' in request.POST; obj.is_active='is_active' in request.POST; obj.save(); messages.success(request,'업체 정보가 저장되었습니다.'); return redirect('operator_dashboard:partners')
  return render(request,'dashboard/partner_form.html',locals())
 
 @staff_member_required
@@ -1099,13 +1102,40 @@ def partner_page_editor(request):
         'name'
     )
 
-    cities = (
+    cities = list(
         Partner.objects
         .exclude(city='')
         .values_list('city', flat=True)
         .distinct()
-        .order_by('city')
     )
+
+    priority_cities = [
+        '창원시',
+        '김해시',
+        '진주시',
+        '양산시',
+        '밀양시',
+    ]
+
+    def _clean_partner_city(value):
+        value = str(value or '').strip()
+        if value.startswith('경상남도 '):
+            return value[len('경상남도 '):].strip()
+        if value.startswith('경남 '):
+            return value[len('경남 '):].strip()
+        return value
+
+    def _partner_city_key(value):
+        city_name = _clean_partner_city(value)
+        if city_name in priority_cities:
+            return (0, priority_cities.index(city_name), city_name)
+        if city_name.endswith('시'):
+            return (1, city_name)
+        if city_name.endswith('군'):
+            return (2, city_name)
+        return (3, city_name)
+
+    cities.sort(key=_partner_city_key)
 
     context = {
         'site_setting': site_setting,
@@ -1138,6 +1168,17 @@ def partner_ad_update(request, pk):
     from datetime import datetime
 
     p.is_affiliated = request.POST.get('is_affiliated') == '1'
+
+    try:
+        p.discount_percent = max(
+            0,
+            min(
+                100,
+                int(request.POST.get('discount_percent') or 0),
+            ),
+        )
+    except (TypeError, ValueError):
+        p.discount_percent = 0
 
     try:
         p.ad_monthly_fee = max(
