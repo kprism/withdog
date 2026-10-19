@@ -468,11 +468,70 @@ def member_reset_password(request):
 # ============================================================
 
 def public_partner_map_api(request):
+    import re
+
     from django.http import JsonResponse
     from django.db.models import Q
     from django.utils import timezone
 
     today = timezone.localdate()
+
+    priority_cities = [
+        '창원시',
+        '김해시',
+        '진주시',
+        '양산시',
+        '밀양시',
+    ]
+
+    def normalize_city_unit(value):
+        """
+        DB에 '경남 창원시', '경상남도 창원시 성산구'처럼
+        서로 다른 문자열이 있어도 공개 메뉴에서는 '창원시' 한 개로 묶는다.
+        """
+        value = str(value or '').strip()
+        value = re.sub(
+            r'^(?:경상남도|경남)\s*',
+            '',
+            value,
+        ).strip()
+
+        match = re.search(
+            r'([가-힣]+(?:시|군))',
+            value,
+        )
+
+        if match:
+            return match.group(1)
+
+        return (
+            value.split()[0]
+            if value
+            else ''
+        )
+
+    def city_sort_key(value):
+        normalized = normalize_city_unit(value)
+
+        if normalized in priority_cities:
+            return (
+                0,
+                priority_cities.index(normalized),
+                normalized,
+            )
+
+        # 우선도시 이후에는 다른 시 → 군 → 기타 순.
+        if normalized.endswith('시'):
+            area_group = 1
+        elif normalized.endswith('군'):
+            area_group = 2
+        else:
+            area_group = 3
+
+        return (
+            area_group,
+            normalized,
+        )
 
     qs = (
         Partner.objects
@@ -481,14 +540,18 @@ def public_partner_map_api(request):
     )
 
     category = request.GET.get('category', '').strip()
-    city = request.GET.get('city', '').strip()
+    city = normalize_city_unit(
+        request.GET.get('city', '').strip()
+    )
     q = request.GET.get('q', '').strip()
 
     if category:
         qs = qs.filter(category__code=category)
 
     if city:
-        qs = qs.filter(city=city)
+        # 공개 메뉴는 시/군 단위이므로 세부 구·읍·면 값이 포함된
+        # 기존 데이터도 같은 지역으로 검색될 수 있게 부분 일치한다.
+        qs = qs.filter(city__icontains=city)
 
     if q:
         qs = qs.filter(
@@ -515,6 +578,10 @@ def public_partner_map_api(request):
 
             ad_active = start_ok and end_ok
 
+        city_unit = normalize_city_unit(
+            partner.city
+        )
+
         rows.append({
             'id': partner.pk,
 
@@ -522,6 +589,7 @@ def public_partner_map_api(request):
             'address': partner.address,
             'phone': partner.phone or '',
             'city': partner.city or '',
+            'city_unit': city_unit,
             'discount_percent': max(
                 0,
                 min(
@@ -560,14 +628,13 @@ def public_partner_map_api(request):
             ),
         })
 
-    # 광고업체 우선
-    # 같은 광고업체끼리는 월 광고금액이 높은 업체 우선
-    # 이후 지역/상호명 순
+    # 광고업체 우선, 같은 광고업체끼리는 광고금액 우선.
+    # 그 다음에는 공개 시/군 순서와 상호명으로 정렬한다.
     rows.sort(
         key=lambda x: (
             0 if x['is_ad'] else 1,
             -x['ad_monthly_fee'],
-            x['city'],
+            city_sort_key(x['city_unit']),
             x['name'],
         )
     )
@@ -582,57 +649,25 @@ def public_partner_map_api(request):
         )
     )
 
-    cities = list(
+    raw_cities = (
         Partner.objects
         .filter(is_active=True)
         .exclude(city='')
         .values_list('city', flat=True)
-        .distinct()
     )
 
-    # 공개 지역 메뉴는 사용 빈도가 높은 도시를 먼저 보여주고,
-    # 이후 나머지 시/군을 가나다순으로 정렬한다.
-    priority_cities = [
-        '창원시',
-        '김해시',
-        '진주시',
-        '양산시',
-        '밀양시',
-    ]
-
-    def normalize_city(value):
-        value = str(value or '').strip()
-        if value.startswith('경상남도 '):
-            value = value[len('경상남도 '):].strip()
-        elif value.startswith('경남 '):
-            value = value[len('경남 '):].strip()
-        return value
-
-    def city_sort_key(value):
-        normalized = normalize_city(value)
-
-        if normalized in priority_cities:
-            return (
-                0,
-                priority_cities.index(normalized),
-                normalized,
+    # 지역 버튼은 반드시 시/군 단위로 한 번씩만 노출한다.
+    cities = sorted(
+        {
+            unit
+            for unit in (
+                normalize_city_unit(value)
+                for value in raw_cities
             )
-
-        # 우선순위 도시 다음에는 다른 시, 그 뒤에는 군.
-        area_group = (
-            1
-            if normalized.endswith('시')
-            else 2
-            if normalized.endswith('군')
-            else 3
-        )
-
-        return (
-            area_group,
-            normalized,
-        )
-
-    cities.sort(key=city_sort_key)
+            if unit
+        },
+        key=city_sort_key,
+    )
 
     return JsonResponse({
         'ok': True,
