@@ -243,8 +243,8 @@ jobs:
           assert 'aria-label="Instagram"' in html
           assert '<span>IG</span>' in html
 
-          admin_template=open(
-              'partners/templates/dashboard/website_settings.html',
+          site_settings_template=open(
+              'partners/templates/dashboard/seo_site_settings.html',
               encoding='utf-8',
           ).read()
           website_views=open(
@@ -257,7 +257,7 @@ jobs:
           ).read()
           style_css=open('../assets/css/style.css',encoding='utf-8').read()
 
-          assert 'value="footer_social_save"' in admin_template
+          assert '<h3>푸터 SNS 계정</h3>' in site_settings_template
           for field in (
               'instagram_icon',
               'youtube_icon',
@@ -265,9 +265,11 @@ jobs:
               'facebook_icon',
               'kakao_channel_icon',
           ):
-              assert f'name="{field}"' in admin_template
+              assert f'name="{field}"' in site_settings_template
 
-          assert "if action == 'footer_social_save':" in website_views
+          assert "social_fields = (" in website_views
+          assert "'instagram'," in website_views
+          assert "'kakao_channel'," in website_views
           assert 'footer-social__links' in footer_template
           assert 'class="to-top"' not in footer_template
           assert '.footer-social__links' in style_css
