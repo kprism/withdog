@@ -282,6 +282,84 @@ jobs:
 
           print('FOOTER_SOCIAL_AND_HOMEPAGE_CLEANUP_OK')
           PY
+      - name: Verify intro first-paint media and floating bot no-flash
+        working-directory: backend
+        run: |
+          python manage.py shell <<'PY'
+          from django.core.files.uploadedfile import SimpleUploadedFile
+          from django.test import Client
+          from partners.models import ChatbotSetting, ContentItem
+
+          # A current hero video must be present in the initial server HTML,
+          # without any legacy static Unsplash slide flashing first.
+          hero=ContentItem.objects.create(
+              kind='hero',
+              title='CI live hero',
+              media_type='video_url',
+              video_url='https://cdn.example.com/current-intro.mp4',
+              is_published=True,
+              sort_order=-999,
+              hero_eyebrow='CI LIVE HERO',
+              hero_title='현재 영상만',
+              hero_meta1='즉시 재생',
+              hero_meta2='레거시 미디어 없음',
+          )
+
+          chatbot,_=ChatbotSetting.objects.get_or_create(pk=1)
+          old_enabled=chatbot.enabled
+          old_video_name=chatbot.bot_video.name if chatbot.bot_video else ''
+          test_video=SimpleUploadedFile(
+              'ci-current-bot.mp4',
+              b'fake-current-bot-video',
+              content_type='video/mp4',
+          )
+          chatbot.enabled=True
+          chatbot.bot_video=test_video
+          chatbot.save()
+
+          response=Client().get('/')
+          assert response.status_code == 200
+          html=response.content.decode('utf-8','replace')
+
+          assert 'data-live-hero="1"' in html
+          assert f'data-cms-id="{hero.pk}"' in html
+          assert 'https://cdn.example.com/current-intro.mp4' in html
+          assert '<video class="hero-media"' in html
+          assert 'autoplay muted loop playsinline preload="auto"' in html
+          assert 'images.unsplash.com/photo-1558788353-f76d92427f16' not in html
+          assert 'images.unsplash.com/photo-1543466835-00a7907e9de1' not in html
+          assert 'images.unsplash.com/photo-1518717758536-85ae29035b6d' not in html
+
+          assert 'data-server-video="' in html
+          assert 'ci-current-bot' in html
+          assert '<video src="/media/chatbot/' in html
+          assert '>🐕</button>' not in html
+
+          index_html=open('../index.html',encoding='utf-8').read()
+          app_js=open('../assets/js/app.js',encoding='utf-8').read()
+          cms_js=open('../assets/js/cms.js',encoding='utf-8').read()
+          chatbot_js=open('../assets/js/chatbot.js',encoding='utf-8').read()
+          footer_template=open(
+              'partners/templates/website/includes/public_footer.html',
+              encoding='utf-8',
+          ).read()
+
+          assert 'images.unsplash.com/photo-1558788353-f76d92427f16' not in index_html
+          assert '<div class="hero-slide active"' not in index_html
+          assert "setInterval(()=>show(current+1),5000)" not in app_js
+          assert 'sameServerHero' in cms_js
+          assert "oldButton.dataset.serverVideo" in chatbot_js
+          assert 'preload="auto"' in footer_template
+
+          test_name=chatbot.bot_video.name
+          chatbot.bot_video.delete(save=False)
+          chatbot.bot_video.name=old_video_name
+          chatbot.enabled=old_enabled
+          chatbot.save()
+          hero.delete()
+
+          print('INTRO_FIRST_PAINT_NO_FLASH_OK', test_name)
+          PY
       - name: Verify homepage notice and pet news feed
         working-directory: backend
         run: |
@@ -743,7 +821,7 @@ jobs:
                   raise SystemExit('Partner join deep link base href missing')
               if 'site-header--intro' not in direct_join_html:
                   raise SystemExit('Partner join deep link did not render intro header')
-              if 'app.js?v=20261020-partner-direct-v2' not in direct_join_html:
+              if 'app.js?v=20261020-live-intro-v3' not in direct_join_html:
                   raise SystemExit('Partner join deep link app asset version missing')
 
           with urllib.request.urlopen('https://thepetkorea.co.kr/', timeout=20) as response:
@@ -760,6 +838,14 @@ jobs:
                   raise SystemExit('Intro menu presentation controls missing')
               if home_html.count('id="botButton"') != 1:
                   raise SystemExit('Homepage must render exactly one chatbot button')
+              if 'data-live-hero="1"' not in home_html or 'data-server-hero="1"' not in home_html:
+                  raise SystemExit('Live hero was not server-rendered on first paint')
+              if 'images.unsplash.com/photo-1558788353-f76d92427f16' in home_html:
+                  raise SystemExit('Legacy intro image is still present in production HTML')
+              if 'data-server-video="' not in home_html:
+                  raise SystemExit('Floating chatbot server media marker missing')
+              if '>🐕</button>' in home_html:
+                  raise SystemExit('Legacy chatbot fallback flashes in initial HTML')
               if 'class="slider-control"' in home_html:
                   raise SystemExit('Legacy intro slider controls still present')
               if 'class="stats"' in home_html:
