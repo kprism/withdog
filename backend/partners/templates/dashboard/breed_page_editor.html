@@ -1,0 +1,466 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}전 세계 견종 편집
+
+
+{% endblock %}
+{% block header %}홈페이지 편집 · 전 세계 견종{% endblock %}
+
+{% block content %}
+
+<style>
+.breed-editor-grid{
+    display:grid;
+    grid-template-columns:360px minmax(0,1fr);
+    gap:22px;
+    align-items:start;
+}
+
+.breed-create{
+    background:#fff;
+    border:1px solid #e8e8e8;
+    border-radius:15px;
+    padding:22px;
+}
+
+.breed-create h3{
+    margin:0 0 6px;
+}
+
+.breed-create .desc{
+    color:#888;
+    font-size:13px;
+    margin-bottom:20px;
+}
+
+.breed-field{
+    margin-bottom:15px;
+}
+
+.breed-field label{
+    display:block;
+    font-size:13px;
+    font-weight:800;
+    margin-bottom:7px;
+}
+
+.breed-field input[type="text"],
+.breed-field input[type="number"],
+.breed-field input[type="file"]{
+    width:100%;
+    padding:11px 12px;
+    border:1px solid #ddd;
+    border-radius:8px;
+    background:#fff;
+}
+
+.breed-toolbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:15px;
+    margin-bottom:14px;
+}
+
+.breed-list{
+    display:grid;
+    gap:12px;
+}
+
+.breed-admin-card{
+    display:grid;
+    grid-template-columns:30px 115px minmax(0,1fr);
+    gap:16px;
+    align-items:center;
+
+    background:#fff;
+    border:1px solid #e8e8e8;
+    border-radius:14px;
+    padding:14px;
+}
+
+.breed-thumb{
+    width:115px;
+    height:86px;
+    overflow:hidden;
+    border-radius:10px;
+    background:#f4f4f4;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    font-size:30px;
+}
+
+.breed-thumb img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+.breed-info h3{
+    margin:0 0 5px;
+    font-size:16px;
+}
+
+.breed-meta{
+    color:#888;
+    font-size:12px;
+    margin-bottom:11px;
+}
+
+.breed-edit-row{
+    display:grid;
+    grid-template-columns:minmax(160px,1fr) 90px auto auto;
+    gap:8px;
+    align-items:center;
+}
+
+.breed-edit-row input[type="text"],
+.breed-edit-row input[type="number"]{
+    width:100%;
+    padding:9px 10px;
+    border:1px solid #ddd;
+    border-radius:7px;
+}
+
+.breed-empty{
+    padding:60px 25px;
+    text-align:center;
+    color:#888;
+    background:#fff;
+    border:1px dashed #ccc;
+    border-radius:14px;
+}
+
+@media(max-width:1100px){
+    .breed-editor-grid{
+        grid-template-columns:1fr;
+    }
+
+    .breed-edit-row{
+        grid-template-columns:1fr;
+    }
+}
+
+@media(max-width:700px){
+    .breed-admin-card{
+        grid-template-columns:30px 80px minmax(0,1fr);
+    }
+
+    .breed-thumb{
+        width:80px;
+        height:70px;
+    }
+}
+
+</style>
+
+
+<div class="hero">
+
+    <div>
+        <div class="eyebrow">WEBSITE EDITOR</div>
+
+        <h2>전 세계 견종</h2>
+
+        <div class="muted">
+            사용자 페이지에 노출할 콘텐츠 카드를 등록하고 관리합니다.
+        </div>
+    </div>
+
+    <a
+        class="btn ghost"
+        href="/breeds.html"
+        target="_blank"
+    >
+        ↗ 실제 페이지 보기
+    </a>
+
+</div>
+
+
+<div class="breed-editor-grid">
+
+    <!-- 신규 등록 -->
+    <section class="breed-create">
+
+        <h3>새 카드 등록</h3>
+
+        <div class="desc">
+            이미지와 제목을 등록하면 사용자 페이지의 카드로 사용할 수 있습니다.
+        </div>
+
+        <form
+            method="post"
+            enctype="multipart/form-data"
+            action="{% url 'operator_dashboard:breed_page_create' %}"
+        >
+
+            {% csrf_token %}
+
+            <div class="breed-field">
+                <label>카드 이미지</label>
+
+                <input
+                    type="file"
+                    name="image"
+                    accept="image/*"
+                >
+            </div>
+
+            <div class="breed-field">
+                <label>제목 *</label>
+
+                <input
+                    type="text"
+                    name="title"
+                    required
+                    placeholder="예: 세계애견연맹(FCI) 공인 견종"
+                >
+            </div>
+
+            <div class="breed-field">
+                <label>연결 주소</label>
+
+                <input
+                    type="text"
+                    name="link"
+                    placeholder="예: /world-breeds.html"
+                >
+            </div>
+
+            <div class="breed-field">
+                <label>정렬 순서</label>
+
+                <input
+                    type="number"
+                    name="sort_order"
+                    value="0"
+                >
+            </div>
+
+            <div class="breed-field">
+                <label>
+                    <input
+                        type="checkbox"
+                        name="is_published"
+                        checked
+                    >
+                    사용자 페이지 공개
+                </label>
+            </div>
+
+            <button
+                type="submit"
+                class="btn"
+                style="width:100%"
+            >
+                카드 등록
+            </button>
+
+        </form>
+
+    </section>
+
+
+
+    <!-- ==================================================
+         견종 DB 수동 등록
+         ================================================== -->
+
+    
+
+<!-- 기존 카드 -->
+    <section>
+
+
+        <form
+            method="post"
+            action="{% url 'operator_dashboard:breed_page_bulk_delete' %}"
+        >
+
+            {% csrf_token %}
+
+            <div class="breed-toolbar">
+
+                <label>
+                    <input
+                        type="checkbox"
+                        id="breedCheckAll"
+                    >
+                    전체 선택
+                </label>
+
+                <button
+                    type="submit"
+                    class="btn ghost"
+                    onclick="return confirm('선택한 카드를 삭제하시겠습니까?')"
+                >
+                    선택 삭제
+                </button>
+
+            </div>
+
+
+            <div class="breed-list">
+
+            {% for item in items %}
+
+                <div class="breed-admin-card">
+
+                    <div>
+                        <input
+                            type="checkbox"
+                            class="breed-check"
+                            name="selected"
+                            value="{{ item.pk }}"
+                        >
+                    </div>
+
+
+                    <div class="breed-thumb">
+
+                        {% if item.image %}
+
+                            <img
+                                src="{{ item.image.url }}"
+                                alt="{{ item.title }}"
+                            >
+
+                        {% elif item.image_url %}
+
+                            <img
+                                src="{{ item.image_url }}"
+                                alt="{{ item.title }}"
+                            >
+
+                        {% else %}
+
+                            🐕
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <div class="breed-info">
+
+                        <h3>{{ item.title }}</h3>
+
+                        <div class="breed-meta">
+                            업로드 {{ item.created_at|date:"Y.m.d H:i" }}
+                            ·
+                            {% if item.is_published %}
+                                공개
+                            {% else %}
+                                비공개
+                            {% endif %}
+                        </div>
+
+
+                        <div class="breed-edit-row">
+
+                            <input
+                                form="breedUpdate{{ item.pk }}"
+                                type="text"
+                                name="title"
+                                value="{{ item.title }}"
+                                required
+                            >
+
+                            <input
+                                form="breedUpdate{{ item.pk }}"
+                                type="number"
+                                name="sort_order"
+                                value="{{ item.sort_order }}"
+                            >
+
+                            <label>
+                                <input
+                                    form="breedUpdate{{ item.pk }}"
+                                    type="checkbox"
+                                    name="is_published"
+                                    {% if item.is_published %}checked{% endif %}
+                                >
+                                공개
+                            </label>
+
+                            <button
+                                form="breedUpdate{{ item.pk }}"
+                                type="submit"
+                                class="btn ghost"
+                                style="padding:8px 11px"
+                            >
+                                저장
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            {% empty %}
+
+                <div class="breed-empty">
+                    아직 등록된 카드가 없습니다.
+                </div>
+
+            {% endfor %}
+
+            </div>
+
+        </form>
+
+
+        {% for item in items %}
+
+        <form
+            id="breedUpdate{{ item.pk }}"
+            method="post"
+            action="{% url 'operator_dashboard:breed_page_update' item.pk %}"
+        >
+            {% csrf_token %}
+
+            <input
+                type="hidden"
+                name="link"
+                value="{{ item.link }}"
+            >
+        </form>
+
+        {% endfor %}
+
+    </section>
+
+
+<!-- 견종 DB 관리 : 3번 전체폭 영역 -->
+
+
+
+</div>
+
+
+<script>
+const checkAll =
+    document.getElementById('breedCheckAll');
+
+if (checkAll) {
+    checkAll.addEventListener(
+        'change',
+        function () {
+            document
+                .querySelectorAll('.breed-check')
+                .forEach(function (item) {
+                    item.checked = checkAll.checked;
+                });
+        }
+    );
+}
+</script>
+
+{% endblock %}
+
+

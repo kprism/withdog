@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+
+<meta charset="utf-8">
+
+<meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+>
+
+{% include "website/includes/seo_meta.html" %}
+
+<link
+    rel="stylesheet"
+    href="/assets/css/style.css"
+>
+
+<link
+    rel="stylesheet"
+    href="/assets/css/sub.css"
+>
+
+<style>
+
+.notice-detail{
+    max-width:1000px;
+    margin:0 auto;
+    padding:55px 20px 80px;
+}
+
+.notice-detail-head{
+    padding-bottom:25px;
+    border-bottom:1px solid #ddd;
+}
+
+.notice-category{
+    display:inline-flex;
+    align-items:center;
+    min-height:27px;
+    padding:0 10px;
+    margin-bottom:13px;
+    border-radius:6px;
+    background:#f5f5f5;
+    color:#555;
+    font-size:13px;
+    font-weight:700;
+}
+
+.notice-detail h1{
+    margin:0;
+    color:#222;
+    font-size:30px;
+    line-height:1.45;
+    word-break:keep-all;
+}
+
+.notice-meta{
+    display:flex;
+    flex-wrap:wrap;
+    gap:14px;
+    margin-top:15px;
+    color:#888;
+    font-size:13px;
+}
+
+.notice-body{
+    min-height:250px;
+    padding:40px 0;
+    color:#333;
+    font-size:16px;
+    line-height:1.85;
+    word-break:break-word;
+}
+
+.notice-body img{
+    max-width:100%;
+    height:auto;
+}
+
+.notice-images{
+    display:grid;
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(220px,1fr)
+        );
+    gap:14px;
+    margin:10px 0 35px;
+}
+
+.notice-image{
+    overflow:hidden;
+    border:1px solid #eee;
+    border-radius:10px;
+    background:#fafafa;
+}
+
+.notice-image img{
+    display:block;
+    width:100%;
+    height:auto;
+}
+
+.notice-attachments{
+    margin:10px 0 35px;
+    padding:20px;
+    border:1px solid #e7e7e7;
+    border-radius:10px;
+    background:#fafafa;
+}
+
+.notice-attachments h3{
+    margin:0 0 14px;
+    font-size:15px;
+}
+
+.notice-file{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+    padding:11px 0;
+    border-top:1px solid #eee;
+}
+
+.notice-file:first-of-type{
+    border-top:0;
+}
+
+.notice-file-info{
+    min-width:0;
+}
+
+.notice-file-name{
+    display:block;
+    overflow:hidden;
+    color:#333;
+    font-weight:700;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+.notice-file-size{
+    display:block;
+    margin-top:3px;
+    color:#999;
+    font-size:12px;
+}
+
+.notice-download{
+    flex:0 0 auto;
+    padding:8px 12px;
+    border:1px solid #ddd;
+    border-radius:7px;
+    background:#fff;
+    color:#333;
+    text-decoration:none;
+    font-size:13px;
+    font-weight:700;
+}
+
+.notice-navigation{
+    margin-top:30px;
+    border-top:1px solid #ddd;
+    border-bottom:1px solid #ddd;
+}
+
+.notice-navigation-row{
+    display:grid;
+    grid-template-columns:85px minmax(0,1fr);
+    gap:15px;
+    padding:14px 5px;
+    border-top:1px solid #eee;
+}
+
+.notice-navigation-row:first-child{
+    border-top:0;
+}
+
+.notice-navigation-label{
+    color:#888;
+    font-size:13px;
+}
+
+.notice-navigation a{
+    overflow:hidden;
+    color:#333;
+    text-decoration:none;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+.notice-actions{
+    display:flex;
+    justify-content:center;
+    padding-top:30px;
+}
+
+.notice-actions a{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-height:43px;
+    padding:0 24px;
+    border:1px solid #ddd;
+    border-radius:8px;
+    background:#fff;
+    color:#333;
+    text-decoration:none;
+    font-weight:700;
+}
+
+@media(max-width:700px){
+
+    .notice-detail{
+        padding-top:35px;
+    }
+
+    .notice-detail h1{
+        font-size:24px;
+    }
+
+    .notice-file{
+        align-items:flex-start;
+    }
+
+}
+
+</style>
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+{% include "website/includes/public_layout_css.html" %}
+</head>
+
+
+
+<body>
+
+
+{% include "website/includes/public_header.html" %}
+
+
+<section class="sub-hero">
+
+<div>
+
+<p>
+    GYEONGNAM PET DOG ASSOCIATION
+</p>
+
+<h1>
+    공지 및 소식
+</h1>
+
+<span>
+    협회의 새로운 소식과
+    반려견 관련 정보를 전해드립니다.
+</span>
+
+</div>
+
+</section>
+
+
+<main class="notice-detail">
+
+
+<header class="notice-detail-head">
+
+<div class="notice-category">
+
+{% if post.category %}
+    {{ post.category.name }}
+{% else %}
+    공지사항
+{% endif %}
+
+</div>
+
+
+<h1>
+    {{ post.title }}
+</h1>
+
+
+<div class="notice-meta">
+
+<span>
+    {{ post.created_at|date:"Y.m.d H:i" }}
+</span>
+
+{% if public_view_count != None %}
+<span>
+    조회 {{ public_view_count }}
+</span>
+{% endif %}
+
+{% if post.is_pinned %}
+<span>
+    상단고정
+</span>
+{% endif %}
+
+{% if post.is_important %}
+<span>
+    중요
+</span>
+{% endif %}
+
+</div>
+
+</header>
+
+
+<article class="notice-body">
+    {{ post.body|safe }}
+</article>
+
+
+{% if image_files %}
+
+<section class="notice-images">
+
+{% for attachment in image_files %}
+
+<a
+    class="notice-image"
+    href="{{ attachment.file.url }}"
+    target="_blank"
+    rel="noopener"
+>
+
+<img
+    src="{{ attachment.file.url }}"
+    alt="{{ attachment.public_filename }}"
+    loading="lazy"
+>
+
+</a>
+
+{% endfor %}
+
+</section>
+
+{% endif %}
+
+
+{% if attachments %}
+
+<section class="notice-attachments">
+
+<h3>
+    📎 첨부파일 {{ attachments|length }}개
+</h3>
+
+
+{% for attachment in attachments %}
+
+<div class="notice-file">
+
+<div class="notice-file-info">
+
+<span class="notice-file-name">
+    {{ attachment.public_filename }}
+</span>
+
+{% if attachment.public_size %}
+
+<span class="notice-file-size">
+    {{ attachment.public_size|filesizeformat }}
+</span>
+
+{% endif %}
+
+</div>
+
+
+<a
+    class="notice-download"
+    href="{{ attachment.file.url }}"
+    download
+>
+    다운로드
+</a>
+
+</div>
+
+{% endfor %}
+
+</section>
+
+{% endif %}
+
+
+<div class="notice-navigation">
+
+{% if next_post %}
+
+<div class="notice-navigation-row">
+
+<span class="notice-navigation-label">
+    다음글
+</span>
+
+<a href="{% url 'public_board_detail' next_post.pk %}">
+    {{ next_post.title }}
+</a>
+
+</div>
+
+{% endif %}
+
+
+{% if previous_post %}
+
+<div class="notice-navigation-row">
+
+<span class="notice-navigation-label">
+    이전글
+</span>
+
+<a href="{% url 'public_board_detail' previous_post.pk %}">
+    {{ previous_post.title }}
+</a>
+
+</div>
+
+{% endif %}
+
+</div>
+
+
+<div class="notice-actions">
+
+<a href="/board.html?tab=notice">
+    목록으로
+</a>
+
+</div>
+
+
+</main>
+
+
+{% include "website/includes/public_footer.html" %}
+
+
+</body>
+</html>
