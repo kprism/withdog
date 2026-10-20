@@ -152,15 +152,33 @@
 </script>
 {% endif %}
 
-<div class="bot-float"{% if not public_chatbot_enabled %} hidden{% endif %}>
+<div class="bot-float bot-float--split"{% if not public_chatbot_enabled %} hidden{% endif %}>
+    <button
+        type="button"
+        class="bot-direct-action bot-direct-ask"
+        aria-label="AI 문의 열기"
+    >
+        <span class="bot-direct-icon" aria-hidden="true">💬</span>
+        <span>AI 문의</span>
+    </button>
+
     <button
         id="botButton"
         type="button"
-        aria-label="{{ public_chatbot_name|default:'견생 도우미 열기' }}"
+        aria-label="AI 문의 열기"
         data-authenticated="{% if request.user.is_authenticated %}1{% else %}0{% endif %}"
         data-server-video="{{ public_chatbot_video_url }}"
     >{% if public_chatbot_video_url %}<video src="{{ public_chatbot_video_url }}" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video>{% endif %}</button>
+
+    <button
+        type="button"
+        class="bot-direct-action bot-direct-share"
+        aria-label="견생 자랑하기"
+    >
+        <span class="bot-direct-icon" aria-hidden="true">🐾</span>
+        <span>견생 자랑</span>
+    </button>
 </div>
 
 
-<script src="/assets/js/chatbot.js?v=20261020-no-flash-v2"></script>
+<script src="/assets/js/chatbot.js?v=20261020-split-actions-v3"></script>
