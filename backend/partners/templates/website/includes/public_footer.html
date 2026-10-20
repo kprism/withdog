@@ -152,9 +152,15 @@
 </script>
 {% endif %}
 
-<div class="bot-float">
-    <button id="botButton" type="button" aria-label="견생 도우미 열기" data-authenticated="{% if request.user.is_authenticated %}1{% else %}0{% endif %}">🐕</button>
+<div class="bot-float"{% if not public_chatbot_enabled %} hidden{% endif %}>
+    <button
+        id="botButton"
+        type="button"
+        aria-label="{{ public_chatbot_name|default:'견생 도우미 열기' }}"
+        data-authenticated="{% if request.user.is_authenticated %}1{% else %}0{% endif %}"
+        data-server-video="{{ public_chatbot_video_url }}"
+    >{% if public_chatbot_video_url %}<video src="{{ public_chatbot_video_url }}" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video>{% endif %}</button>
 </div>
 
 
-<script src="/assets/js/chatbot.js?v=20261008-doglife-actions-v1"></script>
+<script src="/assets/js/chatbot.js?v=20261020-no-flash-v2"></script>
