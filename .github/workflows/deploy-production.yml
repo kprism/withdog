@@ -429,6 +429,47 @@ jobs:
 
           print('INTRO_FIRST_PAINT_NO_FLASH_OK', test_name)
           PY
+      - name: Verify persistent floating AI and Dog Life actions
+        working-directory: backend
+        run: |
+          python manage.py shell <<'PY'
+          from django.test import Client
+
+          response=Client().get('/')
+          assert response.status_code == 200
+          html=response.content.decode('utf-8','replace')
+
+          assert 'class="bot-float bot-float--split"' in html
+          assert 'class="bot-direct-action bot-direct-ask"' in html
+          assert 'class="bot-direct-action bot-direct-share"' in html
+          assert '>AI 문의<' in html
+          assert '>견생 자랑<' in html
+          assert html.find('bot-direct-ask') < html.find('id="botButton"') < html.find('bot-direct-share')
+          assert 'chatbot.js?v=20261020-split-actions-v3' in html
+
+          js=open('../assets/js/chatbot.js',encoding='utf-8').read()
+          css=open('../assets/css/style.css',encoding='utf-8').read()
+          footer=open(
+              'partners/templates/website/includes/public_footer.html',
+              encoding='utf-8',
+          ).read()
+
+          assert "const askButton = floatBox?.querySelector('.bot-direct-ask')" in js
+          assert "const shareButton = floatBox?.querySelector('.bot-direct-share')" in js
+          assert 'function openInquiry()' in js
+          assert 'function openDogLifeWrite()' in js
+          assert "actions.classList.toggle('open')" not in js
+          assert "document.createElement('div');\n    actions.className = 'bot-radial-actions'" not in js
+
+          assert '.bot-float.bot-float--split' in css
+          assert '.bot-direct-ask' in css
+          assert '.bot-direct-share' in css
+          assert '.bot-radial-actions{\n    display:none!important;' in css
+          assert 'AI 문의' in footer
+          assert '견생 자랑' in footer
+
+          print('FLOATING_SPLIT_HUB_OK')
+          PY
       - name: Verify homepage notice and pet news feed
         working-directory: backend
         run: |
@@ -907,6 +948,20 @@ jobs:
                   raise SystemExit('Intro menu presentation controls missing')
               if home_html.count('id="botButton"') != 1:
                   raise SystemExit('Homepage must render exactly one chatbot button')
+              if 'class="bot-float bot-float--split"' not in home_html:
+                  raise SystemExit('Persistent split floating hub missing')
+              if 'class="bot-direct-action bot-direct-ask"' not in home_html or '>AI 문의<' not in home_html:
+                  raise SystemExit('AI inquiry action missing from floating hub')
+              if 'class="bot-direct-action bot-direct-share"' not in home_html or '>견생 자랑<' not in home_html:
+                  raise SystemExit('Dog Life share action missing from floating hub')
+              if not (
+                  home_html.find('bot-direct-ask')
+                  < home_html.find('id="botButton"')
+                  < home_html.find('bot-direct-share')
+              ):
+                  raise SystemExit('Floating hub vertical action order is wrong')
+              if 'chatbot.js?v=20261020-split-actions-v3' not in home_html:
+                  raise SystemExit('Floating hub chatbot asset version missing')
               if 'data-live-hero="1"' not in home_html or 'data-server-hero="1"' not in home_html:
                   raise SystemExit('Live hero was not server-rendered on first paint')
               if 'images.unsplash.com/photo-1558788353-f76d92427f16' in home_html:
