@@ -155,6 +155,28 @@ def public_home(request):
 
 
 
+@never_cache
+def public_partner_join(request):
+    """Serve the homepage while opening the partner registration tab directly."""
+    response = public_home(request)
+    html = response.content.decode('utf-8', 'replace')
+
+    # This dedicated deep link lives under /join/, so force all relative assets
+    # and links in the static homepage to resolve from the site root.
+    if '<base href="/">' not in html:
+        html = html.replace('<head>', '<head><base href="/">', 1)
+
+    direct = HttpResponse(
+        html,
+        content_type='text/html; charset=utf-8',
+        status=response.status_code,
+    )
+    direct['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    direct['Pragma'] = 'no-cache'
+    direct['Expires'] = '0'
+    return direct
+
+
 def public_static_page(request, filename):
     """Serve legacy public HTML through an explicit route and force the intro header/footer markup."""
     import re
@@ -343,6 +365,10 @@ urlpatterns = [
         serve,
         {'document_root': settings.MEDIA_ROOT},
     ),
+
+    # 제휴업체 전용 회원가입 딥링크
+    path('join/partner', public_partner_join, name='public_partner_join'),
+    path('join/partner/', public_partner_join, name='public_partner_join_slash'),
 
     # 홈페이지 첫 화면: / 와 /index.html 모두 최신 HTML을 즉시 제공
     path('', public_home, name='home'),
