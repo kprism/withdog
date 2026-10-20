@@ -225,6 +225,18 @@ class SiteSetting(models.Model):
     og_description = models.CharField(max_length=320, blank=True, default='')
     og_image_url = models.URLField(max_length=1000, blank=True, default='')
 
+    # Footer SNS links and custom icon images.
+    instagram_url = models.URLField(max_length=500, blank=True, default='')
+    instagram_icon = models.ImageField(upload_to='site/social/', blank=True)
+    youtube_url = models.URLField(max_length=500, blank=True, default='')
+    youtube_icon = models.ImageField(upload_to='site/social/', blank=True)
+    naver_blog_url = models.URLField(max_length=500, blank=True, default='')
+    naver_blog_icon = models.ImageField(upload_to='site/social/', blank=True)
+    facebook_url = models.URLField(max_length=500, blank=True, default='')
+    facebook_icon = models.ImageField(upload_to='site/social/', blank=True)
+    kakao_channel_url = models.URLField(max_length=500, blank=True, default='')
+    kakao_channel_icon = models.ImageField(upload_to='site/social/', blank=True)
+
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
