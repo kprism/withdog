@@ -1459,3 +1459,132 @@
         font-size:10.5px!important;
     }
 }
+
+
+/* ============================================================
+   FLOATING AI / DOG LIFE SPLIT HUB 2026-10-20
+   Persistent labels make the two functions understandable at a glance.
+   ============================================================ */
+.bot-float.bot-float--split{
+    right:24px!important;
+    bottom:76px!important;
+    width:100px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:flex-end!important;
+    gap:5px!important;
+    overflow:visible!important;
+}
+
+.bot-float.bot-float--split[hidden]{
+    display:none!important;
+}
+
+.bot-float.bot-float--split .bot-direct-action{
+    width:94px!important;
+    height:32px!important;
+    min-width:94px!important;
+    min-height:32px!important;
+    padding:0 10px!important;
+    border-radius:999px!important;
+    border:1px solid rgba(255,255,255,.72)!important;
+    box-shadow:0 6px 18px rgba(0,0,0,.18)!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:5px!important;
+    overflow:visible!important;
+    font-size:12px!important;
+    line-height:1!important;
+    font-weight:900!important;
+    letter-spacing:-.025em!important;
+    white-space:nowrap!important;
+    cursor:pointer!important;
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+}
+
+.bot-float.bot-float--split .bot-direct-ask{
+    background:rgba(9,56,34,.96)!important;
+    color:#fff!important;
+}
+
+.bot-float.bot-float--split .bot-direct-share{
+    background:rgba(204,38,44,.96)!important;
+    color:#fff!important;
+}
+
+.bot-float.bot-float--split .bot-direct-action:hover,
+.bot-float.bot-float--split .bot-direct-action:focus-visible{
+    transform:translateY(-1px)!important;
+    box-shadow:0 9px 22px rgba(0,0,0,.24)!important;
+}
+
+.bot-float.bot-float--split .bot-direct-icon{
+    font-size:13px!important;
+    line-height:1!important;
+}
+
+.bot-float.bot-float--split #botButton{
+    width:82px!important;
+    height:82px!important;
+    min-width:82px!important;
+    min-height:82px!important;
+    flex:0 0 82px!important;
+    border-radius:50%!important;
+    overflow:hidden!important;
+    border:0!important;
+    outline:0!important;
+    padding:0!important;
+    margin:0!important;
+    background:transparent!important;
+    box-shadow:0 8px 22px rgba(0,0,0,.14)!important;
+    cursor:pointer!important;
+}
+
+.bot-float.bot-float--split #botButton video,
+.bot-float.bot-float--split #botButton img{
+    width:100%!important;
+    height:100%!important;
+    object-fit:cover!important;
+    border-radius:50%!important;
+    display:block!important;
+    background:transparent!important;
+}
+
+/* The old radial popup is retired. */
+.bot-radial-actions{
+    display:none!important;
+}
+
+@media(max-width:760px){
+    .bot-float.bot-float--split{
+        right:12px!important;
+        bottom:82px!important;
+        width:88px!important;
+        gap:4px!important;
+    }
+
+    .bot-float.bot-float--split .bot-direct-action{
+        width:84px!important;
+        min-width:84px!important;
+        height:29px!important;
+        min-height:29px!important;
+        padding:0 8px!important;
+        font-size:11px!important;
+        gap:4px!important;
+    }
+
+    .bot-float.bot-float--split .bot-direct-icon{
+        font-size:12px!important;
+    }
+
+    .bot-float.bot-float--split #botButton{
+        width:72px!important;
+        height:72px!important;
+        min-width:72px!important;
+        min-height:72px!important;
+        flex-basis:72px!important;
+    }
+}

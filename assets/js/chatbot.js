@@ -179,19 +179,13 @@ async function boot(){
 
 
     /* --------------------------------------------------------
-       FLOATING ACTIONS: 물어봐요 / 자랑해요
+       FLOATING ACTIONS: 위 AI 문의 / 가운데 강아지 / 아래 견생 자랑
+       서버 HTML에 처음부터 렌더링하여 기능을 한눈에 알 수 있게 한다.
     -------------------------------------------------------- */
 
     const floatBox = oldButton.closest('.bot-float');
-    const actions = document.createElement('div');
-    actions.className = 'bot-radial-actions';
-    actions.innerHTML = `
-        <button type="button" class="bot-radial-action bot-radial-ask">물어봐요</button>
-        <button type="button" class="bot-radial-action bot-radial-share">자랑해요</button>
-    `;
-    if(floatBox){
-        floatBox.appendChild(actions);
-    }
+    const askButton = floatBox?.querySelector('.bot-direct-ask');
+    const shareButton = floatBox?.querySelector('.bot-direct-share');
 
     /* --------------------------------------------------------
        PANEL
@@ -470,38 +464,33 @@ async function boot(){
        EVENTS
     -------------------------------------------------------- */
 
+    function openInquiry(){
+        panel.classList.add('open');
+        setTimeout(()=>input.focus(),50);
+    }
+
+    function openDogLifeWrite(){
+        if(oldButton.dataset.authenticated === '1'){
+            location.href='/doglife/write/';
+        }else{
+            location.href='/?login=1&next=/doglife/write/';
+        }
+    }
+
     oldButton.addEventListener(
         'click',
-        ()=>{
-            actions.classList.toggle('open');
-        }
+        openInquiry
     );
 
-    actions.querySelector('.bot-radial-ask')?.addEventListener(
+    askButton?.addEventListener(
         'click',
-        ()=>{
-            actions.classList.remove('open');
-            panel.classList.add('open');
-            setTimeout(()=>input.focus(),50);
-        }
+        openInquiry
     );
 
-    actions.querySelector('.bot-radial-share')?.addEventListener(
+    shareButton?.addEventListener(
         'click',
-        ()=>{
-            actions.classList.remove('open');
-            if(oldButton.dataset.authenticated === '1'){
-                location.href='/doglife/write/';
-            }else{
-                location.href='/?login=1&next=/doglife/write/';
-            }
-        }
+        openDogLifeWrite
     );
-
-    document.addEventListener('click',event=>{
-        if(!floatBox || floatBox.contains(event.target))return;
-        actions.classList.remove('open');
-    });
 
 
     panel.querySelector(
