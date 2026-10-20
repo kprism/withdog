@@ -210,6 +210,78 @@ jobs:
 
           print('PARTNER_MENU_CITY_DISCOUNT_KAKAO_OK')
           PY
+      - name: Verify footer social settings and homepage cleanup
+        working-directory: backend
+        run: |
+          python manage.py shell <<'PY'
+          from django.test import Client
+          from partners.models import SiteSetting
+
+          setting=SiteSetting.get_solo()
+          originals={
+              'instagram_url':setting.instagram_url,
+              'youtube_url':setting.youtube_url,
+              'naver_blog_url':setting.naver_blog_url,
+              'facebook_url':setting.facebook_url,
+              'kakao_channel_url':setting.kakao_channel_url,
+          }
+
+          setting.instagram_url='https://www.instagram.com/ci-thepetkorea/'
+          setting.youtube_url=''
+          setting.naver_blog_url=''
+          setting.facebook_url=''
+          setting.kakao_channel_url=''
+          setting.save()
+
+          response=Client().get('/')
+          assert response.status_code == 200
+          html=response.content.decode('utf-8','replace')
+          assert '<section class="join"' not in html
+          assert 'class="to-top"' not in html
+          assert 'class="footer-social"' in html
+          assert 'https://www.instagram.com/ci-thepetkorea/' in html
+          assert 'aria-label="Instagram"' in html
+          assert '<span>IG</span>' in html
+
+          site_settings_template=open(
+              'partners/templates/dashboard/seo_site_settings.html',
+              encoding='utf-8',
+          ).read()
+          website_views=open(
+              'partners/website_views.py',
+              encoding='utf-8',
+          ).read()
+          footer_template=open(
+              'partners/templates/website/includes/public_footer.html',
+              encoding='utf-8',
+          ).read()
+          style_css=open('../assets/css/style.css',encoding='utf-8').read()
+
+          assert '<h3>푸터 SNS 계정</h3>' in site_settings_template
+          for field in (
+              'instagram_icon',
+              'youtube_icon',
+              'naver_blog_icon',
+              'facebook_icon',
+              'kakao_channel_icon',
+          ):
+              assert f'name="{field}"' in site_settings_template
+
+          assert "social_fields = (" in website_views
+          assert "'instagram'," in website_views
+          assert "'kakao_channel'," in website_views
+          assert 'footer-social__links' in footer_template
+          assert 'class="to-top"' not in footer_template
+          assert '.footer-social__links' in style_css
+          assert '.to-top{position:fixed' not in style_css
+          assert '.join{min-height:380px' not in style_css
+
+          for field,value in originals.items():
+              setattr(setting,field,value)
+          setting.save()
+
+          print('FOOTER_SOCIAL_AND_HOMEPAGE_CLEANUP_OK')
+          PY
       - name: Verify homepage notice and pet news feed
         working-directory: backend
         run: |
@@ -461,6 +533,10 @@ jobs:
           get_template('website/includes/public_footer.html')
           css = Path('../assets/css/style.css').read_text(encoding='utf-8')
           partner_model = Path('partners/models.py').read_text(encoding='utf-8')
+          assert 'instagram_url = models.URLField' in partner_model
+          assert "instagram_icon = models.ImageField(upload_to='site/social/'" in partner_model
+          assert 'kakao_channel_url = models.URLField' in partner_model
+          assert "kakao_channel_icon = models.ImageField(upload_to='site/social/'" in partner_model
           partner_views = Path('partners/views.py').read_text(encoding='utf-8')
           partner_dashboard_views = Path('partners/dashboard_views.py').read_text(encoding='utf-8')
           assert "discount_percent=models.PositiveSmallIntegerField" in partner_model
@@ -674,6 +750,10 @@ jobs:
               home_html=response.read().decode('utf-8','replace')
               if 'site-header--intro' not in home_html:
                   raise SystemExit('Intro glass header class missing')
+              if '<section class="join"' in home_html:
+                  raise SystemExit('Legacy red JOIN US block still present')
+              if 'class="to-top"' in home_html:
+                  raise SystemExit('Legacy floating top button still present')
               if 'quick-nav' in home_html:
                   raise SystemExit('Legacy lower quick navigation still present')
               if '--intro-nav-opacity:' not in home_html or '--menu-font-size:' not in home_html:

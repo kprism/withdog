@@ -275,6 +275,35 @@ def seo_site_settings(request):
         if request.FILES.get('favicon'):
             if s.favicon: _delete_file(s.favicon)
             s.favicon=request.FILES['favicon']
+
+        social_fields = (
+            'instagram',
+            'youtube',
+            'naver_blog',
+            'facebook',
+            'kakao_channel',
+        )
+        for prefix in social_fields:
+            setattr(
+                s,
+                f'{prefix}_url',
+                (request.POST.get(f'{prefix}_url') or '').strip(),
+            )
+            icon_field=f'{prefix}_icon'
+            current_icon=getattr(s,icon_field)
+
+            if request.POST.get(f'delete_{icon_field}') == '1':
+                if current_icon:
+                    _delete_file(current_icon)
+                setattr(s,icon_field,'')
+                current_icon=''
+
+            uploaded=request.FILES.get(icon_field)
+            if uploaded:
+                if current_icon:
+                    _delete_file(current_icon)
+                setattr(s,icon_field,uploaded)
+
         s.save()
         messages.success(request,'사이트 설정과 검색엔진 SEO 정보가 저장되었습니다.')
         return redirect('operator_dashboard:seo_site_settings')
