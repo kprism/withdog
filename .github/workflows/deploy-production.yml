@@ -322,13 +322,14 @@ jobs:
           html=response.content.decode('utf-8','replace')
 
           assert 'data-live-hero="1"' in html
-          assert f'data-cms-id="{hero.pk}"' in html
-          assert 'https://cdn.example.com/current-intro.mp4' in html
-          assert '<video class="hero-media"' in html
-          assert 'autoplay muted loop playsinline preload="auto"' in html
-          assert 'images.unsplash.com/photo-1558788353-f76d92427f16' not in html
-          assert 'images.unsplash.com/photo-1543466835-00a7907e9de1' not in html
-          assert 'images.unsplash.com/photo-1518717758536-85ae29035b6d' not in html
+          hero_html=html.split('<section class="hero"',1)[1].split('</section>',1)[0]
+          assert f'data-cms-id="{hero.pk}"' in hero_html
+          assert 'https://cdn.example.com/current-intro.mp4' in hero_html
+          assert '<video class="hero-media"' in hero_html
+          assert 'autoplay muted loop playsinline preload="auto"' in hero_html
+          assert 'images.unsplash.com/photo-1558788353-f76d92427f16' not in hero_html
+          assert 'images.unsplash.com/photo-1543466835-00a7907e9de1' not in hero_html
+          assert 'images.unsplash.com/photo-1518717758536-85ae29035b6d' not in hero_html
 
           assert 'data-server-video="' in html
           assert 'ci-current-bot' in html
@@ -344,8 +345,9 @@ jobs:
               encoding='utf-8',
           ).read()
 
-          assert 'images.unsplash.com/photo-1558788353-f76d92427f16' not in index_html
-          assert '<div class="hero-slide active"' not in index_html
+          static_hero=index_html.split('<section class="hero"',1)[1].split('</section>',1)[0]
+          assert 'images.unsplash.com/photo-1558788353-f76d92427f16' not in static_hero
+          assert 'hero-slide' not in static_hero
           assert "setInterval(()=>show(current+1),5000)" not in app_js
           assert 'sameServerHero' in cms_js
           assert "oldButton.dataset.serverVideo" in chatbot_js
