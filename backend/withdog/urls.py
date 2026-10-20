@@ -54,6 +54,142 @@ def _render_public_shell(request, html):
     return html
 
 
+
+def _render_live_home_hero(request):
+    """Render only the currently published hero media on the initial HTML response."""
+    import re
+    from partners.models import ContentItem, SiteSetting
+
+    setting = SiteSetting.get_solo()
+    slides = list(
+        ContentItem.objects
+        .filter(kind='hero', is_published=True)
+        .order_by('sort_order', 'pk')
+    )
+
+    def media_markup(item, active):
+        classes = 'hero-slide cms-hero-slide' + (' active' if active else '')
+        common = (
+            f'class="{classes}" '
+            f'data-server-hero="1" '
+            f'data-cms-id="{item.pk}"'
+        )
+
+        image_url = ''
+        try:
+            image_url = item.image.url if item.image else (item.image_url or '')
+        except (ValueError, FileNotFoundError):
+            image_url = item.image_url or ''
+
+        video_url = ''
+        try:
+            video_url = item.video.url if item.video else ''
+        except (ValueError, FileNotFoundError):
+            video_url = ''
+
+        if item.media_type == 'video_file' and video_url:
+            return (
+                f'<div {common}>'
+                f'<video class="hero-media" src="{escape(video_url)}" '
+                'autoplay muted loop playsinline preload="auto"></video>'
+                '</div>'
+            )
+
+        if item.media_type == 'video_url' and item.video_url:
+            source = str(item.video_url).strip()
+            match = re.search(
+                r'(?:youtu\.be/|youtube\.com/(?:watch\?v=|embed/|shorts/))([^?&/]+)',
+                source,
+                re.I,
+            )
+            if match:
+                media_id = escape(match.group(1))
+                src = (
+                    f'https://www.youtube.com/embed/{media_id}'
+                    f'?autoplay=1&mute=1&loop=1&playlist={media_id}'
+                    '&controls=0&playsinline=1'
+                )
+                return (
+                    f'<div {common}>'
+                    f'<iframe class="hero-media" src="{src}" '
+                    'allow="autoplay; encrypted-media; picture-in-picture" '
+                    'allowfullscreen></iframe>'
+                    '</div>'
+                )
+            return (
+                f'<div {common}>'
+                f'<video class="hero-media" src="{escape(source)}" '
+                'autoplay muted loop playsinline preload="auto"></video>'
+                '</div>'
+            )
+
+        if image_url:
+            safe_url = escape(image_url)
+            return (
+                f'<div {common} '
+                f'style="--bg:url(&quot;{safe_url}&quot;)"></div>'
+            )
+
+        return f'<div {common}></div>'
+
+    slide_markup = ''.join(
+        media_markup(item, index == 0)
+        for index, item in enumerate(slides)
+    )
+
+    first = slides[0] if slides else None
+
+    if first:
+        eyebrow = escape(first.hero_eyebrow or '')
+        title_lines = str(first.hero_title or '').split('\n')
+        title = '<br>'.join(escape(line) for line in title_lines)
+        meta1 = escape(first.hero_meta1 or '')
+        meta2 = escape(first.hero_meta2 or '')
+        meta1_size = max(10, min(40, int(first.hero_meta1_font_size or 16)))
+        meta2_size = max(10, min(40, int(first.hero_meta2_font_size or 16)))
+
+        buttons = []
+        if first.hero_button1_text:
+            buttons.append(
+                '<a class="btn btn-red" href="'
+                + escape(first.hero_button1_link or '#')
+                + '">'
+                + escape(first.hero_button1_text)
+                + '</a>'
+            )
+        if first.hero_button2_text:
+            buttons.append(
+                '<a class="btn btn-glass" href="'
+                + escape(first.hero_button2_link or '#')
+                + '">'
+                + escape(first.hero_button2_text)
+                + '</a>'
+            )
+
+        content = (
+            '<div class="hero-content" data-server-hero-content="1">'
+            f'<p class="eyebrow">{eyebrow}</p>'
+            f'<h1>{title}</h1>'
+            f'<p class="hero-meta" style="font-size:{meta1_size}px">{meta1}</p>'
+            f'<p class="hero-meta" style="font-size:{meta2_size}px">{meta2}</p>'
+            '<div class="hero-buttons">'
+            + ''.join(buttons)
+            + '</div></div>'
+        )
+    else:
+        content = '<div class="hero-content" data-server-hero-content="1"></div>'
+
+    return (
+        '<section class="hero" data-live-hero="1" '
+        f'data-stage-width="{setting.intro_stage_width}" '
+        f'data-stage-height="{setting.intro_stage_height}">'
+        + slide_markup
+        + '<div class="hero-shade"></div>'
+        + content
+        + '</section>'
+    )
+
+
 @never_cache
 def public_home(request):
     """Serve the live homepage without allowing stale HTML to mask deployed UI fixes."""
@@ -63,6 +199,16 @@ def public_home(request):
     import json
     html=(ROOT / 'index.html').read_text(encoding='utf-8')
     html=_render_public_shell(request, html)
+
+    # Replace the legacy static hero before the response leaves Django.
+    # This prevents deleted/old images from flashing before cms.js loads.
+    html=re.sub(
+        r'<section class="hero"[^>]*>.*?</section>',
+        _render_live_home_hero(request),
+        html,
+        count=1,
+        flags=re.I|re.S,
+    )
 
     # Dog Life homepage feed.
     # Default is popularity; users can switch to latest without leaving the homepage.
