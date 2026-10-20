@@ -282,6 +282,62 @@ jobs:
 
           print('FOOTER_SOCIAL_AND_HOMEPAGE_CLEANUP_OK')
           PY
+      - name: Verify dedicated favicon delete action
+        working-directory: backend
+        run: |
+          python manage.py shell <<'PY'
+          from django.contrib.auth import get_user_model
+          from django.core.files.uploadedfile import SimpleUploadedFile
+          from django.test import Client
+          from partners.models import SiteSetting
+
+          User=get_user_model()
+          admin=User.objects.create_superuser(
+              username='ci-favicon-admin',
+              email='ci-favicon@example.com',
+              password='ci-test-password',
+          )
+
+          setting=SiteSetting.get_solo()
+          original_name=setting.favicon.name if setting.favicon else ''
+          setting.favicon=SimpleUploadedFile(
+              'ci-favicon.png',
+              b'fake-favicon',
+              content_type='image/png',
+          )
+          setting.save()
+          test_name=setting.favicon.name
+
+          client=Client()
+          client.force_login(admin)
+
+          page=client.get('/dashboard/site-settings/')
+          assert page.status_code == 200
+          html=page.content.decode('utf-8','replace')
+          assert 'name="action" value="delete_favicon"' in html
+          assert '파비콘 삭제' in html
+          assert 'name="delete_favicon"' not in html
+
+          response=client.post(
+              '/dashboard/site-settings/',
+              {'action':'delete_favicon'},
+              follow=False,
+          )
+          assert response.status_code == 302
+
+          setting.refresh_from_db()
+          assert not setting.favicon
+
+          favicon_response=client.get('/favicon.ico')
+          assert favicon_response.status_code == 404
+
+          if original_name:
+              setting.favicon.name=original_name
+              setting.save(update_fields=['favicon','updated_at'])
+
+          admin.delete()
+          print('FAVICON_DELETE_ACTION_OK', test_name)
+          PY
       - name: Verify intro first-paint media and floating bot no-flash
         working-directory: backend
         run: |

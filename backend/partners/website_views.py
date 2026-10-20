@@ -261,6 +261,18 @@ def seo_site_settings(request):
         match=re.search(r'''content=["']([^"']+)["']''', value, re.I)
         return match.group(1).strip() if match else value
     if request.method=='POST':
+        action=(request.POST.get('action') or 'save').strip()
+
+        if action == 'delete_favicon':
+            if s.favicon:
+                _delete_file(s.favicon)
+                s.favicon=''
+                s.save(update_fields=['favicon','updated_at'])
+                messages.success(request,'파비콘이 삭제되었습니다. 브라우저 캐시에 남아 있으면 새로고침 후 사라집니다.')
+            else:
+                messages.info(request,'삭제할 파비콘이 없습니다.')
+            return redirect('operator_dashboard:seo_site_settings')
+
         s.site_name=request.POST.get('site_name','').strip() or s.site_name
         s.canonical_url=request.POST.get('canonical_url','').strip() or 'https://thepetkorea.co.kr/'
         s.meta_description=request.POST.get('meta_description','').strip()
@@ -270,8 +282,6 @@ def seo_site_settings(request):
         s.og_title=request.POST.get('og_title','').strip()
         s.og_description=request.POST.get('og_description','').strip()
         s.og_image_url=request.POST.get('og_image_url','').strip()
-        if request.POST.get('delete_favicon')=='1' and s.favicon:
-            _delete_file(s.favicon); s.favicon=''
         if request.FILES.get('favicon'):
             if s.favicon: _delete_file(s.favicon)
             s.favicon=request.FILES['favicon']

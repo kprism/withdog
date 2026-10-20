@@ -13,7 +13,7 @@
 <div class="field"><label>네이버 사이트 소유확인 값</label><input name="naver_site_verification" value="{{ s.naver_site_verification }}"></div>
 <div class="field"><label>Google 사이트 소유확인 값</label><input name="google_site_verification" value="{{ s.google_site_verification }}"></div>
 </div></div>
-<div class="panel"><h3>파비콘</h3><div class="field"><label>파비콘 이미지</label><input type="file" name="favicon" accept="image/*,.ico">{% if s.favicon %}<p><img src="{{ s.favicon.url }}" alt="현재 파비콘" style="width:48px;height:48px;object-fit:contain;border:1px solid #ddd;border-radius:8px"> 현재 파비콘 <label style="margin-left:15px"><input type="checkbox" name="delete_favicon" value="1"> 삭제</label></p>{% endif %}</div></div>
+<div class="panel"><h3>파비콘</h3><div class="field"><label>파비콘 이미지</label><input type="file" name="favicon" accept="image/*,.ico">{% if s.favicon %}<div style="display:flex;align-items:center;gap:12px;margin-top:14px;flex-wrap:wrap"><img src="{{ s.favicon.url }}" alt="현재 파비콘" style="width:48px;height:48px;object-fit:contain;border:1px solid #ddd;border-radius:8px"><span>현재 파비콘</span><button type="submit" name="action" value="delete_favicon" formnovalidate onclick="return confirm('현재 파비콘을 삭제하시겠습니까?')" style="border:1px solid #dc2626;background:#fff;color:#dc2626;border-radius:8px;padding:8px 13px;font-weight:800;cursor:pointer">파비콘 삭제</button></div><p class="muted" style="margin-top:8px">삭제 버튼을 누르면 즉시 삭제되며 별도의 하단 저장 버튼을 누를 필요가 없습니다.</p>{% endif %}</div></div>
 <div class="panel"><h3>검색·SNS 공유 정보</h3><div class="form-grid">
 <div class="field"><label>OG 제목</label><input name="og_title" value="{{ s.og_title }}" placeholder="비워두면 사이트명 사용"></div>
 <div class="field"><label>OG 대표 이미지 URL</label><input type="url" name="og_image_url" value="{{ s.og_image_url }}"></div>
