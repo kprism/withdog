@@ -1,5 +1,5 @@
 <header
-    class="site-header {% if request.path == '/' %}site-header--intro{% else %}site-header--inner{% endif %}"
+    class="site-header {% if request.path == '/' or request.path == '/join/partner' or request.path == '/join/partner/' %}site-header--intro{% else %}site-header--inner{% endif %}"
     id="top"
     style="
         --brand-logo-size:{{ public_site.header_logo_size|default:48 }}px;
@@ -50,7 +50,7 @@
                 <button type="submit" class="auth-link auth-link--accent">로그아웃</button>
             </form>
         {% else %}
-            {% if request.path == '/' %}
+            {% if request.path == '/' or request.path == '/join/partner' or request.path == '/join/partner/' %}
                 <button type="button" class="auth-link auth-link--plain" data-member-login>LOGIN</button>
                 <button type="button" class="auth-link auth-link--plain" data-member-join>회원가입</button>
             {% else %}
