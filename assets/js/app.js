@@ -559,8 +559,13 @@ async function logoutMember(){
 
 // 페이지 진입 시 Django 세션 확인
 refreshMemberSession();
+const directPartnerJoin =
+    location.pathname.replace(/\/+$/,'') === '/join/partner';
 const loginParams=new URLSearchParams(location.search);
-if(loginParams.get('login')==='1'){
+
+if(directPartnerJoin){
+    setTimeout(()=>openAuth('partner'),80);
+}else if(loginParams.get('login')==='1'){
     setTimeout(()=>openAuth('login'),80);
 }
 document.querySelectorAll('a[href="#join"],a[href="/#join"],.join .btn-gold,.footer-banner .btn-red').forEach(el=>el.addEventListener('click',e=>{e.preventDefault();openAuth('member');}));document.querySelector('.quick-nav a[href="#partners"]')?.addEventListener('click',e=>{e.preventDefault();location.href='partners.html';});document.querySelector('.quick-nav a[href="#about"]')?.addEventListener('click',e=>{e.preventDefault();location.href='about.html';});document.querySelectorAll('a[href="#benefits"],.btn-dark-outline').forEach(el=>el.addEventListener('click',e=>{e.preventDefault();location.href='benefits.html';}));

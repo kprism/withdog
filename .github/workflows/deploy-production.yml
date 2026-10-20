@@ -510,6 +510,11 @@ jobs:
           assert 'background:rgba(255,255,255,.72)!important' in css
           print('MOBILE_NAVBAR_REFINEMENT_OK')
           header_html = Path('partners/templates/website/includes/public_header.html').read_text(encoding='utf-8')
+          app_js = Path('../assets/js/app.js').read_text(encoding='utf-8')
+          assert "path('join/partner', public_partner_join" in public_urls_py
+          assert "location.pathname.replace(/\\/+$/,'') === '/join/partner'" in app_js
+          assert "openAuth('partner')" in app_js
+          assert "request.path == '/join/partner'" in header_html
           assert '>LOGIN<' in header_html
           assert 'data-member-join>회원가입</button>' in header_html
           assert 'auth-link auth-link--accent" data-member-join' not in header_html
@@ -593,6 +598,7 @@ jobs:
 
           checks = [
               ('https://thepetkorea.co.kr/', False),
+              ('https://thepetkorea.co.kr/join/partner', True),
               ('https://thepetkorea.co.kr/about.html', True),
               ('https://thepetkorea.co.kr/benefits.html', True),
               ('https://thepetkorea.co.kr/partners.html', True),
@@ -654,6 +660,15 @@ jobs:
                       raise SystemExit(f'Legacy sponsor menu label still present: {url}')
                   if '🐶' in html.split('</header>', 1)[0]:
                       raise SystemExit(f'Legacy header dog fallback still present: {url}')
+
+          with urllib.request.urlopen('https://thepetkorea.co.kr/join/partner', timeout=20) as response:
+              direct_join_html=response.read().decode('utf-8','replace')
+              if '<base href="/">' not in direct_join_html:
+                  raise SystemExit('Partner join deep link base href missing')
+              if 'site-header--intro' not in direct_join_html:
+                  raise SystemExit('Partner join deep link did not render intro header')
+              if 'app.js?v=20261020-partner-direct-v2' not in direct_join_html:
+                  raise SystemExit('Partner join deep link app asset version missing')
 
           with urllib.request.urlopen('https://thepetkorea.co.kr/', timeout=20) as response:
               home_html=response.read().decode('utf-8','replace')
