@@ -114,6 +114,44 @@ def site_settings(request):
             messages.success(request,'인트로 상단 브랜드와 기준 캔버스가 저장되었습니다.')
             return redirect('operator_dashboard:website_settings')
 
+        if action == 'footer_social_save':
+            social_fields = (
+                ('instagram', '인스타그램'),
+                ('youtube', '유튜브'),
+                ('naver_blog', '네이버 블로그'),
+                ('facebook', '페이스북'),
+                ('kakao_channel', '카카오채널'),
+            )
+
+            for prefix, _label in social_fields:
+                setattr(
+                    setting,
+                    f'{prefix}_url',
+                    (request.POST.get(f'{prefix}_url') or '').strip(),
+                )
+
+                icon_field = f'{prefix}_icon'
+                current_icon = getattr(setting, icon_field)
+
+                if request.POST.get(f'delete_{icon_field}') == '1':
+                    if current_icon:
+                        _delete_file(current_icon)
+                    setattr(setting, icon_field, '')
+                    current_icon = ''
+
+                uploaded = request.FILES.get(icon_field)
+                if uploaded:
+                    if current_icon:
+                        _delete_file(current_icon)
+                    setattr(setting, icon_field, uploaded)
+
+            setting.save()
+            messages.success(
+                request,
+                '푸터 SNS 아이콘과 계정 주소가 저장되었습니다.',
+            )
+            return redirect('operator_dashboard:website_settings')
+
         if action == 'layer_add':
             hero=get_object_or_404(ContentItem,pk=request.POST.get('slide_id'),kind='hero')
             layer_type=request.POST.get('layer_type','text')
