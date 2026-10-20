@@ -1,7 +1,7 @@
 from django.db.models import Q
 from django.utils import timezone
 
-from .models import Advertisement, SiteSetting
+from .models import Advertisement, ChatbotSetting, SiteSetting
 
 
 def _public_page_key(path):
@@ -44,6 +44,16 @@ def public_site(request):
     except (OSError, ValueError):
         logo_video_url = ""
 
+    chatbot, _ = ChatbotSetting.objects.get_or_create(pk=1)
+    chatbot_video_url = ''
+    if chatbot.bot_video:
+        try:
+            chatbot_video_url = chatbot.bot_video.url
+            sep = '&' if '?' in chatbot_video_url else '?'
+            chatbot_video_url += sep + 'v=' + str(int(chatbot.updated_at.timestamp()))
+        except (OSError, ValueError):
+            chatbot_video_url = ''
+
     page_key = _public_page_key(request.path)
     ad_slots = {
         'right': [],
@@ -81,4 +91,7 @@ def public_site(request):
         'public_site_logo_video_url': logo_video_url,
         'public_page_key': page_key,
         'public_ads': ad_slots,
+        'public_chatbot_enabled': chatbot.enabled,
+        'public_chatbot_video_url': chatbot_video_url,
+        'public_chatbot_name': chatbot.bot_name,
     }
