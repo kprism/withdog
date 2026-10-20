@@ -125,17 +125,23 @@ async function boot(){
        VIDEO BUTTON
     -------------------------------------------------------- */
 
-    oldButton.innerHTML = '';
-
     if(config.video_url){
 
-        const video = document.createElement('video');
+        let video = oldButton.querySelector('video');
+        const currentVideo = oldButton.dataset.serverVideo || '';
 
-        video.src = config.video_url;
+        if(!video || currentVideo !== config.video_url){
+            oldButton.innerHTML = '';
+            video = document.createElement('video');
+            video.src = config.video_url;
+            oldButton.appendChild(video);
+        }
+
         video.autoplay = true;
         video.loop = true;
         video.muted = true;
         video.playsInline = true;
+        video.preload = 'auto';
 
         video.setAttribute(
             'aria-hidden',
@@ -155,13 +161,14 @@ async function boot(){
             }
         );
 
-        oldButton.appendChild(video);
-
+        oldButton.dataset.serverVideo = config.video_url;
         video.play().catch(()=>{});
 
     }else{
 
+        oldButton.innerHTML = '';
         oldButton.textContent = '🐕';
+        oldButton.dataset.serverVideo = '';
     }
 
 
