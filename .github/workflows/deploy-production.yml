@@ -291,7 +291,14 @@ jobs:
           from partners.models import ChatbotSetting, ContentItem
 
           # A current hero video must be present in the initial server HTML,
-          # without any legacy static Unsplash slide flashing first.
+          # without any legacy static slide flashing first.
+          existing_hero_states=list(
+              ContentItem.objects
+              .filter(kind='hero')
+              .values_list('pk','is_published')
+          )
+          ContentItem.objects.filter(kind='hero').update(is_published=False)
+
           hero=ContentItem.objects.create(
               kind='hero',
               title='CI live hero',
@@ -359,6 +366,10 @@ jobs:
           chatbot.enabled=old_enabled
           chatbot.save()
           hero.delete()
+          for pk,is_published in existing_hero_states:
+              ContentItem.objects.filter(pk=pk).update(
+                  is_published=is_published
+              )
 
           print('INTRO_FIRST_PAINT_NO_FLASH_OK', test_name)
           PY
