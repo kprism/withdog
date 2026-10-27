@@ -2050,7 +2050,7 @@ def public_intro_news_api(request):
     """
     메인 인트로 공지 및 펫 소식 API
 
-    - 공지사항: 공지사항 게시판의 notice 카테고리
+    - 공지사항: 공지사항 게시판 전체 카테고리에서 최대 5개
     - 펫 소식: 자유게시판의 최신 공개 게시글
     - 사진 첨부 여부와 댓글 수를 함께 내려 메인에서
       [사진] 제목(댓글수) 날짜 형식으로 표시한다.
@@ -2063,7 +2063,6 @@ def public_intro_news_api(request):
         BoardPost.objects
         .filter(
             board_type='notice',
-            category__slug='notice',
             is_published=True,
             is_hidden=False,
         )
