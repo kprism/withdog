@@ -489,6 +489,11 @@ jobs:
               slug='notice',
               defaults={'name':'공지사항','sort_order':0,'is_active':True},
           )
+          guide_category, guide_created = BoardCategory.objects.get_or_create(
+              board_type='notice',
+              slug='ci-policy-guide',
+              defaults={'name':'정책·안내','sort_order':10,'is_active':True},
+          )
 
           User=get_user_model()
           user=User.objects.create(username='ci-intro-news-user')
@@ -531,11 +536,30 @@ jobs:
           )
           BoardComment.objects.create(post=notice, author=user, body='공지 댓글 테스트')
 
+          guide=BoardPost.objects.create(
+              board_type='notice',
+              category=guide_category,
+              author=user,
+              title='CI 정책 안내 테스트',
+              body='공지 게시판의 다른 카테고리도 메인에 노출되는지 확인',
+              is_published=True,
+              is_hidden=False,
+              is_pinned=True,
+              published_at=timezone.now(),
+          )
+
           response=Client().get('/api/intro-news/')
           assert response.status_code == 200
           data=response.json()
+          assert len(data['notice']) <= 5
+          assert len(data['pet_news']) <= 5
           pet_row=next(x for x in data['pet_news'] if x['id'] == pet.pk)
           notice_row=next(x for x in data['notice'] if x['id'] == notice.pk)
+          guide_row=next(x for x in data['notice'] if x['id'] == guide.pk)
+
+          assert guide_row['category'] == '정책·안내'
+          assert guide_row['category_slug'] == 'ci-policy-guide'
+          assert guide_row['source'] == 'notice'
 
           assert pet_row['source'] == 'community'
           assert pet_row['url'] == f'/community/{pet.pk}/'
@@ -556,6 +580,15 @@ jobs:
 
           cms_js=open('../assets/js/cms.js',encoding='utf-8').read()
           style_css=open('../assets/css/style.css',encoding='utf-8').read()
+          board_template=open(
+              'partners/templates/website/board.html',
+              encoding='utf-8',
+          ).read()
+          assert 'board-pin-icon' in board_template
+          assert 'title="고정 게시물"' in board_template
+          assert "post.category.name == '정책·안내'" in board_template
+          assert '>고정<' not in board_template
+          assert 'grid-template-columns:64px minmax(0,1fr) 110px' in board_template
           assert 'intro-news-thumb' in cms_js
           assert 'post.image_url' in cms_js
           assert '.intro-news-thumb{' in style_css
@@ -564,9 +597,12 @@ jobs:
           notice_image.file.delete(save=False)
           pet.delete()
           notice.delete()
+          guide.delete()
           user.delete()
           if notice_created:
               notice_category.delete()
+          if guide_created:
+              guide_category.delete()
 
           print('INTRO_NOTICE_PET_NEWS_OK')
           PY
@@ -948,6 +984,8 @@ jobs:
                   raise SystemExit('Intro menu presentation controls missing')
               if home_html.count('id="botButton"') != 1:
                   raise SystemExit('Homepage must render exactly one chatbot button')
+              if 'id="introNoticeList"' not in home_html or 'id="introPetNewsList"' not in home_html:
+                  raise SystemExit('Homepage notice/pet news lists missing')
               if 'class="bot-float bot-float--split"' not in home_html:
                   raise SystemExit('Persistent split floating hub missing')
               if 'class="bot-direct-action bot-direct-ask"' not in home_html or '>AI 문의<' not in home_html:
