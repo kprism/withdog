@@ -367,7 +367,14 @@ def favicon(request):
     else:
         content_type = 'image/x-icon'
     response = FileResponse(handle, content_type=content_type)
-    response['Cache-Control'] = 'public, max-age=86400'
+
+    # Keep one stable favicon URL for search engines, but force browsers/CDNs
+    # to revalidate it after an admin replaces the file. Google recommends
+    # a stable favicon URL, so cache-busting query strings are deliberately
+    # avoided here.
+    response['Cache-Control'] = 'public, no-cache, max-age=0, must-revalidate'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
     return response
 
 
