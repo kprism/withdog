@@ -309,6 +309,29 @@ jobs:
           test_name=setting.favicon.name
 
           client=Client()
+
+          first_favicon=client.get('/favicon.ico')
+          assert first_favicon.status_code == 200
+          assert first_favicon['Cache-Control'] == 'public, no-cache, max-age=0, must-revalidate'
+          assert first_favicon['Pragma'] == 'no-cache'
+          assert first_favicon['Expires'] == '0'
+          first_bytes=b''.join(first_favicon.streaming_content)
+          assert first_bytes == b'fake-favicon'
+
+          # Replacing the stored favicon must immediately change /favicon.ico
+          # without waiting for the previous 24-hour cache.
+          setting.favicon=SimpleUploadedFile(
+              'ci-favicon-new.png',
+              b'new-favicon',
+              content_type='image/png',
+          )
+          setting.save()
+          latest_favicon=client.get('/favicon.ico')
+          assert latest_favicon.status_code == 200
+          latest_bytes=b''.join(latest_favicon.streaming_content)
+          assert latest_bytes == b'new-favicon'
+          assert latest_bytes != first_bytes
+
           client.force_login(admin)
 
           page=client.get('/dashboard/site-settings/')
@@ -885,7 +908,7 @@ jobs:
             --project=thepetkorea \
             --zone=asia-northeast3-a \
             --quiet \
-            --command='cd /home/mstclma00/withdog/backend; sudo -u mstclma00 .venv/bin/python manage.py shell -c "from partners.models import SiteSetting,AboutPageSetting; s=SiteSetting.get_solo(); a=AboutPageSetting.get_solo(); print('\''site_logo='\'', s.logo.name if s.logo else '\'''\'', '\''exists='\'', bool(s.logo and s.logo.storage.exists(s.logo.name))); print('\''member_art='\'', a.member_card_image.name if a.member_card_image else '\'''\'', '\''exists='\'', bool(a.member_card_image and a.member_card_image.storage.exists(a.member_card_image.name)))"'
+            --command='cd /home/mstclma00/withdog/backend; sudo -u mstclma00 .venv/bin/python manage.py shell -c "from partners.models import SiteSetting,AboutPageSetting; s=SiteSetting.get_solo(); a=AboutPageSetting.get_solo(); print('\''site_logo='\'', s.logo.name if s.logo else '\'''\'', '\''exists='\'', bool(s.logo and s.logo.storage.exists(s.logo.name))); print('\''favicon='\'', s.favicon.name if s.favicon else '\'''\'', '\''exists='\'', bool(s.favicon and s.favicon.storage.exists(s.favicon.name))); print('\''member_art='\'', a.member_card_image.name if a.member_card_image else '\'''\'', '\''exists='\'', bool(a.member_card_image and a.member_card_image.storage.exists(a.member_card_image.name)))"'
 
       - name: Verify public endpoints and membership image
         run: |
@@ -906,6 +929,7 @@ jobs:
               ('https://thepetkorea.co.kr/mypage/', False),
               ('https://thepetkorea.co.kr/sitemap.xml', True),
               ('https://thepetkorea.co.kr/robots.txt', True),
+              ('https://thepetkorea.co.kr/favicon.ico', True),
               ('https://thepetkorea.co.kr/static/member_card_stamp.webp?v=20261007-3', True),
           ]
           for url, must_be_200 in checks:
@@ -921,6 +945,29 @@ jobs:
                   print(url, exc.code)
                   if must_be_200 or exc.code >= 500:
                       raise
+          favicon_req=urllib.request.Request(
+              'https://thepetkorea.co.kr/favicon.ico',
+              headers={'Cache-Control':'no-cache'},
+          )
+          with urllib.request.urlopen(favicon_req, timeout=20) as response:
+              favicon_bytes=response.read()
+              favicon_cache=response.headers.get('Cache-Control','')
+              favicon_type=response.headers.get('Content-Type','')
+              print(
+                  'LIVE_FAVICON',
+                  response.status,
+                  favicon_type,
+                  favicon_cache,
+                  'bytes=',len(favicon_bytes),
+                  'sha256=',hashlib.sha256(favicon_bytes).hexdigest(),
+              )
+              if response.status != 200 or not favicon_bytes:
+                  raise SystemExit('Production favicon is unavailable')
+              if not favicon_type.startswith('image/'):
+                  raise SystemExit(f'Production favicon content type invalid: {favicon_type}')
+              if 'no-cache' not in favicon_cache or 'max-age=86400' in favicon_cache:
+                  raise SystemExit(f'Production favicon cache policy is stale: {favicon_cache}')
+
           stamp_url='https://thepetkorea.co.kr/static/member_card_stamp.webp?v=20261007-3'
           with urllib.request.urlopen(stamp_url, timeout=20) as response:
               stamp_bytes=response.read()
@@ -974,6 +1021,8 @@ jobs:
               home_html=response.read().decode('utf-8','replace')
               if 'site-header--intro' not in home_html:
                   raise SystemExit('Intro glass header class missing')
+              if '<link rel="icon" href="/favicon.ico">' not in home_html:
+                  raise SystemExit('Homepage stable favicon link missing')
               if '<section class="join"' in home_html:
                   raise SystemExit('Legacy red JOIN US block still present')
               if 'class="to-top"' in home_html:
