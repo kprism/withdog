@@ -1,6 +1,7 @@
 import hashlib
 import ipaddress
 import re
+from datetime import timedelta
 from urllib.parse import parse_qs, urlparse
 
 from django.utils import timezone
@@ -279,7 +280,7 @@ class TrafficAnalyticsMiddleware:
 
         session_start = (
             timezone.now()
-            - timezone.timedelta(minutes=30)
+            - timedelta(minutes=30)
         )
 
         if TrafficVisit.objects.filter(
