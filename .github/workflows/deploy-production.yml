@@ -62,6 +62,81 @@ jobs:
           r.delete()
           print('MEMBER_DELETE_LEDGER_PRESERVED')
           PY
+      - name: Verify traffic analytics tracking and admin dashboard
+        working-directory: backend
+        run: |
+          python manage.py migrate --noinput
+          python manage.py shell <<'PY'
+          from django.contrib.auth import get_user_model
+          from django.test import Client
+          from partners.models import TrafficVisit
+
+          TrafficVisit.objects.all().delete()
+
+          visitor=Client()
+          response=visitor.get(
+              '/',
+              HTTP_X_FORWARDED_FOR='203.0.113.25',
+              HTTP_USER_AGENT='Mozilla/5.0 (Linux; Android 14) Mobile Safari/537.36',
+              HTTP_REFERER='https://search.naver.com/search.naver?query=%EA%B0%95%EC%95%84%EC%A7%80+%EC%82%B0%EC%B1%85',
+              HTTP_CF_IPCOUNTRY='KR',
+              HTTP_CF_REGION='Gyeongsangnam-do',
+              HTTP_CF_IPCITY='Changwon-si',
+          )
+          assert response.status_code == 200
+
+          visit=TrafficVisit.objects.get()
+          assert visit.ip_address == '203.0.113.25'
+          assert visit.source_type == 'search'
+          assert visit.source_name == '네이버'
+          assert visit.keyword == '강아지 산책'
+          assert visit.is_mobile is True
+          assert visit.country == 'KR'
+          assert visit.region == 'Gyeongsangnam-do'
+          assert visit.city == 'Changwon-si'
+          assert visit.path == '/'
+
+          # Same fingerprint inside 30 minutes is one entry session.
+          visitor.get(
+              '/about.html',
+              HTTP_X_FORWARDED_FOR='203.0.113.25',
+              HTTP_USER_AGENT='Mozilla/5.0 (Linux; Android 14) Mobile Safari/537.36',
+          )
+          assert TrafficVisit.objects.count() == 1
+
+          User=get_user_model()
+          admin=User.objects.create_superuser(
+              username='ci-traffic-admin',
+              email='ci-traffic@example.com',
+              password='ci-test-password',
+          )
+          admin_client=Client()
+          admin_client.force_login(admin)
+
+          before=TrafficVisit.objects.count()
+          dashboard=admin_client.get('/dashboard/traffic/?period=today')
+          assert dashboard.status_code == 200
+          dashboard_html=dashboard.content.decode('utf-8','replace')
+          assert '사이트 유입 분석' in dashboard_html
+          assert '실시간 · 최근 30분' in dashboard_html
+          assert '강아지 산책' in dashboard_html
+          assert '203.0.113.25' in dashboard_html
+          assert 'Changwon-si' in dashboard_html
+          assert '유입 분석' in dashboard_html
+          assert TrafficVisit.objects.count() == before
+
+          # API/admin/static requests are excluded from analytics.
+          visitor.get(
+              '/api/site-settings/',
+              HTTP_X_FORWARDED_FOR='198.51.100.3',
+              HTTP_USER_AGENT='Mozilla/5.0',
+          )
+          assert TrafficVisit.objects.count() == before
+
+          admin.delete()
+          TrafficVisit.objects.all().delete()
+          print('TRAFFIC_ANALYTICS_OK')
+          PY
       - name: Verify advertisement slot rendering
         working-directory: backend
         run: |
@@ -756,7 +831,10 @@ jobs:
           assert 'data-term-panel="rules"' in app_js
           assert '은행명 000-0000-0000' not in app_js
           from django.template.loader import get_template
-          from partners.models import IntroLayer, SiteSetting
+          from partners.models import IntroLayer, SiteSetting, TrafficVisit
+          assert TrafficVisit._meta.get_field('ip_address')
+          assert TrafficVisit._meta.get_field('keyword')
+          assert TrafficVisit._meta.get_field('city')
           assert IntroLayer._meta.get_field('x_px')
           assert SiteSetting._meta.get_field('intro_stage_width').default == 1920
           assert SiteSetting._meta.get_field('intro_stage_height').default == 864

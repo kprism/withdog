@@ -1351,3 +1351,92 @@ class PaymentRecord(models.Model):
     created_at=models.DateTimeField(auto_now_add=True)
     updated_at=models.DateTimeField(auto_now=True)
     class Meta: ordering=['-created_at']
+
+
+# ============================================================
+# TRAFFIC / VISITOR ANALYTICS
+# ============================================================
+
+class TrafficVisit(models.Model):
+    """
+    One site-entry session rather than every page view.
+    A visitor is counted again after 30 minutes of inactivity.
+    """
+
+    SOURCE_TYPES = [
+        ('direct', '직접 방문'),
+        ('search', '검색'),
+        ('social', 'SNS'),
+        ('referral', '외부 링크'),
+        ('campaign', '캠페인'),
+        ('internal', '내부 이동'),
+    ]
+
+    visited_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    ip_address = models.GenericIPAddressField(db_index=True)
+    visitor_hash = models.CharField(max_length=64, db_index=True)
+
+    path = models.CharField(max_length=500, blank=True, default='')
+    query_string = models.TextField(blank=True, default='')
+
+    referrer = models.TextField(blank=True, default='')
+    referrer_host = models.CharField(max_length=255, blank=True, default='')
+
+    source_type = models.CharField(
+        max_length=20,
+        choices=SOURCE_TYPES,
+        default='direct',
+        db_index=True,
+    )
+    source_name = models.CharField(
+        max_length=80,
+        blank=True,
+        default='직접 방문',
+        db_index=True,
+    )
+    keyword = models.CharField(
+        max_length=255,
+        blank=True,
+        default='',
+        db_index=True,
+    )
+
+    user_agent = models.TextField(blank=True, default='')
+    is_mobile = models.BooleanField(default=False)
+
+    country_code = models.CharField(max_length=8, blank=True, default='')
+    country = models.CharField(max_length=100, blank=True, default='')
+    region = models.CharField(max_length=120, blank=True, default='')
+    city = models.CharField(max_length=120, blank=True, default='')
+    latitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+    )
+    longitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+    )
+    network_org = models.CharField(max_length=220, blank=True, default='')
+    geo_resolved = models.BooleanField(default=False, db_index=True)
+    geo_checked_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-visited_at']
+        indexes = [
+            models.Index(
+                fields=['visited_at', 'source_type'],
+                name='traffic_time_source_idx',
+            ),
+            models.Index(
+                fields=['ip_address', 'visited_at'],
+                name='traffic_ip_time_idx',
+            ),
+        ]
+
+    def __str__(self):
+        return f'{self.ip_address} · {self.visited_at:%Y-%m-%d %H:%M}'
