@@ -1,0 +1,39 @@
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Local development
+.env
+.venv/
+venv/
+
+# Runtime database
+*.sqlite3
+*.sqlite3-journal
+*.sqlite3-shm
+*.sqlite3-wal
+
+# User uploaded/runtime media
+media/
+backend/media/
+
+# Collected static output
+staticfiles/
+backend/staticfiles/
+
+# Local/runtime backups
+backups/
+backend/backups/
+partners/backups/
+*.bak
+*.bak_*
+backup_*/
+
+# Temporary/editor files
+*.tmp
+*.swp
+*~
+
+# OS metadata
+.DS_Store
+Thumbs.db

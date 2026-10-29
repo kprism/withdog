@@ -1,0 +1,146 @@
+<section class="web-magazine doglife-portal" id="doglife">
+  <div class="doglife-portal-head">
+    <div>
+      <p class="eyebrow">DOG LIFE MAGAZINE</p>
+      <h2>반려견과 함께 사는 이야기</h2>
+      <p>사진·영상·생활팁을 인기순 또는 최신순으로 빠르게 둘러보세요.</p>
+    </div>
+    <div class="doglife-portal-actions">
+      <nav class="doglife-sort-tabs" aria-label="견생 정렬">
+        <a class="{% if doglife_sort == 'popular' %}active{% endif %}" href="/?doglife_sort=popular#doglife">인기순</a>
+        <a class="{% if doglife_sort == 'latest' %}active{% endif %}" href="/?doglife_sort=latest#doglife">최신순</a>
+      </nav>
+      <a class="doglife-more" href="/doglife/">전체보기 →</a>
+    </div>
+  </div>
+
+  {% if home_featured_posts %}
+  <div class="doglife-cover-row" aria-label="{% if doglife_sort == 'latest' %}최신 견생{% else %}인기 견생{% endif %}">
+    {% for post in home_featured_posts %}
+    {% with media=post.attachments.all.0 %}
+    <article class="doglife-cover-card">
+      <a href="{% url 'public_doglife_detail' post.pk %}">
+        <div class="doglife-cover-media">
+          {% if media %}
+            {% if media.external_provider == 'youtube' %}
+              <img src="{{ media.external_thumbnail_url }}" alt="{{ post.title }}" loading="lazy">
+              <span class="doglife-media-badge">YouTube</span><span class="doglife-play">▶</span>
+            {% elif media.external_provider == 'video' %}
+              <video src="{{ media.external_url }}" muted playsinline preload="metadata"></video>
+              <span class="doglife-media-badge">영상</span><span class="doglife-play">▶</span>
+            {% elif media.external_provider == 'vimeo' %}
+              <div class="doglife-card-placeholder"><span>▶</span><small>Vimeo</small></div>
+              <span class="doglife-media-badge">Vimeo</span>
+            {% elif media.external_provider == 'link' %}
+              <div class="doglife-card-placeholder"><span>🔗</span><small>외부 링크</small></div>
+            {% elif media.is_image %}
+              <img src="{{ media.file.url }}" alt="{{ post.title }}" loading="lazy">
+            {% else %}
+              <video src="{{ media.file.url }}" muted playsinline preload="metadata"></video>
+              <span class="doglife-media-badge">{% if post.display_type == 'video_vertical' %}세로영상{% else %}영상{% endif %}</span><span class="doglife-play">▶</span>
+            {% endif %}
+          {% else %}
+            <div class="doglife-card-placeholder doglife-card-placeholder--text">
+              <span>{{ post.category.name|default:"DOG LIFE" }}</span>
+              <small>{{ post.body|striptags|truncatechars:52 }}</small>
+            </div>
+          {% endif %}
+          <span class="doglife-cover-rank">{{ forloop.counter }}</span>
+        </div>
+        <span class="doglife-card-category">{{ post.category.name }}</span>
+        <h3>{{ post.title }}</h3>
+        <div class="doglife-card-meta"><span>조회 {{ post.view_count }}</span><span>♥ {{ post.like_count }}</span></div>
+      </a>
+    </article>
+    {% endwith %}
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="doglife-portal-body">
+    <div class="doglife-feed-panel">
+      <div class="doglife-panel-title">
+        <h3>{% if doglife_sort == 'latest' %}최신 견생{% else %}지금 인기 있는 견생{% endif %}</h3>
+        <span>{% if doglife_sort == 'latest' %}새로 올라온 이야기부터 보여줍니다.{% else %}조회와 공감을 반영한 인기 이야기입니다.{% endif %}</span>
+      </div>
+
+      <div class="doglife-feed-grid">
+        {% for post in home_feed_posts %}
+        {% with media=post.attachments.all.0 %}
+        <article class="doglife-feed-card">
+          <a href="{% url 'public_doglife_detail' post.pk %}">
+            <div class="doglife-feed-thumb">
+              {% if media %}
+                {% if media.external_provider == 'youtube' %}
+                  <img src="{{ media.external_thumbnail_url }}" alt="{{ post.title }}" loading="lazy">
+                  <span class="doglife-media-badge">YouTube</span><span class="doglife-play doglife-play--small">▶</span>
+                {% elif media.external_provider == 'video' %}
+                  <video src="{{ media.external_url }}" muted playsinline preload="metadata"></video>
+                  <span class="doglife-media-badge">영상</span><span class="doglife-play doglife-play--small">▶</span>
+                {% elif media.external_provider == 'vimeo' %}
+                  <div class="doglife-card-placeholder"><span>▶</span><small>Vimeo</small></div>
+                {% elif media.external_provider == 'link' %}
+                  <div class="doglife-card-placeholder"><span>🔗</span><small>외부 링크</small></div>
+                {% elif media.is_image %}
+                  <img src="{{ media.file.url }}" alt="{{ post.title }}" loading="lazy">
+                {% else %}
+                  <video src="{{ media.file.url }}" muted playsinline preload="metadata"></video>
+                  <span class="doglife-media-badge">{% if post.display_type == 'video_vertical' %}세로영상{% else %}영상{% endif %}</span><span class="doglife-play doglife-play--small">▶</span>
+                {% endif %}
+              {% else %}
+                <div class="doglife-card-placeholder doglife-card-placeholder--text">
+                  <span>{{ post.category.name|default:"DOG LIFE" }}</span>
+                  <small>{{ post.body|striptags|truncatechars:58 }}</small>
+                </div>
+              {% endif %}
+            </div>
+            <div class="doglife-feed-copy">
+              <span class="doglife-card-category">{{ post.category.name }}</span>
+              <h3>{{ post.title }}</h3>
+              <p>{{ post.body|striptags|truncatechars:80 }}</p>
+              <div class="doglife-card-meta"><span>{{ post.created_at|date:"m.d" }}</span><span>조회 {{ post.view_count }}</span><span>♥ {{ post.like_count }}</span></div>
+            </div>
+          </a>
+        </article>
+        {% endwith %}
+        {% empty %}
+        <div class="mag-empty">아직 등록된 견생 이야기가 없습니다.</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <aside class="doglife-rank-panel">
+      <div class="doglife-panel-title doglife-panel-title--rank">
+        <h3>인기 TOP 5</h3>
+        <span>회원들이 많이 본 이야기</span>
+      </div>
+      <ol class="doglife-rank-list">
+        {% for post in home_rank_posts %}
+        {% with media=post.attachments.all.0 %}
+        <li>
+          <a href="{% url 'public_doglife_detail' post.pk %}">
+            <b>{{ forloop.counter }}</b>
+            <div class="doglife-rank-copy">
+              <span>{{ post.category.name }}</span>
+              <h4>{{ post.title }}</h4>
+              <small>조회 {{ post.view_count }} · ♥ {{ post.like_count }}</small>
+            </div>
+            <div class="doglife-rank-thumb">
+              {% if media.external_provider == 'youtube' %}
+                <img src="{{ media.external_thumbnail_url }}" alt="" loading="lazy">
+              {% elif media.is_image %}
+                <img src="{{ media.file.url }}" alt="" loading="lazy">
+              {% elif media %}
+                <span>▶</span>
+              {% else %}
+                <span>✦</span>
+              {% endif %}
+            </div>
+          </a>
+        </li>
+        {% endwith %}
+        {% endfor %}
+      </ol>
+    </aside>
+  </div>
+</section>

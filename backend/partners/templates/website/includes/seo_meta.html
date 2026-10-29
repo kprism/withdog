@@ -1,0 +1,20 @@
+{% load static %}
+<title>{{ seo.title }}</title>
+<meta name="description" content="{{ seo.description }}">
+<link rel="canonical" href="{{ seo.canonical }}">
+<meta name="robots" content="{{ seo.robots|default:'index,follow,max-image-preview:large' }}">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:type" content="{{ seo.og_type|default:'website' }}">
+<meta property="og:site_name" content="{{ seo.site_name }}">
+<meta property="og:title" content="{{ seo.title }}">
+<meta property="og:description" content="{{ seo.description }}">
+<meta property="og:url" content="{{ seo.canonical }}">
+{% if seo.image %}<meta property="og:image" content="{{ seo.image }}">{% endif %}
+<meta name="twitter:card" content="{% if seo.image %}summary_large_image{% else %}summary{% endif %}">
+<meta name="twitter:title" content="{{ seo.title }}">
+<meta name="twitter:description" content="{{ seo.description }}">
+{% if seo.image %}<meta name="twitter:image" content="{{ seo.image }}">{% endif %}
+{% if seo.naver_verification %}<meta name="naver-site-verification" content="{{ seo.naver_verification }}">{% endif %}
+{% if seo.google_verification %}<meta name="google-site-verification" content="{{ seo.google_verification }}">{% endif %}
+{% if seo.favicon %}<link rel="icon" href="/favicon.ico">\n<link rel="shortcut icon" href="/favicon.ico">{% endif %}
+{% if seo.json_ld %}<script type="application/ld+json">{{ seo.json_ld|safe }}</script>{% endif %}

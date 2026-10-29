@@ -1,0 +1,1294 @@
+name: Deploy production
+
+on:
+  push:
+    branches: [intro-homepage]
+  workflow_dispatch:
+
+concurrency:
+  group: thepetkorea-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      - name: Install dependencies
+        run: pip install -r backend/requirements.txt
+      - name: Compile Python
+        run: python -m compileall -q backend
+      - name: Django checks
+        working-directory: backend
+        run: python manage.py check
+      - name: Verify migration state
+        working-directory: backend
+        run: python manage.py makemigrations partners --check --dry-run --verbosity 3
+      - name: Verify member deletion ledger preservation
+        working-directory: backend
+        run: |
+          python manage.py migrate --noinput
+          python manage.py shell <<'PY'
+          from django.contrib.auth import get_user_model
+          from partners.models import MemberProfile, PaymentRecord
+          User=get_user_model()
+          u=User.objects.create_user(username='ci-delete@example.com',email='ci-delete@example.com',password='test12345')
+          p=MemberProfile.objects.create(user=u,name='삭제테스트',phone='010-0000-0000',membership_status='withdrawn')
+          r=PaymentRecord.objects.create(
+              user=u,
+              member_name=p.name,
+              member_email=u.email,
+              member_region='경남',
+              member_address='테스트 주소',
+              environment='test',
+              order_id='CI_MEMBER_DELETE_LEDGER',
+              amount=30000,
+              status='DONE',
+          )
+          u.delete()
+          r.refresh_from_db()
+          assert r.user_id is None
+          assert r.member_name == '삭제테스트'
+          assert r.member_email == 'ci-delete@example.com'
+          r.delete()
+          print('MEMBER_DELETE_LEDGER_PRESERVED')
+          PY
+      - name: Verify traffic analytics tracking and admin dashboard
+        working-directory: backend
+        run: |
+          python manage.py migrate --noinput
+          python manage.py shell <<'PY'
+          from django.contrib.auth import get_user_model
+          from django.test import Client
+          from partners.models import TrafficVisit
+
+          TrafficVisit.objects.all().delete()
+
+          visitor=Client()
+          response=visitor.get(
+              '/',
+              HTTP_X_FORWARDED_FOR='203.0.113.25',
+              HTTP_USER_AGENT='Mozilla/5.0 (Linux; Android 14) Mobile Safari/537.36',
+              HTTP_REFERER='https://search.naver.com/search.naver?query=%EA%B0%95%EC%95%84%EC%A7%80+%EC%82%B0%EC%B1%85',
+              HTTP_CF_IPCOUNTRY='KR',
+              HTTP_CF_REGION='Gyeongsangnam-do',
+              HTTP_CF_IPCITY='Changwon-si',
+          )
+          assert response.status_code == 200
+
+          visit=TrafficVisit.objects.get()
+          assert visit.ip_address == '203.0.113.25'
+          assert visit.source_type == 'search'
+          assert visit.source_name == '네이버'
+          assert visit.keyword == '강아지 산책'
+          assert visit.is_mobile is True
+          assert visit.country == 'KR'
+          assert visit.region == 'Gyeongsangnam-do'
+          assert visit.city == 'Changwon-si'
+          assert visit.path == '/'
+
+          # Same fingerprint inside 30 minutes is one entry session.
+          visitor.get(
+              '/about.html',
+              HTTP_X_FORWARDED_FOR='203.0.113.25',
+              HTTP_USER_AGENT='Mozilla/5.0 (Linux; Android 14) Mobile Safari/537.36',
+          )
+          assert TrafficVisit.objects.count() == 1
+
+          User=get_user_model()
+          admin=User.objects.create_superuser(
+              username='ci-traffic-admin',
+              email='ci-traffic@example.com',
+              password='ci-test-password',
+          )
+          admin_client=Client()
+          admin_client.force_login(admin)
+
+          before=TrafficVisit.objects.count()
+          dashboard=admin_client.get('/dashboard/traffic/?period=today')
+          assert dashboard.status_code == 200
+          dashboard_html=dashboard.content.decode('utf-8','replace')
+          assert '사이트 유입 분석' in dashboard_html
+          assert '실시간 · 최근 30분' in dashboard_html
+          assert '강아지 산책' in dashboard_html
+          assert '203.0.113.25' in dashboard_html
+          assert 'Changwon-si' in dashboard_html
+          assert '유입 분석' in dashboard_html
+          assert TrafficVisit.objects.count() == before
+
+          # API/admin/static requests are excluded from analytics.
+          visitor.get(
+              '/api/site-settings/',
+              HTTP_X_FORWARDED_FOR='198.51.100.3',
+              HTTP_USER_AGENT='Mozilla/5.0',
+          )
+          assert TrafficVisit.objects.count() == before
+
+          admin.delete()
+          TrafficVisit.objects.all().delete()
+          print('TRAFFIC_ANALYTICS_OK')
+          PY
+      - name: Verify advertisement slot rendering
+        working-directory: backend
+        run: |
+          python manage.py shell <<'PY'
+          from django.core.files.uploadedfile import SimpleUploadedFile
+          from django.test import Client
+          from django.utils import timezone
+          from partners.models import Advertisement
+          today=timezone.localdate()
+          ad=Advertisement.objects.create(
+              advertiser_name='CI 광고주',
+              representative_name='테스트',
+              business_number='000-00-00000',
+              title='CI 우측 광고',
+              target_page='home',
+              placement='right',
+              start_date=today,
+              end_date=today,
+              fee=10000,
+              media_type='image',
+              media_file=SimpleUploadedFile('ci-ad.png',b'fake-image',content_type='image/png'),
+              is_active=True,
+          )
+          response=Client().get('/')
+          html=response.content.decode('utf-8','replace')
+          assert response.status_code == 200
+          assert 'id="publicAdRail"' in html
+          assert 'CI 우측 광고' in html
+          assert 'public-ad-layout' in open('../assets/css/style.css',encoding='utf-8').read()
+          ad.media_file.delete(save=False)
+          ad.delete()
+
+          # Public menu/content pages reserve the desktop right ad rail
+          # even when there is currently no active advertisement.
+          about=Client().get('/about.html')
+          about_html=about.content.decode('utf-8','replace')
+          assert about.status_code == 200
+          assert 'public-ad-rail--empty' in about_html
+          assert 'data-page="about"' in about_html
+
+          # Homepage stays full-width unless an actual homepage ad exists.
+          home=Client().get('/')
+          home_html=home.content.decode('utf-8','replace')
+          assert 'public-ad-rail--empty' not in home_html
+          print('ADVERTISEMENT_SLOT_RENDERED')
+          print('RESERVED_RIGHT_RAIL_RENDERED')
+          PY
+      - name: Verify partner menu, city order, discount, and Kakao loader
+        working-directory: backend
+        run: |
+          python manage.py shell <<'PY'
+          from django.test import Client
+          from partners.models import Partner, PartnerCategory, SiteSetting
+
+          category,_=PartnerCategory.objects.get_or_create(
+              code='ci-partner-order',
+              defaults={'name':'CI 제휴업체','sort_order':999},
+          )
+
+          samples=[
+              ('거제시 업체','거제시',7),
+              ('밀양시 업체','밀양시',8),
+              ('양산시 업체','양산시',9),
+              ('진주시 업체','진주시',10),
+              ('김해시 업체','김해시',11),
+              ('창원시 업체','창원시',12),
+              ('합천군 업체','합천군',13),
+              ('창원 세부지역 업체','경상남도 창원시 성산구',14),
+          ]
+
+          created=[]
+          for index,(name,city,discount) in enumerate(samples):
+              partner=Partner.objects.create(
+                  category=category,
+                  name=name,
+                  address=f'CI 테스트 주소 {index}',
+                  city=city,
+                  discount_percent=discount,
+                  is_active=True,
+              )
+              created.append(partner)
+
+          setting=SiteSetting.get_solo()
+          original_key=setting.kakao_javascript_key
+          setting.kakao_javascript_key='ci-kakao-js-key'
+          setting.save(update_fields=['kakao_javascript_key','updated_at'])
+
+          client=Client()
+          settings_response=client.get('/api/site-settings/')
+          assert settings_response.status_code == 200
+          assert settings_response.json()['kakao_javascript_key'] == 'ci-kakao-js-key'
+
+          response=client.get('/api/partners/public-map/')
+          assert response.status_code == 200
+          data=response.json()
+
+          cities=[x for x in data['cities'] if x in {
+              '창원시','김해시','진주시','양산시','밀양시','거제시','합천군'
+          }]
+          assert cities == [
+              '창원시','김해시','진주시','양산시','밀양시','거제시','합천군'
+          ], cities
+          assert cities.count('창원시') == 1
+
+          rows={
+              row['name']:row
+              for row in data['partners']
+              if row['name'].startswith(('창원시','김해시','진주시','양산시','밀양시','거제시','합천군'))
+          }
+          assert rows['창원시 업체']['discount_percent'] == 12
+          assert rows['창원시 업체']['city_unit'] == '창원시'
+          assert rows['거제시 업체']['discount_percent'] == 7
+
+          city_response=client.get(
+              '/api/partners/public-map/?city=창원시'
+          )
+          assert city_response.status_code == 200
+          city_names={
+              row['name']
+              for row in city_response.json()['partners']
+          }
+          assert '창원시 업체' in city_names
+          assert '창원 세부지역 업체' in city_names
+
+          header=open('partners/templates/website/includes/public_header.html',encoding='utf-8').read()
+          partner_form=open('partners/templates/dashboard/partner_form.html',encoding='utf-8').read()
+          partner_page=open('../partners.html',encoding='utf-8').read()
+          partner_js=open('../assets/js/partners.js',encoding='utf-8').read()
+          partner_css=open('../assets/css/partners.css',encoding='utf-8').read()
+
+          assert '>제휴업체</a>' in header
+          assert '>후원업체</a>' not in header
+          assert 'name="discount_percent"' in partner_form
+          assert '회원 할인율 (%)' in partner_form
+          assert '//dapi.kakao.com/v2/maps/sdk.js?appkey=' not in partner_page
+          assert "fetch(\n            '/api/site-settings/" in partner_js
+          assert 'kakao_javascript_key' in partner_js
+          assert 'autoload=false' in partner_js
+          assert 'partner-discount' in partner_js
+          assert '.partner-discount{' in partner_css
+
+          setting.kakao_javascript_key=original_key
+          setting.save(update_fields=['kakao_javascript_key','updated_at'])
+          Partner.objects.filter(pk__in=[p.pk for p in created]).delete()
+          category.delete()
+
+          print('PARTNER_MENU_CITY_DISCOUNT_KAKAO_OK')
+          PY
+      - name: Verify footer social settings and homepage cleanup
+        working-directory: backend
+        run: |
+          python manage.py shell <<'PY'
+          from django.test import Client
+          from partners.models import SiteSetting
+
+          setting=SiteSetting.get_solo()
+          originals={
+              'instagram_url':setting.instagram_url,
+              'youtube_url':setting.youtube_url,
+              'naver_blog_url':setting.naver_blog_url,
+              'facebook_url':setting.facebook_url,
+              'kakao_channel_url':setting.kakao_channel_url,
+          }
+
+          setting.instagram_url='https://www.instagram.com/ci-thepetkorea/'
+          setting.youtube_url=''
+          setting.naver_blog_url=''
+          setting.facebook_url=''
+          setting.kakao_channel_url=''
+          setting.save()
+
+          response=Client().get('/')
+          assert response.status_code == 200
+          html=response.content.decode('utf-8','replace')
+          assert '<section class="join"' not in html
+          assert 'class="to-top"' not in html
+          assert 'class="footer-social"' in html
+          assert 'https://www.instagram.com/ci-thepetkorea/' in html
+          assert 'aria-label="Instagram"' in html
+          assert '<span>IG</span>' in html
+
+          site_settings_template=open(
+              'partners/templates/dashboard/seo_site_settings.html',
+              encoding='utf-8',
+          ).read()
+          website_views=open(
+              'partners/website_views.py',
+              encoding='utf-8',
+          ).read()
+          footer_template=open(
+              'partners/templates/website/includes/public_footer.html',
+              encoding='utf-8',
+          ).read()
+          style_css=open('../assets/css/style.css',encoding='utf-8').read()
+
+          assert '<h3>푸터 SNS 계정</h3>' in site_settings_template
+          for field in (
+              'instagram_icon',
+              'youtube_icon',
+              'naver_blog_icon',
+              'facebook_icon',
+              'kakao_channel_icon',
+          ):
+              assert f'name="{field}"' in site_settings_template
+
+          assert "social_fields = (" in website_views
+          assert "'instagram'," in website_views
+          assert "'kakao_channel'," in website_views
+          assert 'footer-social__links' in footer_template
+          assert 'class="to-top"' not in footer_template
+          assert '.footer-social__links' in style_css
+          assert '.to-top{position:fixed' not in style_css
+          assert '.join{min-height:380px' not in style_css
+
+          for field,value in originals.items():
+              setattr(setting,field,value)
+          setting.save()
+
+          print('FOOTER_SOCIAL_AND_HOMEPAGE_CLEANUP_OK')
+          PY
+      - name: Verify dedicated favicon delete action
+        working-directory: backend
+        run: |
+          python manage.py shell <<'PY'
+          from django.contrib.auth import get_user_model
+          from django.core.files.uploadedfile import SimpleUploadedFile
+          from django.test import Client
+          from partners.models import SiteSetting
+
+          User=get_user_model()
+          admin=User.objects.create_superuser(
+              username='ci-favicon-admin',
+              email='ci-favicon@example.com',
+              password='ci-test-password',
+          )
+
+          setting=SiteSetting.get_solo()
+          original_name=setting.favicon.name if setting.favicon else ''
+          setting.favicon=SimpleUploadedFile(
+              'ci-favicon.png',
+              b'fake-favicon',
+              content_type='image/png',
+          )
+          setting.save()
+          test_name=setting.favicon.name
+
+          client=Client()
+
+          first_favicon=client.get('/favicon.ico')
+          assert first_favicon.status_code == 200
+          assert first_favicon['Cache-Control'] == 'public, no-cache, max-age=0, must-revalidate'
+          assert first_favicon['Pragma'] == 'no-cache'
+          assert first_favicon['Expires'] == '0'
+          first_bytes=b''.join(first_favicon.streaming_content)
+          assert first_bytes == b'fake-favicon'
+
+          # Replacing the stored favicon must immediately change /favicon.ico
+          # without waiting for the previous 24-hour cache.
+          setting.favicon=SimpleUploadedFile(
+              'ci-favicon-new.png',
+              b'new-favicon',
+              content_type='image/png',
+          )
+          setting.save()
+          latest_favicon=client.get('/favicon.ico')
+          assert latest_favicon.status_code == 200
+          latest_bytes=b''.join(latest_favicon.streaming_content)
+          assert latest_bytes == b'new-favicon'
+          assert latest_bytes != first_bytes
+
+          client.force_login(admin)
+
+          page=client.get('/dashboard/site-settings/')
+          assert page.status_code == 200
+          html=page.content.decode('utf-8','replace')
+          assert 'name="action" value="delete_favicon"' in html
+          assert '파비콘 삭제' in html
+          assert 'name="delete_favicon"' not in html
+
+          response=client.post(
+              '/dashboard/site-settings/',
+              {'action':'delete_favicon'},
+              follow=False,
+          )
+          assert response.status_code == 302
+
+          setting.refresh_from_db()
+          assert not setting.favicon
+
+          favicon_response=client.get('/favicon.ico')
+          assert favicon_response.status_code == 404
+
+          if original_name:
+              setting.favicon.name=original_name
+              setting.save(update_fields=['favicon','updated_at'])
+
+          admin.delete()
+          print('FAVICON_DELETE_ACTION_OK', test_name)
+          PY
+      - name: Verify intro first-paint media and floating bot no-flash
+        working-directory: backend
+        run: |
+          python manage.py shell <<'PY'
+          from django.core.files.uploadedfile import SimpleUploadedFile
+          from django.test import Client
+          from partners.models import ChatbotSetting, ContentItem
+
+          # A current hero video must be present in the initial server HTML,
+          # without any legacy static slide flashing first.
+          existing_hero_states=list(
+              ContentItem.objects
+              .filter(kind='hero')
+              .values_list('pk','is_published')
+          )
+          ContentItem.objects.filter(kind='hero').update(is_published=False)
+
+          hero=ContentItem.objects.create(
+              kind='hero',
+              title='CI live hero',
+              media_type='video_url',
+              video_url='https://cdn.example.com/current-intro.mp4',
+              is_published=True,
+              sort_order=-999,
+              hero_eyebrow='CI LIVE HERO',
+              hero_title='현재 영상만',
+              hero_meta1='즉시 재생',
+              hero_meta2='레거시 미디어 없음',
+          )
+
+          chatbot,_=ChatbotSetting.objects.get_or_create(pk=1)
+          old_enabled=chatbot.enabled
+          old_video_name=chatbot.bot_video.name if chatbot.bot_video else ''
+          test_video=SimpleUploadedFile(
+              'ci-current-bot.mp4',
+              b'fake-current-bot-video',
+              content_type='video/mp4',
+          )
+          chatbot.enabled=True
+          chatbot.bot_video=test_video
+          chatbot.save()
+
+          response=Client().get('/')
+          assert response.status_code == 200
+          html=response.content.decode('utf-8','replace')
+
+          assert 'data-live-hero="1"' in html
+          hero_html=html.split('<section class="hero"',1)[1].split('</section>',1)[0]
+          assert f'data-cms-id="{hero.pk}"' in hero_html
+          assert 'https://cdn.example.com/current-intro.mp4' in hero_html
+          assert '<video class="hero-media"' in hero_html
+          assert 'autoplay muted loop playsinline preload="auto"' in hero_html
+          assert 'images.unsplash.com/photo-1558788353-f76d92427f16' not in hero_html
+          assert 'images.unsplash.com/photo-1543466835-00a7907e9de1' not in hero_html
+          assert 'images.unsplash.com/photo-1518717758536-85ae29035b6d' not in hero_html
+
+          assert 'data-server-video="' in html
+          assert 'ci-current-bot' in html
+          assert '<video src="/media/chatbot/' in html
+          assert '>🐕</button>' not in html
+
+          index_html=open('../index.html',encoding='utf-8').read()
+          app_js=open('../assets/js/app.js',encoding='utf-8').read()
+          cms_js=open('../assets/js/cms.js',encoding='utf-8').read()
+          chatbot_js=open('../assets/js/chatbot.js',encoding='utf-8').read()
+          footer_template=open(
+              'partners/templates/website/includes/public_footer.html',
+              encoding='utf-8',
+          ).read()
+
+          static_hero=index_html.split('<section class="hero"',1)[1].split('</section>',1)[0]
+          assert 'images.unsplash.com/photo-1558788353-f76d92427f16' not in static_hero
+          assert 'hero-slide' not in static_hero
+          assert "setInterval(()=>show(current+1),5000)" not in app_js
+          assert 'sameServerHero' in cms_js
+          assert "oldButton.dataset.serverVideo" in chatbot_js
+          assert 'preload="auto"' in footer_template
+
+          test_name=chatbot.bot_video.name
+          chatbot.bot_video.delete(save=False)
+          chatbot.bot_video.name=old_video_name
+          chatbot.enabled=old_enabled
+          chatbot.save()
+          hero.delete()
+          for pk,is_published in existing_hero_states:
+              ContentItem.objects.filter(pk=pk).update(
+                  is_published=is_published
+              )
+
+          print('INTRO_FIRST_PAINT_NO_FLASH_OK', test_name)
+          PY
+      - name: Verify persistent floating AI and Dog Life actions
+        working-directory: backend
+        run: |
+          python manage.py shell <<'PY'
+          from django.test import Client
+
+          response=Client().get('/')
+          assert response.status_code == 200
+          html=response.content.decode('utf-8','replace')
+
+          assert 'class="bot-float bot-float--split"' in html
+          assert 'class="bot-direct-action bot-direct-ask"' in html
+          assert 'class="bot-direct-action bot-direct-share"' in html
+          assert '>AI 문의<' in html
+          assert '>견생 자랑<' in html
+          assert html.find('bot-direct-ask') < html.find('id="botButton"') < html.find('bot-direct-share')
+          assert 'chatbot.js?v=20261020-split-actions-v3' in html
+
+          js=open('../assets/js/chatbot.js',encoding='utf-8').read()
+          css=open('../assets/css/style.css',encoding='utf-8').read()
+          footer=open(
+              'partners/templates/website/includes/public_footer.html',
+              encoding='utf-8',
+          ).read()
+
+          assert "const askButton = floatBox?.querySelector('.bot-direct-ask')" in js
+          assert "const shareButton = floatBox?.querySelector('.bot-direct-share')" in js
+          assert 'function openInquiry()' in js
+          assert 'function openDogLifeWrite()' in js
+          assert "actions.classList.toggle('open')" not in js
+          assert "document.createElement('div');\n    actions.className = 'bot-radial-actions'" not in js
+
+          assert '.bot-float.bot-float--split' in css
+          assert '.bot-direct-ask' in css
+          assert '.bot-direct-share' in css
+          assert '.bot-radial-actions{\n    display:none!important;' in css
+          assert 'AI 문의' in footer
+          assert '견생 자랑' in footer
+
+          print('FLOATING_SPLIT_HUB_OK')
+          PY
+      - name: Verify homepage notice and pet news feed
+        working-directory: backend
+        run: |
+          python manage.py shell <<'PY'
+          from django.contrib.auth import get_user_model
+          from django.core.files.uploadedfile import SimpleUploadedFile
+          from django.test import Client
+          from django.utils import timezone
+          from partners.models import BoardAttachment, BoardCategory, BoardComment, BoardPost
+
+          event = BoardCategory.objects.get(board_type='community', slug='event')
+          assert event.name == '행사'
+          assert event.is_active is True
+
+          notice_category, notice_created = BoardCategory.objects.get_or_create(
+              board_type='notice',
+              slug='notice',
+              defaults={'name':'공지사항','sort_order':0,'is_active':True},
+          )
+          guide_category, guide_created = BoardCategory.objects.get_or_create(
+              board_type='notice',
+              slug='ci-policy-guide',
+              defaults={'name':'정책·안내','sort_order':10,'is_active':True},
+          )
+
+          User=get_user_model()
+          user=User.objects.create(username='ci-intro-news-user')
+
+          pet=BoardPost.objects.create(
+              board_type='community',
+              category=event,
+              author=user,
+              title='CI 펫 소식 테스트',
+              body='자유게시판 글이 메인 펫 소식에 노출되는지 확인',
+              is_published=True,
+              is_hidden=False,
+              published_at=timezone.now(),
+          )
+          pet_image=BoardAttachment.objects.create(
+              post=pet,
+              file=SimpleUploadedFile('ci-pet.jpg', b'fake-image', content_type='image/jpeg'),
+              original_name='ci-pet.jpg',
+              is_image=True,
+              sort_order=0,
+          )
+          BoardComment.objects.create(post=pet, author=user, body='댓글 테스트')
+
+          notice=BoardPost.objects.create(
+              board_type='notice',
+              category=notice_category,
+              author=user,
+              title='CI 공지 테스트',
+              body='공지 메인 노출 확인',
+              is_published=True,
+              is_hidden=False,
+              published_at=timezone.now(),
+          )
+          notice_image=BoardAttachment.objects.create(
+              post=notice,
+              file=SimpleUploadedFile('ci-notice.jpg', b'fake-image', content_type='image/jpeg'),
+              original_name='ci-notice.jpg',
+              is_image=True,
+              sort_order=0,
+          )
+          BoardComment.objects.create(post=notice, author=user, body='공지 댓글 테스트')
+
+          guide=BoardPost.objects.create(
+              board_type='notice',
+              category=guide_category,
+              author=user,
+              title='CI 정책 안내 테스트',
+              body='공지 게시판의 다른 카테고리도 메인에 노출되는지 확인',
+              is_published=True,
+              is_hidden=False,
+              is_pinned=True,
+              published_at=timezone.now(),
+          )
+
+          response=Client().get('/api/intro-news/')
+          assert response.status_code == 200
+          data=response.json()
+          assert len(data['notice']) <= 5
+          assert len(data['pet_news']) <= 5
+          pet_row=next(x for x in data['pet_news'] if x['id'] == pet.pk)
+          notice_row=next(x for x in data['notice'] if x['id'] == notice.pk)
+          guide_row=next(x for x in data['notice'] if x['id'] == guide.pk)
+
+          assert guide_row['category'] == '정책·안내'
+          assert guide_row['category_slug'] == 'ci-policy-guide'
+          assert guide_row['source'] == 'notice'
+
+          assert pet_row['source'] == 'community'
+          assert pet_row['url'] == f'/community/{pet.pk}/'
+          assert pet_row['has_image'] is True
+          assert pet_row['image_url'] == pet_image.file.url
+          assert pet_row['comment_count'] == 1
+          assert notice_row['source'] == 'notice'
+          assert notice_row['url'] == f'/board/{notice.pk}/'
+          assert notice_row['has_image'] is True
+          assert notice_row['image_url'] == notice_image.file.url
+          assert notice_row['comment_count'] == 1
+
+          community_detail=Client().get(f'/community/{pet.pk}/')
+          community_html=community_detail.content.decode('utf-8','replace')
+          assert community_detail.status_code == 200
+          assert 'community-inline-images' in community_html
+          assert pet_image.file.url in community_html
+
+          cms_js=open('../assets/js/cms.js',encoding='utf-8').read()
+          style_css=open('../assets/css/style.css',encoding='utf-8').read()
+          board_template=open(
+              'partners/templates/website/board.html',
+              encoding='utf-8',
+          ).read()
+          assert 'board-pin-icon' in board_template
+          assert 'title="고정 게시물"' in board_template
+          assert "post.category.name == '정책·안내'" in board_template
+          assert '>고정<' not in board_template
+          assert 'grid-template-columns:64px minmax(0,1fr) 110px' in board_template
+          assert 'intro-news-thumb' in cms_js
+          assert 'post.image_url' in cms_js
+          assert '.intro-news-thumb{' in style_css
+
+          pet_image.file.delete(save=False)
+          notice_image.file.delete(save=False)
+          pet.delete()
+          notice.delete()
+          guide.delete()
+          user.delete()
+          if notice_created:
+              notice_category.delete()
+          if guide_created:
+              guide_category.delete()
+
+          print('INTRO_NOTICE_PET_NEWS_OK')
+          PY
+      - name: Verify Dog Life linked media
+        working-directory: backend
+        run: |
+          python manage.py shell <<'PY'
+          from django.contrib.auth import get_user_model
+          from django.test import Client
+          from django.utils import timezone
+          from partners.models import BoardAttachment, BoardCategory, BoardPost
+          from partners.website_views import _doglife_external_link_info
+
+          yt=_doglife_external_link_info('https://youtu.be/dQw4w9WgXcQ')
+          assert yt['provider']=='youtube'
+          assert yt['media_id']=='dQw4w9WgXcQ'
+          direct=_doglife_external_link_info('https://cdn.example.com/sample.mp4')
+          assert direct['provider']=='video'
+
+          User=get_user_model()
+          user=User.objects.create_user(username='ci-doglife-link@example.com',email='ci-doglife-link@example.com',password='test12345')
+          category,_=BoardCategory.objects.get_or_create(
+              board_type='doglife',
+              slug='ci-linked-media',
+              defaults={'name':'CI 링크영상','sort_order':999,'is_active':True},
+          )
+          post=BoardPost.objects.create(
+              board_type='doglife',
+              category=category,
+              author=user,
+              title='CI 링크 영상 테스트',
+              body='링크 영상 테스트',
+              display_type='video_horizontal',
+              is_published=True,
+              is_hidden=False,
+              published_at=timezone.now(),
+          )
+          media=BoardAttachment.objects.create(
+              post=post,
+              external_url='https://youtu.be/dQw4w9WgXcQ',
+              external_provider='youtube',
+              external_media_id='dQw4w9WgXcQ',
+              original_name='https://youtu.be/dQw4w9WgXcQ',
+              sort_order=0,
+          )
+          assert media.external_embed_url=='https://www.youtube.com/embed/dQw4w9WgXcQ'
+          assert 'i.ytimg.com/vi/dQw4w9WgXcQ' in media.external_thumbnail_url
+
+          client=Client()
+          detail=client.get(f'/doglife/{post.pk}/')
+          detail_html=detail.content.decode('utf-8','replace')
+          assert detail.status_code==200
+          assert 'https://www.youtube.com/embed/dQw4w9WgXcQ' in detail_html
+
+          listing=client.get('/doglife/')
+          listing_html=listing.content.decode('utf-8','replace')
+          assert listing.status_code==200
+          assert 'i.ytimg.com/vi/dQw4w9WgXcQ' in listing_html
+
+          form_html=open('partners/templates/website/doglife_form.html',encoding='utf-8').read()
+          assert '🔗 링크 삽입' in form_html
+          assert 'grid-template-columns:repeat(2,minmax(0,1fr))' in form_html
+          assert form_html.count('class="upload-btn"') >= 4
+
+          post.delete()
+          user.delete()
+          category.delete()
+          print('DOG_LIFE_LINKED_MEDIA_OK')
+          PY
+      - name: Collect and verify static assets
+        working-directory: backend
+        run: |
+          python manage.py collectstatic --noinput
+          test -s staticfiles/member_card_stamp.webp
+          test "$(stat -c%s staticfiles/member_card_stamp.webp)" = "10146"
+          python - <<'PY'
+          import hashlib
+          from pathlib import Path
+          expected='2f2653b53f25362a2c040665a6a44b226c50cc3b08eeec2b2e1a9b574a217c31'
+          actual=hashlib.sha256(Path('staticfiles/member_card_stamp.webp').read_bytes()).hexdigest()
+          assert actual == expected, (actual, expected)
+          PY
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('partners/templates/website/mypage.html').read_text(encoding='utf-8')
+          h=Path('partners/templates/website/includes/public_header.html').read_text(encoding='utf-8')
+          f=Path('partners/templates/website/includes/public_footer.html').read_text(encoding='utf-8')
+          assert 'data:image/webp;base64' not in p
+          assert 'member_dog_stamp.webp' not in p
+          assert 'member_card_stamp.webp' in p
+          assert 'background:#fff;box-shadow' in p
+          assert 'member_card_dog_image' not in p
+          assert 'public_site_logo_url' in h
+          assert '🐶' not in h
+          assert '🐶' not in f
+          shell_templates = [
+              Path('partners/templates/website/board.html'),
+              Path('partners/templates/website/board_detail.html'),
+              Path('partners/templates/website/community.html'),
+              Path('partners/templates/website/community_detail.html'),
+              Path('partners/templates/website/community_form.html'),
+              Path('partners/templates/website/mypage.html'),
+              Path('partners/templates/public/breed_list.html'),
+              Path('partners/templates/public/breed_detail.html'),
+              Path('partners/templates/public/payment_result.html'),
+          ]
+          for template_path in shell_templates:
+              html = template_path.read_text(encoding='utf-8')
+              assert 'website/includes/public_header.html' in html, template_path
+              assert 'website/includes/public_footer.html' in html, template_path
+          import os
+          os.environ.setdefault('DJANGO_SETTINGS_MODULE','withdog.settings')
+          import django
+          django.setup()
+          from withdog.urls import _render_public_shell
+          assert callable(_render_public_shell)
+          app_js=Path('../assets/js/app.js').read_text(encoding='utf-8')
+          assert '농협 351-2027-0000-43' in app_js
+          assert '가입 후 환불은 불가합니다. 1년마다 갱신되며, 별도 연락 없을 시 자동갱신 됩니다.' in app_js
+          assert '관리자 확인 후' not in app_js
+          assert '🎁 회원 혜택 안내' not in app_js
+          assert 'data-agree-all' in app_js
+          assert 'data-agreement="privacy"' in app_js
+          assert 'data-agreement="terms"' in app_js
+          assert 'data-agreement="rules"' in app_js
+          assert 'data-term-panel="privacy"' in app_js
+          assert 'data-term-panel="terms"' in app_js
+          assert 'data-term-panel="rules"' in app_js
+          assert '은행명 000-0000-0000' not in app_js
+          from django.template.loader import get_template
+          from partners.models import IntroLayer, SiteSetting, TrafficVisit
+          assert TrafficVisit._meta.get_field('ip_address')
+          assert TrafficVisit._meta.get_field('keyword')
+          assert TrafficVisit._meta.get_field('city')
+          assert IntroLayer._meta.get_field('x_px')
+          assert SiteSetting._meta.get_field('intro_stage_width').default == 1920
+          assert SiteSetting._meta.get_field('intro_stage_height').default == 864
+          assert SiteSetting._meta.get_field('intro_header_opacity').default == 82
+          assert SiteSetting._meta.get_field('header_menu_font_size').default == 16
+          assert SiteSetting._meta.get_field('header_mobile_menu_font_size').default == 13
+          assert SiteSetting._meta.get_field('header_menu_font_weight').default == 700
+          from partners.models import ContentItem
+          assert ContentItem._meta.get_field('hero_meta1_font_size').default == 16
+          assert ContentItem._meta.get_field('hero_meta2_font_size').default == 16
+          get_template('dashboard/website_settings.html')
+          get_template('dashboard/policy_editor.html')
+          get_template('dashboard/advertisement_manager.html')
+          get_template('website/doglife.html')
+          get_template('website/doglife_detail.html')
+          get_template('website/doglife_form.html')
+          get_template('website/includes/doglife_home_feed.html')
+          get_template('website/includes/doglife_magazine_card.html')
+          get_template('website/mypage.html')
+          get_template('website/includes/public_header.html')
+          get_template('website/includes/public_footer.html')
+          css = Path('../assets/css/style.css').read_text(encoding='utf-8')
+          partner_model = Path('partners/models.py').read_text(encoding='utf-8')
+          assert 'instagram_url = models.URLField' in partner_model
+          assert "instagram_icon = models.ImageField(upload_to='site/social/'" in partner_model
+          assert 'kakao_channel_url = models.URLField' in partner_model
+          assert "kakao_channel_icon = models.ImageField(upload_to='site/social/'" in partner_model
+          partner_views = Path('partners/views.py').read_text(encoding='utf-8')
+          partner_dashboard_views = Path('partners/dashboard_views.py').read_text(encoding='utf-8')
+          assert "discount_percent=models.PositiveSmallIntegerField" in partner_model
+          assert "'discount_percent': max(" in partner_views
+          assert "priority_cities = [" in partner_views
+          assert "obj.discount_percent=max(0,min(100" in partner_dashboard_views
+          doglife_feed = Path('partners/templates/website/includes/doglife_home_feed.html').read_text(encoding='utf-8')
+          public_urls_py = Path('withdog/urls.py').read_text(encoding='utf-8')
+          website_views_py = Path('partners/website_views.py').read_text(encoding='utf-8')
+          assert 'doglife-portal' in doglife_feed
+          assert 'doglife-sort-tabs' in doglife_feed
+          assert 'doglife-cover-row' in doglife_feed
+          assert 'doglife-rank-panel' in doglife_feed
+          assert 'doglife_sort=popular' in doglife_feed
+          assert 'doglife_sort=latest' in doglife_feed
+          assert '.doglife-portal-body' in css
+          assert '.doglife-rank-panel' in css
+          assert '.doglife-cover-media{\n    position:relative;\n    height:210px;' in css
+          assert '.doglife-feed-thumb{\n    position:relative;\n    height:160px;' in css
+          assert '.doglife-cover-media{height:160px}' in css
+          assert '.doglife-feed-thumb{height:128px}' in css
+          assert '.doglife-cover-card h3{font-size:15px;line-height:1.45}' in css
+          assert '.doglife-feed-copy h3{font-size:14px;line-height:1.45}' in css
+          doglife_page = Path('partners/templates/website/doglife.html').read_text(encoding='utf-8')
+          doglife_card = Path('partners/templates/website/includes/doglife_magazine_card.html').read_text(encoding='utf-8')
+          assert 'dl-category-magazine' in doglife_page
+          assert 'dl-mag-main' in doglife_page
+          assert 'dl-mag-grid' in doglife_page
+          assert 'object-fit:contain' in doglife_page
+          assert 'doglife_magazine_card.html' in doglife_page
+          assert 'dl-play' in doglife_card
+          assert "'lead_post': posts[0] if posts else None" in website_views_py
+          assert "'side_posts': posts[1:3]" in website_views_py
+          assert "'grid_posts': posts[3:]" in website_views_py
+          assert "doglife_sort=(request.GET.get('doglife_sort') or 'popular')" in public_urls_py
+          assert "popularity_score=ExpressionWrapper" in public_urls_py
+          assert "'home_featured_posts':home_featured_posts" in public_urls_py
+          assert "'home_feed_posts':home_feed_posts" in public_urls_py
+          assert "'home_rank_posts':home_rank_posts" in public_urls_py
+          print('DOG_LIFE_PORTAL_SORT_OK')
+          assert '.public-ad-layout' in css
+          assert '.public-ad-rail' in css
+          assert '.primary-nav a:active' in css
+          assert 'font-size:9px!important' in css
+          assert 'MOBILE NAVBAR REFINEMENT 2026-10-12' in css
+          assert 'font-size:14px!important' in css
+          assert 'background:rgba(255,255,255,.72)!important' in css
+          print('MOBILE_NAVBAR_REFINEMENT_OK')
+          header_html = Path('partners/templates/website/includes/public_header.html').read_text(encoding='utf-8')
+          app_js = Path('../assets/js/app.js').read_text(encoding='utf-8')
+          assert "path('join/partner', public_partner_join" in public_urls_py
+          assert "location.pathname.replace(/\\/+$/,'') === '/join/partner'" in app_js
+          assert "openAuth('partner')" in app_js
+          assert "request.path == '/join/partner'" in header_html
+          assert '>LOGIN<' in header_html
+          assert 'data-member-join>회원가입</button>' in header_html
+          assert 'auth-link auth-link--accent" data-member-join' not in header_html
+          assert 'MOBILE HEADER COMPACT HERO 2026-10-12' in css
+          assert 'height:96px!important' in css
+          assert 'font-size:31px!important' in css
+          assert 'min-width:100px!important' in css
+          footer_html = Path('partners/templates/website/includes/public_footer.html').read_text(encoding='utf-8')
+          assert '관련분야' not in footer_html
+          assert '자유게시판</a></li>' not in footer_html
+          print('MOBILE_COMPACT_HEADER_OK')
+          assert 'MOBILE FINAL COMPOSITION 2026-10-12' in css
+          assert 'width:calc(100% + 16px)!important' in css
+          assert 'height:34px!important' in css
+          assert 'font-size:15px!important' in css
+          assert 'background:rgba(238,240,242,.76)!important' in css
+          assert 'MOBILE HERO DOM + ADMIN MENU SIZE FIX 2026-10-12' in css
+          assert '.site-header--intro + main .hero .hero-content' in css
+          assert 'bottom:7%!important' in css
+          assert 'min-width:78px!important' in css
+          assert 'font-size:var(--mobile-menu-font-size,13px)!important' in css
+          header_template = Path('partners/templates/website/includes/public_header.html').read_text(encoding='utf-8')
+          assert '--mobile-menu-font-size:' in header_template
+          admin_template = Path('partners/templates/dashboard/website_settings.html').read_text(encoding='utf-8')
+          assert 'name="header_mobile_menu_font_size"' in admin_template
+          print('MOBILE_FINAL_COMPOSITION_OK')
+          assert 'publicAdInfrastructure' in footer_html
+          assert 'publicAdTemplate_section_middle' in footer_html
+          print('MOBILE_HEADER_AD_CSS_OK')
+          PY
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/819578664210/locations/global/workloadIdentityPools/github-pool/providers/github-provider
+          service_account: github-deployer@thepetkorea.iam.gserviceaccount.com
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Prepare production repository trust
+        run: |
+          gcloud compute ssh thepetkorea-main-vm \
+            --project=thepetkorea \
+            --zone=asia-northeast3-a \
+            --quiet \
+            --command="sudo git config --global --add safe.directory /home/mstclma00/withdog"
+
+      - name: Deploy exact tested commit and migrate before restart
+        env:
+          DEPLOY_SHA: ${{ github.sha }}
+        run: |
+          gcloud compute ssh thepetkorea-main-vm \
+            --project=thepetkorea \
+            --zone=asia-northeast3-a \
+            --quiet \
+            --command="set -e; cd /home/mstclma00/withdog; sudo -u mstclma00 git fetch origin intro-homepage; sudo -u mstclma00 git checkout intro-homepage; sudo -u mstclma00 git reset --hard ${DEPLOY_SHA}; cd backend; sudo -u mstclma00 .venv/bin/python manage.py migrate --noinput; sudo -u mstclma00 .venv/bin/python manage.py check; sudo -u mstclma00 .venv/bin/python manage.py collectstatic --noinput; echo '=== SERVICE CONFIG ==='; sudo systemctl show thepetkorea -p WorkingDirectory -p ExecStart -p FragmentPath; sudo systemctl daemon-reload; sudo systemctl restart thepetkorea; sleep 3; systemctl is-active --quiet thepetkorea; test \"$(sudo -u mstclma00 git rev-parse HEAD)\" = \"\${DEPLOY_SHA}\"; curl -fsS http://127.0.0.1:8000/ >/dev/null || { sudo journalctl -u thepetkorea -n 80 --no-pager; exit 1; }; curl -fsS http://127.0.0.1:8000/sitemap.xml >/dev/null; curl -fsS http://127.0.0.1:8000/robots.txt >/dev/null"
+
+      - name: Inspect production branding sources
+        run: |
+          gcloud compute ssh thepetkorea-main-vm \
+            --project=thepetkorea \
+            --zone=asia-northeast3-a \
+            --quiet \
+            --command='cd /home/mstclma00/withdog/backend; sudo -u mstclma00 .venv/bin/python manage.py shell -c "from partners.models import SiteSetting,AboutPageSetting; s=SiteSetting.get_solo(); a=AboutPageSetting.get_solo(); print('\''site_logo='\'', s.logo.name if s.logo else '\'''\'', '\''exists='\'', bool(s.logo and s.logo.storage.exists(s.logo.name))); print('\''favicon='\'', s.favicon.name if s.favicon else '\'''\'', '\''exists='\'', bool(s.favicon and s.favicon.storage.exists(s.favicon.name))); print('\''member_art='\'', a.member_card_image.name if a.member_card_image else '\'''\'', '\''exists='\'', bool(a.member_card_image and a.member_card_image.storage.exists(a.member_card_image.name)))"'
+
+      - name: Verify public endpoints and membership image
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          import urllib.error
+          import urllib.request
+          import xml.etree.ElementTree as ET
+
+          checks = [
+              ('https://thepetkorea.co.kr/', False),
+              ('https://thepetkorea.co.kr/join/partner', True),
+              ('https://thepetkorea.co.kr/about.html', True),
+              ('https://thepetkorea.co.kr/benefits.html', True),
+              ('https://thepetkorea.co.kr/partners.html', True),
+              ('https://thepetkorea.co.kr/doglife/', True),
+              ('https://thepetkorea.co.kr/mypage/', False),
+              ('https://thepetkorea.co.kr/sitemap.xml', True),
+              ('https://thepetkorea.co.kr/robots.txt', True),
+              ('https://thepetkorea.co.kr/favicon.ico', True),
+              ('https://thepetkorea.co.kr/static/member_card_stamp.webp?v=20261007-3', True),
+          ]
+          for url, must_be_200 in checks:
+              req = urllib.request.Request(url, method='GET')
+              try:
+                  with urllib.request.urlopen(req, timeout=20) as response:
+                      print(url, response.status, response.headers.get('Content-Type'))
+                      if must_be_200 and response.status != 200:
+                          raise SystemExit(1)
+                      if response.status >= 500:
+                          raise SystemExit(1)
+              except urllib.error.HTTPError as exc:
+                  print(url, exc.code)
+                  if must_be_200 or exc.code >= 500:
+                      raise
+          favicon_req=urllib.request.Request(
+              'https://thepetkorea.co.kr/favicon.ico',
+              headers={'Cache-Control':'no-cache'},
+          )
+          with urllib.request.urlopen(favicon_req, timeout=20) as response:
+              favicon_bytes=response.read()
+              favicon_cache=response.headers.get('Cache-Control','')
+              favicon_type=response.headers.get('Content-Type','')
+              print(
+                  'LIVE_FAVICON',
+                  response.status,
+                  favicon_type,
+                  favicon_cache,
+                  'bytes=',len(favicon_bytes),
+                  'sha256=',hashlib.sha256(favicon_bytes).hexdigest(),
+              )
+              if response.status != 200 or not favicon_bytes:
+                  raise SystemExit('Production favicon is unavailable')
+              if not favicon_type.startswith('image/'):
+                  raise SystemExit(f'Production favicon content type invalid: {favicon_type}')
+              if 'no-cache' not in favicon_cache or 'max-age=86400' in favicon_cache:
+                  raise SystemExit(f'Production favicon cache policy is stale: {favicon_cache}')
+
+          stamp_url='https://thepetkorea.co.kr/static/member_card_stamp.webp?v=20261007-3'
+          with urllib.request.urlopen(stamp_url, timeout=20) as response:
+              stamp_bytes=response.read()
+              stamp_hash=hashlib.sha256(stamp_bytes).hexdigest()
+              expected_stamp='2f2653b53f25362a2c040665a6a44b226c50cc3b08eeec2b2e1a9b574a217c31'
+              print('MEMBER_CARD_STAMP_SHA256', stamp_hash)
+              if stamp_hash != expected_stamp:
+                  raise SystemExit(f'Membership stamp mismatch: {stamp_hash}')
+
+          # Validate that public pages use the canonical authenticated-aware shell.
+          public_urls = [
+              'https://thepetkorea.co.kr/',
+              'https://thepetkorea.co.kr/about.html',
+              'https://thepetkorea.co.kr/benefits.html',
+              'https://thepetkorea.co.kr/partners.html',
+          ]
+          for url in public_urls:
+              with urllib.request.urlopen(url, timeout=20) as response:
+                  html=response.read().decode('utf-8','replace')
+                  if 'class="site-header ' not in html or 'class="footer"' not in html:
+                      raise SystemExit(f'Public shell validation failed: {url}')
+                  if 'Gyeongnam Pet Dog Association' not in html:
+                      raise SystemExit(f'Canonical footer/header content missing: {url}')
+                  if url == 'https://thepetkorea.co.kr/':
+                      if 'data-member-login' not in html or 'data-member-join' not in html:
+                          raise SystemExit(f'Intro auth controls missing: {url}')
+                  else:
+                      if '/dashboard/login/' not in html or '/#join' not in html:
+                          raise SystemExit(f'Inner-page auth controls missing: {url}')
+                  if 'class="brand-dog"' not in html or ('<img' not in html and '<video' not in html):
+                      raise SystemExit(f'Canonical server-rendered logo media missing: {url}')
+                  if 'class="primary-nav"' not in html:
+                      raise SystemExit(f'Primary navigation missing: {url}')
+                  if 'href="/partners.html">제휴업체</a>' not in html:
+                      raise SystemExit(f'Affiliated partner menu label missing: {url}')
+                  if 'href="/partners.html">후원업체</a>' in html:
+                      raise SystemExit(f'Legacy sponsor menu label still present: {url}')
+                  if '🐶' in html.split('</header>', 1)[0]:
+                      raise SystemExit(f'Legacy header dog fallback still present: {url}')
+
+          with urllib.request.urlopen('https://thepetkorea.co.kr/join/partner', timeout=20) as response:
+              direct_join_html=response.read().decode('utf-8','replace')
+              if '<base href="/">' not in direct_join_html:
+                  raise SystemExit('Partner join deep link base href missing')
+              if 'site-header--intro' not in direct_join_html:
+                  raise SystemExit('Partner join deep link did not render intro header')
+              if 'app.js?v=20261020-live-intro-v3' not in direct_join_html:
+                  raise SystemExit('Partner join deep link app asset version missing')
+
+          with urllib.request.urlopen('https://thepetkorea.co.kr/', timeout=20) as response:
+              home_html=response.read().decode('utf-8','replace')
+              if 'site-header--intro' not in home_html:
+                  raise SystemExit('Intro glass header class missing')
+              if '<link rel="icon" href="/favicon.ico">' not in home_html:
+                  raise SystemExit('Homepage stable favicon link missing')
+              if '<section class="join"' in home_html:
+                  raise SystemExit('Legacy red JOIN US block still present')
+              if 'class="to-top"' in home_html:
+                  raise SystemExit('Legacy floating top button still present')
+              if 'quick-nav' in home_html:
+                  raise SystemExit('Legacy lower quick navigation still present')
+              if '--intro-nav-opacity:' not in home_html or '--menu-font-size:' not in home_html:
+                  raise SystemExit('Intro menu presentation controls missing')
+              if home_html.count('id="botButton"') != 1:
+                  raise SystemExit('Homepage must render exactly one chatbot button')
+              if 'id="introNoticeList"' not in home_html or 'id="introPetNewsList"' not in home_html:
+                  raise SystemExit('Homepage notice/pet news lists missing')
+              if 'class="bot-float bot-float--split"' not in home_html:
+                  raise SystemExit('Persistent split floating hub missing')
+              if 'class="bot-direct-action bot-direct-ask"' not in home_html or '>AI 문의<' not in home_html:
+                  raise SystemExit('AI inquiry action missing from floating hub')
+              if 'class="bot-direct-action bot-direct-share"' not in home_html or '>견생 자랑<' not in home_html:
+                  raise SystemExit('Dog Life share action missing from floating hub')
+              if not (
+                  home_html.find('bot-direct-ask')
+                  < home_html.find('id="botButton"')
+                  < home_html.find('bot-direct-share')
+              ):
+                  raise SystemExit('Floating hub vertical action order is wrong')
+              if 'chatbot.js?v=20261020-split-actions-v3' not in home_html:
+                  raise SystemExit('Floating hub chatbot asset version missing')
+              if 'data-live-hero="1"' not in home_html or 'data-server-hero="1"' not in home_html:
+                  raise SystemExit('Live hero was not server-rendered on first paint')
+              if 'images.unsplash.com/photo-1558788353-f76d92427f16' in home_html:
+                  raise SystemExit('Legacy intro image is still present in production HTML')
+              if 'data-server-video="' not in home_html:
+                  raise SystemExit('Floating chatbot server media marker missing')
+              if '>🐕</button>' in home_html:
+                  raise SystemExit('Legacy chatbot fallback flashes in initial HTML')
+              if 'class="slider-control"' in home_html:
+                  raise SystemExit('Legacy intro slider controls still present')
+              if 'class="stats"' in home_html:
+                  raise SystemExit('Legacy statistics section still present')
+              if 'class="web-magazine' not in home_html:
+                  raise SystemExit('Dog Life web magazine section missing')
+              if 'class="web-magazine doglife-portal"' not in home_html:
+                  raise SystemExit('Dog Life portal structure missing')
+              if 'class="doglife-cover-row"' not in home_html or 'class="doglife-rank-panel"' not in home_html:
+                  raise SystemExit('Dog Life portal cover/ranking structure missing')
+              if 'class="doglife-sort-tabs"' not in home_html:
+                  raise SystemExit('Dog Life sort tabs missing')
+              if 'class="active" href="/?doglife_sort=popular#doglife">인기순</a>' not in home_html:
+                  raise SystemExit('Dog Life popularity default is not active')
+              if 'mag-mosaic-grid' in home_html or 'mag-text-rail' in home_html:
+                  raise SystemExit('Legacy Dog Life homepage layout still present')
+          with urllib.request.urlopen('https://thepetkorea.co.kr/?doglife_sort=latest', timeout=20) as response:
+              latest_home_html=response.read().decode('utf-8','replace')
+              if 'class="active" href="/?doglife_sort=latest#doglife">최신순</a>' not in latest_home_html:
+                  raise SystemExit('Dog Life latest sort tab did not activate')
+              if '최신 견생' not in latest_home_html:
+                  raise SystemExit('Dog Life latest sort content heading missing')
+
+          with urllib.request.urlopen('https://thepetkorea.co.kr/about.html', timeout=20) as response:
+              inner_html=response.read().decode('utf-8','replace')
+              if 'site-header--inner' not in inner_html:
+                  raise SystemExit('Inner gray header class missing')
+          with urllib.request.urlopen('https://thepetkorea.co.kr/doglife/', timeout=20) as response:
+              doglife_html=response.read().decode('utf-8','replace')
+              if '견생 · 반려견과 함께 사는 이야기' not in doglife_html:
+                  raise SystemExit('Dog Life heading missing')
+              if 'class="dl-section dl-category-magazine"' not in doglife_html:
+                  raise SystemExit('Dog Life category magazine section missing')
+              if 'class="dl-mag-main' not in doglife_html:
+                  raise SystemExit('Dog Life category lead layout missing')
+              if 'dl-grid--feature' in doglife_html or 'dl-grid--mosaic' in doglife_html:
+                  raise SystemExit('Legacy Dog Life rotating layouts still present')
+              if 'object-fit:contain' not in doglife_html:
+                  raise SystemExit('Dog Life media preservation CSS missing')
+              if 'dl-empty-box' in doglife_html:
+                  raise SystemExit('Legacy oversized empty box still present')
+
+          with urllib.request.urlopen('https://thepetkorea.co.kr/partners.html', timeout=20) as response:
+              partners_html=response.read().decode('utf-8','replace')
+              if partners_html.count('id="botButton"') != 1:
+                  raise SystemExit('Partners page must render exactly one chatbot button')
+              if 'RELATED COMPANIES' in partners_html:
+                  raise SystemExit('Legacy partners hero still present')
+              count_pos=partners_html.find('id="count"')
+              regions_pos=partners_html.find('id="regions"')
+              cards_pos=partners_html.find('id="cards"')
+              if not (count_pos >= 0 and regions_pos > count_pos and cards_pos > regions_pos):
+                  raise SystemExit('Partner region filters are not directly below total count')
+              if '제휴업체 안내' not in partners_html:
+                  raise SystemExit('Affiliated partner page heading missing')
+              if '//dapi.kakao.com/v2/maps/sdk.js?appkey=' in partners_html:
+                  raise SystemExit('Legacy hardcoded Kakao map SDK still present')
+              if 'partners.js?v=20261019-partner-v2' not in partners_html:
+                  raise SystemExit('New partner map loader asset missing')
+
+          with urllib.request.urlopen('https://thepetkorea.co.kr/api/site-settings/', timeout=20) as response:
+              site_settings=json.loads(response.read().decode('utf-8','replace'))
+              kakao_js_key=str(site_settings.get('kakao_javascript_key') or '').strip()
+              if not kakao_js_key:
+                  raise SystemExit('Production Kakao JavaScript key is missing')
+              print(
+                  'KAKAO_JS_KEY',
+                  'length=', len(kakao_js_key),
+                  'last4=', kakao_js_key[-4:],
+              )
+
+          # Browser-equivalent Kakao Maps SDK authorization probe.
+          # Referer is required because Kakao validates the JavaScript SDK domain.
+          kakao_sdk_url=(
+              'https://dapi.kakao.com/v2/maps/sdk.js'
+              '?appkey=' + kakao_js_key +
+              '&libraries=services&autoload=false'
+          )
+          kakao_req=urllib.request.Request(
+              kakao_sdk_url,
+              headers={
+                  'Referer':'https://thepetkorea.co.kr/partners.html',
+                  'Origin':'https://thepetkorea.co.kr',
+                  'User-Agent':'Mozilla/5.0',
+              },
+          )
+          try:
+              with urllib.request.urlopen(kakao_req, timeout=20) as response:
+                  sdk_body=response.read(1200).decode('utf-8','replace')
+                  print(
+                      'KAKAO_MAP_SDK',
+                      response.status,
+                      response.headers.get('Content-Type'),
+                      sdk_body[:300].replace('\n',' '),
+                  )
+                  lower=sdk_body.lower()
+                  if response.status != 200:
+                      raise SystemExit(
+                          f'Kakao Map SDK HTTP {response.status}'
+                      )
+                  if (
+                      'domain mismatched' in lower
+                      or 'invalid' in lower
+                      or 'wrong appkey' in lower
+                      or 'error_code' in lower
+                  ):
+                      raise SystemExit(
+                          'Kakao Map SDK authorization error: ' +
+                          sdk_body[:500]
+                      )
+          except urllib.error.HTTPError as exc:
+              error_body=exc.read(1200).decode('utf-8','replace')
+              print(
+                  'KAKAO_MAP_SDK_HTTP_ERROR',
+                  exc.code,
+                  error_body[:500].replace('\n',' '),
+              )
+              raise
+
+          with urllib.request.urlopen('https://thepetkorea.co.kr/api/partners/public-map/', timeout=20) as response:
+              partner_data=json.loads(response.read().decode('utf-8','replace'))
+              partner_rows=partner_data.get('partners') or []
+              if partner_rows and 'discount_percent' not in partner_rows[0]:
+                  raise SystemExit('Partner discount field missing from public API')
+              priority=['창원시','김해시','진주시','양산시','밀양시']
+              normalized=[
+                  str(city).replace('경상남도 ','').replace('경남 ','').strip()
+                  for city in (partner_data.get('cities') or [])
+              ]
+              if len(normalized) != len(set(normalized)):
+                  raise SystemExit(f'Duplicate partner city units remain: {normalized}')
+              present=[city for city in priority if city in normalized]
+              actual=[city for city in normalized if city in priority]
+              if actual != present:
+                  raise SystemExit(f'Priority partner city order mismatch: {actual}')
+
+          # Validate Googlebot-visible homepage and sitemap, not just HTTP 200.
+          googlebot = {'User-Agent': 'Googlebot'}
+          with urllib.request.urlopen(urllib.request.Request('https://thepetkorea.co.kr/', headers=googlebot), timeout=20) as response:
+              html = response.read().decode('utf-8', 'replace')
+              print('GOOGLEBOT_HOME', response.status, 'title_count=', html.lower().count('<title'))
+              if response.status != 200 or html.lower().count('<title') != 1:
+                  raise SystemExit('Googlebot homepage SEO validation failed')
+              if html.lower().count('name="description"') != 1:
+                  raise SystemExit('Duplicate/missing meta description')
+              if 'rel="canonical" href="https://thepetkorea.co.kr/"' not in html:
+                  raise SystemExit('Canonical missing')
+
+          with urllib.request.urlopen(urllib.request.Request('https://thepetkorea.co.kr/sitemap.xml', headers=googlebot), timeout=20) as response:
+              xml_bytes = response.read()
+              root = ET.fromstring(xml_bytes)
+              ns = {'sm': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
+              locs = root.findall('sm:url/sm:loc', ns)
+              print('GOOGLEBOT_SITEMAP', response.status, 'urls=', len(locs))
+              if root.tag != '{http://www.sitemaps.org/schemas/sitemap/0.9}urlset' or not locs:
+                  raise SystemExit('Googlebot sitemap XML validation failed')
+          PY

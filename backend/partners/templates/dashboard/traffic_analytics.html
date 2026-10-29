@@ -1,0 +1,134 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}유입 분석{% endblock %}
+{% block header %}유입 분석{% endblock %}
+
+{% block content %}
+<style>
+.traffic-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:20px}
+.traffic-head h2{margin:4px 0 5px;font-size:28px}.traffic-head p{margin:0;color:#777;font-size:13px}
+.traffic-tabs{display:flex;gap:7px;flex-wrap:wrap}.traffic-tabs a{padding:9px 13px;border:1px solid #ddd;border-radius:999px;background:#fff;font-size:12px;font-weight:800}.traffic-tabs a.active{background:#111;color:#fff;border-color:#111}
+.traffic-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}
+.traffic-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:18px}.traffic-card b{display:block;font-size:12px;color:#777;margin-bottom:7px}.traffic-card strong{font-size:29px;color:#c91f26}.traffic-card small{display:block;color:#999;margin-top:5px}
+.traffic-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.traffic-panel{background:#fff;border:1px solid #e7e7e7;border-radius:14px;padding:18px;margin-bottom:16px}
+.traffic-panel h3{margin:0 0 14px;font-size:17px}.traffic-table{width:100%;border-collapse:collapse}.traffic-table th,.traffic-table td{padding:10px 8px;border-bottom:1px solid #eee;text-align:left;font-size:12px;vertical-align:top}.traffic-table th{color:#777}.traffic-table td:last-child,.traffic-table th:last-child{text-align:right}
+.traffic-search{display:flex;gap:8px;margin-bottom:16px}.traffic-search input{flex:1;min-width:0;padding:11px 13px;border:1px solid #ddd;border-radius:8px}.traffic-search button{border:0;border-radius:8px;background:#222;color:#fff;padding:0 17px;font-weight:800}
+.traffic-bars{display:grid;gap:8px}.traffic-bar-row{display:grid;grid-template-columns:82px 1fr 64px;gap:10px;align-items:center;font-size:12px}.traffic-bar-track{height:10px;background:#f0f1f2;border-radius:999px;overflow:hidden}.traffic-bar-fill{height:100%;background:#c91f26;border-radius:999px}
+.traffic-note{padding:12px 14px;border-radius:10px;background:#fff8e8;border:1px solid #f1dfad;color:#6f5a24;font-size:12px;line-height:1.6;margin-bottom:16px}
+.source-search{color:#1967d2}.source-social{color:#7b3fe4}.source-direct{color:#555}.source-referral{color:#b45309}.source-campaign{color:#047857}
+@media(max-width:1000px){.traffic-cards{grid-template-columns:1fr 1fr}.traffic-grid{grid-template-columns:1fr}}
+@media(max-width:600px){.traffic-head{display:block}.traffic-tabs{margin-top:14px}.traffic-cards{grid-template-columns:1fr}.traffic-search{display:grid;grid-template-columns:1fr auto}.traffic-panel{overflow-x:auto}.traffic-table{min-width:720px}}
+</style>
+
+<div class="traffic-head">
+  <div>
+    <div class="eyebrow">TRAFFIC ANALYTICS</div>
+    <h2>사이트 유입 분석</h2>
+    <p>실시간·일간·주간·월간 유입, 검색 키워드, IP와 유입경로를 확인합니다.</p>
+  </div>
+  <div class="traffic-tabs">
+    <a class="{% if period == 'realtime' %}active{% endif %}" href="?period=realtime">실시간</a>
+    <a class="{% if period == 'today' %}active{% endif %}" href="?period=today">일일</a>
+    <a class="{% if period == 'week' %}active{% endif %}" href="?period=week">매주</a>
+    <a class="{% if period == 'month' %}active{% endif %}" href="?period=month">매월</a>
+  </div>
+</div>
+
+<div class="traffic-note">
+  IP 위치는 서버·CDN이 제공하는 정보가 있을 때 표시되는 근사 위치입니다. 검색엔진이 검색어를 숨기는 경우에는 <b>키워드 미제공</b>으로 표시됩니다. IP와 위치정보는 개인정보 처리방침의 수집항목·보유기간에 반영하는 것을 권장합니다.
+</div>
+
+<div class="traffic-cards">
+  <div class="traffic-card"><b>실시간 · 최근 30분</b><strong>{{ realtime.count }}</strong><small>순방문 {{ realtime.unique }}명</small></div>
+  <div class="traffic-card"><b>오늘</b><strong>{{ today.count }}</strong><small>순방문 {{ today.unique }}명</small></div>
+  <div class="traffic-card"><b>이번 주</b><strong>{{ week.count }}</strong><small>순방문 {{ week.unique }}명</small></div>
+  <div class="traffic-card"><b>이번 달</b><strong>{{ month.count }}</strong><small>순방문 {{ month.unique }}명</small></div>
+</div>
+
+<form class="traffic-search" method="get">
+  <input type="hidden" name="period" value="{{ period }}">
+  <input name="q" value="{{ q }}" placeholder="IP, 키워드, 유입처, 지역, 방문경로 검색">
+  <button type="submit">검색</button>
+</form>
+
+<div class="traffic-grid">
+  <section class="traffic-panel">
+    <h3>{{ period_label }} 유입경로</h3>
+    <table class="traffic-table">
+      <thead><tr><th>유형</th><th>유입처</th><th>유입수</th></tr></thead>
+      <tbody>
+      {% for row in source_rows %}
+      <tr><td class="source-{{ row.source_type }}">{{ row.source_type }}</td><td>{{ row.source_name }}</td><td>{{ row.count }}</td></tr>
+      {% empty %}<tr><td colspan="3">아직 데이터가 없습니다.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="traffic-panel">
+    <h3>검색 키워드</h3>
+    <table class="traffic-table">
+      <thead><tr><th>검색엔진</th><th>키워드</th><th>유입수</th></tr></thead>
+      <tbody>
+      {% for row in keyword_rows %}
+      <tr><td>{{ row.source_name }}</td><td>{{ row.keyword }}</td><td>{{ row.count }}</td></tr>
+      {% empty %}<tr><td colspan="3">검색 유입 데이터가 없습니다.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+
+<div class="traffic-grid">
+  <section class="traffic-panel">
+    <h3>최근 14일 일자별 유입</h3>
+    <div class="traffic-bars">
+      {% for row in daily_rows %}
+      <div class="traffic-bar-row">
+        <span>{{ row.day|date:"m.d" }}</span>
+        <div class="traffic-bar-track"><div class="traffic-bar-fill" style="width:{{ row.bar_percent }}%"></div></div>
+        <strong>{{ row.count }} / {{ row.unique }}</strong>
+      </div>
+      {% empty %}<div class="muted">아직 데이터가 없습니다.</div>{% endfor %}
+    </div>
+  </section>
+
+  <section class="traffic-panel">
+    <h3>주요 유입 페이지</h3>
+    <table class="traffic-table">
+      <thead><tr><th>첫 방문 페이지</th><th>유입수</th></tr></thead>
+      <tbody>
+      {% for row in landing_rows %}
+      <tr><td>{{ row.path }}</td><td>{{ row.count }}</td></tr>
+      {% empty %}<tr><td colspan="2">아직 데이터가 없습니다.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+
+<section class="traffic-panel">
+  <h3>{{ period_label }} 최근 유입 로그 · {{ filtered_count }}건</h3>
+  <table class="traffic-table">
+    <thead>
+      <tr><th>시각</th><th>IP</th><th>위치</th><th>유입처</th><th>키워드</th><th>첫 방문 페이지</th><th>기기</th></tr>
+    </thead>
+    <tbody>
+    {% for row in visit_rows %}
+      <tr>
+        <td>{{ row.visit.visited_at|date:"Y.m.d H:i:s" }}</td>
+        <td>{{ row.visit.ip_address }}</td>
+        <td>{{ row.location }}</td>
+        <td>{{ row.visit.source_name }}{% if row.visit.referrer_host %}<br><small class="muted">{{ row.visit.referrer_host }}</small>{% endif %}</td>
+        <td>{{ row.keyword }}</td>
+        <td>{{ row.visit.path }}</td>
+        <td>{% if row.visit.is_mobile %}모바일{% else %}PC/기타{% endif %}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="7">선택한 기간의 유입 데이터가 없습니다.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+{% if period == 'realtime' %}
+<script>setTimeout(function(){ location.reload(); }, 30000);</script>
+{% endif %}
+{% endblock %}
