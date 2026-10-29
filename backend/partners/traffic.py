@@ -95,6 +95,54 @@ def is_public_ip(value):
     )
 
 
+
+def location_from_request_headers(request):
+    """
+    Read approximate geo metadata only when the hosting proxy/CDN supplies it.
+    No visitor IP is sent to any third-party lookup API.
+    """
+    from urllib.parse import unquote
+
+    country = (
+        request.META.get('HTTP_CF_IPCOUNTRY')
+        or request.META.get('HTTP_CLOUDFRONT_VIEWER_COUNTRY')
+        or request.META.get('HTTP_X_APPENGINE_COUNTRY')
+        or request.META.get('HTTP_X_GEO_COUNTRY')
+        or ''
+    ).strip()
+
+    region = (
+        request.META.get('HTTP_CLOUDFRONT_VIEWER_COUNTRY_REGION_NAME')
+        or request.META.get('HTTP_CF_REGION')
+        or request.META.get('HTTP_X_APPENGINE_REGION')
+        or request.META.get('HTTP_X_GEO_REGION')
+        or ''
+    ).strip()
+
+    city = (
+        request.META.get('HTTP_CLOUDFRONT_VIEWER_CITY')
+        or request.META.get('HTTP_CF_IPCITY')
+        or request.META.get('HTTP_X_APPENGINE_CITY')
+        or request.META.get('HTTP_X_GEO_CITY')
+        or ''
+    ).strip()
+
+    city = unquote(city)
+    region = unquote(region)
+
+    if not any((country, region, city)):
+        return {}
+
+    return {
+        'country_code': country[:8],
+        'country': country[:100],
+        'region': region[:120],
+        'city': city[:120],
+        'geo_resolved': True,
+        'geo_checked_at': timezone.now(),
+    }
+
+
 def _host_without_port(value):
     value = str(value or '').strip().lower()
     if value.startswith('['):
@@ -301,8 +349,11 @@ class TrafficAnalyticsMiddleware:
             .first()
         )
 
-        location = {}
-        if previous:
+        location = location_from_request_headers(
+            request
+        )
+
+        if not location and previous:
             location = {
                 'country_code': previous.country_code,
                 'country': previous.country,
