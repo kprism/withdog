@@ -16,7 +16,7 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
 import json
-from .models import Partner,PartnerCategory,PartnerBenefit,ContentItem,MemberProfile,DogRegistration,MemberBenefit,Inquiry, SiteSetting, DogBreed
+from .models import Partner,PartnerCategory,PartnerBenefit,ContentItem,MemberProfile,DogRegistration,MemberBenefit,Inquiry, SiteSetting, DogBreed, TrafficVisit
 
 LABELS={'notice':'공지사항','community':'자유게시판','breed':'전 세계 견종','intro':'인트로 갤러리','popup':'팝업'}
 
@@ -668,6 +668,252 @@ def _import_partner_workbook(uploaded_file, category):
         geocoded,
         geocode_failed,
     )
+
+def _traffic_period_ranges():
+    from datetime import datetime, time, timedelta
+    from django.utils import timezone
+
+    now = timezone.now()
+    local_now = timezone.localtime(now)
+    tz = timezone.get_current_timezone()
+
+    today = local_now.date()
+    today_start = timezone.make_aware(
+        datetime.combine(today, time.min),
+        tz,
+    )
+
+    week_date = today - timedelta(
+        days=today.weekday()
+    )
+    week_start = timezone.make_aware(
+        datetime.combine(week_date, time.min),
+        tz,
+    )
+
+    month_date = today.replace(day=1)
+    month_start = timezone.make_aware(
+        datetime.combine(month_date, time.min),
+        tz,
+    )
+
+    return {
+        'realtime': (
+            now - timedelta(minutes=30),
+            '실시간 · 최근 30분',
+        ),
+        'today': (
+            today_start,
+            '오늘',
+        ),
+        'week': (
+            week_start,
+            '이번 주',
+        ),
+        'month': (
+            month_start,
+            '이번 달',
+        ),
+    }
+
+
+@staff_member_required
+def traffic_analytics(request):
+    from datetime import timedelta
+    from django.db.models import Count
+    from django.db.models.functions import TruncDate
+    from django.utils import timezone
+
+    ranges = _traffic_period_ranges()
+    period = (
+        request.GET.get('period')
+        or 'today'
+    ).strip()
+
+    if period not in ranges:
+        period = 'today'
+
+    period_start, period_label = ranges[period]
+    now = timezone.now()
+
+    base = TrafficVisit.objects.filter(
+        visited_at__gte=period_start
+    )
+
+    q = (
+        request.GET.get('q')
+        or ''
+    ).strip()
+
+    if q:
+        base = base.filter(
+            Q(ip_address__icontains=q)
+            | Q(keyword__icontains=q)
+            | Q(source_name__icontains=q)
+            | Q(country__icontains=q)
+            | Q(region__icontains=q)
+            | Q(city__icontains=q)
+            | Q(path__icontains=q)
+            | Q(referrer_host__icontains=q)
+        )
+
+    def summary(start):
+        qs = TrafficVisit.objects.filter(
+            visited_at__gte=start
+        )
+
+        return {
+            'count': qs.count(),
+            'unique': qs.values(
+                'visitor_hash'
+            ).distinct().count(),
+        }
+
+    realtime = summary(
+        ranges['realtime'][0]
+    )
+    today = summary(
+        ranges['today'][0]
+    )
+    week = summary(
+        ranges['week'][0]
+    )
+    month = summary(
+        ranges['month'][0]
+    )
+
+    source_rows = list(
+        base.values(
+            'source_type',
+            'source_name',
+        )
+        .annotate(count=Count('id'))
+        .order_by(
+            '-count',
+            'source_name',
+        )[:12]
+    )
+
+    keyword_rows = list(
+        base.filter(
+            source_type='search'
+        )
+        .values(
+            'source_name',
+            'keyword',
+        )
+        .annotate(count=Count('id'))
+        .order_by(
+            '-count',
+            'source_name',
+        )[:15]
+    )
+
+    for row in keyword_rows:
+        if not row['keyword']:
+            row['keyword'] = '키워드 미제공'
+
+    landing_rows = list(
+        base.values('path')
+        .annotate(count=Count('id'))
+        .order_by(
+            '-count',
+            'path',
+        )[:12]
+    )
+
+    daily_rows = list(
+        TrafficVisit.objects
+        .filter(
+            visited_at__gte=(
+                now
+                - timedelta(days=13)
+            )
+        )
+        .annotate(
+            day=TruncDate('visited_at')
+        )
+        .values('day')
+        .annotate(
+            count=Count('id'),
+            unique=Count(
+                'visitor_hash',
+                distinct=True,
+            ),
+        )
+        .order_by('day')
+    )
+
+    max_daily = max(
+        [
+            row['count']
+            for row in daily_rows
+        ]
+        or [1]
+    )
+
+    for row in daily_rows:
+        row['bar_percent'] = max(
+            4,
+            round(
+                row['count']
+                / max_daily
+                * 100
+            ),
+        )
+
+    visit_rows = []
+
+    for visit in base.order_by(
+        '-visited_at'
+    )[:150]:
+        location_parts = [
+            value
+            for value in (
+                visit.country,
+                visit.region,
+                visit.city,
+            )
+            if value
+        ]
+
+        visit_rows.append({
+            'visit': visit,
+            'location': (
+                ' · '.join(location_parts)
+                if location_parts
+                else '위치 정보 없음'
+            ),
+            'keyword': (
+                visit.keyword
+                or (
+                    '키워드 미제공'
+                    if visit.source_type == 'search'
+                    else '-'
+                )
+            ),
+        })
+
+    return render(
+        request,
+        'dashboard/traffic_analytics.html',
+        {
+            'period': period,
+            'period_label': period_label,
+            'q': q,
+            'realtime': realtime,
+            'today': today,
+            'week': week,
+            'month': month,
+            'source_rows': source_rows,
+            'keyword_rows': keyword_rows,
+            'landing_rows': landing_rows,
+            'daily_rows': daily_rows,
+            'visit_rows': visit_rows,
+            'filtered_count': base.count(),
+        },
+    )
+
 
 @staff_member_required
 def dashboard_home(request):
