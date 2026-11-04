@@ -7,9 +7,17 @@ from urllib.parse import parse_qs, urlparse
 from django.utils import timezone
 
 
-BOT_PATTERN = re.compile(
-    r'(bot|crawler|spider|slurp|bingpreview|googlebot|naverbot|'
-    r'daumoa|yeti|yandex|facebookexternalhit|twitterbot|kakaotalk)',
+SEARCH_BOT_PATTERN = re.compile(
+    r'(googlebot|bingbot|bingpreview|naverbot|yeti|daumoa|'
+    r'yandexbot|baiduspider|duckduckbot|applebot)',
+    re.I,
+)
+
+AUTOMATION_PATTERN = re.compile(
+    r'(crawler|spider|headless|python-requests|python-urllib|curl/|wget/|'
+    r'go-http-client|aiohttp|scrapy|selenium|playwright|phantomjs|'
+    r'masscan|zgrab|nmap|nikto|censys|shodan|onyphe|scanner|'
+    r'internet-measurement|securitytrails|expanse)',
     re.I,
 )
 
@@ -246,6 +254,160 @@ def classify_traffic(request):
     }
 
 
+def classify_visitor_agent(user_agent):
+    ua = str(user_agent or '').strip()
+
+    if SEARCH_BOT_PATTERN.search(ua):
+        return 'search_bot', '검색엔진 User-Agent'
+
+    if not ua:
+        return 'scanner', 'User-Agent 없음'
+
+    if AUTOMATION_PATTERN.search(ua):
+        return 'scanner', '자동화/스캐너 User-Agent'
+
+    return 'human', ''
+
+
+def _mark_rapid_ip_activity(ip_address, now=None):
+    """
+    A normal browser can change pages quickly, but it normally keeps one
+    User-Agent and therefore one 30-minute fingerprint. Multiple fingerprints
+    from one IP racing across pages in seconds are typical scanner behaviour.
+    """
+    from .models import TrafficVisit
+
+    now = now or timezone.now()
+    recent = list(
+        TrafficVisit.objects
+        .filter(
+            ip_address=ip_address,
+            visited_at__gte=now - timedelta(minutes=5),
+        )
+        .exclude(visitor_type='search_bot')
+        .order_by('visited_at')
+        .values(
+            'id',
+            'visited_at',
+            'visitor_hash',
+            'path',
+        )
+    )
+
+    if len(recent) < 3:
+        return False
+
+    burst_ids = set()
+
+    for index, row in enumerate(recent):
+        short = [
+            item
+            for item in recent[index:]
+            if (
+                item['visited_at']
+                - row['visited_at']
+            ).total_seconds() <= 45
+        ]
+
+        fingerprints = {
+            item['visitor_hash']
+            for item in short
+        }
+        paths = {
+            item['path']
+            for item in short
+        }
+
+        if (
+            len(short) >= 3
+            and len(fingerprints) >= 3
+        ):
+            burst_ids.update(
+                item['id']
+                for item in short
+            )
+
+        if len(short) >= 5 and len(paths) >= 3:
+            burst_ids.update(
+                item['id']
+                for item in short
+            )
+
+    if not burst_ids and len(recent) >= 8:
+        fingerprints = {
+            row['visitor_hash']
+            for row in recent
+        }
+        if len(fingerprints) >= 4:
+            burst_ids.update(
+                row['id']
+                for row in recent
+            )
+
+    if not burst_ids:
+        return False
+
+    TrafficVisit.objects.filter(
+        id__in=burst_ids
+    ).exclude(
+        visitor_type='search_bot'
+    ).update(
+        visitor_type='scanner',
+        classification_reason='짧은 시간 다중 기기/경로 자동접속 패턴',
+    )
+
+    return True
+
+
+def reclassify_recent_visits(days=7, limit=5000):
+    """
+    Re-check recent legacy rows after classification rules improve.
+    This makes old dashboard rows useful without rewriting the whole history.
+    """
+    from collections import defaultdict
+    from .models import TrafficVisit
+
+    since = timezone.now() - timedelta(days=days)
+
+    rows = list(
+        TrafficVisit.objects
+        .filter(visited_at__gte=since)
+        .order_by('-visited_at')[:limit]
+    )
+
+    by_ip = defaultdict(list)
+
+    for visit in rows:
+        visitor_type, reason = classify_visitor_agent(
+            visit.user_agent
+        )
+
+        if visitor_type != 'human':
+            if (
+                visit.visitor_type != visitor_type
+                or visit.classification_reason != reason
+            ):
+                TrafficVisit.objects.filter(
+                    pk=visit.pk
+                ).update(
+                    visitor_type=visitor_type,
+                    classification_reason=reason,
+                )
+            continue
+
+        by_ip[visit.ip_address].append(visit)
+
+    for ip_address, visits in by_ip.items():
+        if len(visits) >= 3:
+            _mark_rapid_ip_activity(
+                ip_address,
+                now=max(
+                    visit.visited_at
+                    for visit in visits
+                ),
+            )
+
+
 class TrafficAnalyticsMiddleware:
     """
     Records one entry session per visitor fingerprint every 30 minutes.
@@ -309,8 +471,11 @@ class TrafficAnalyticsMiddleware:
             or ''
         ).strip()
 
-        if BOT_PATTERN.search(user_agent):
-            return
+        visitor_type, classification_reason = (
+            classify_visitor_agent(
+                user_agent
+            )
+        )
 
         ip_address = get_client_ip(request)
         if not ip_address:
@@ -378,7 +543,7 @@ class TrafficAnalyticsMiddleware:
             'ipad',
         )
 
-        TrafficVisit.objects.create(
+        visit = TrafficVisit.objects.create(
             ip_address=ip_address,
             visitor_hash=fingerprint,
             path=path[:500],
@@ -388,6 +553,14 @@ class TrafficAnalyticsMiddleware:
                 token in user_agent.lower()
                 for token in mobile_tokens
             ),
+            visitor_type=visitor_type,
+            classification_reason=classification_reason,
             **traffic,
             **location,
         )
+
+        if visit.visitor_type == 'human':
+            _mark_rapid_ip_activity(
+                ip_address,
+                now=visit.visited_at,
+            )

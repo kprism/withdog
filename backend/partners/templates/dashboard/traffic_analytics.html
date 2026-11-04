@@ -8,6 +8,8 @@
 .traffic-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:20px}
 .traffic-head h2{margin:4px 0 5px;font-size:28px}.traffic-head p{margin:0;color:#777;font-size:13px}
 .traffic-tabs{display:flex;gap:7px;flex-wrap:wrap}.traffic-tabs a{padding:9px 13px;border:1px solid #ddd;border-radius:999px;background:#fff;font-size:12px;font-weight:800}.traffic-tabs a.active{background:#111;color:#fff;border-color:#111}
+.traffic-type-tabs{display:flex;gap:7px;flex-wrap:wrap;margin:-4px 0 16px}.traffic-type-tabs a{padding:8px 12px;border:1px solid #ddd;border-radius:999px;background:#fff;font-size:12px;font-weight:800}.traffic-type-tabs a.active{background:#c91f26;color:#fff;border-color:#c91f26}
+.traffic-badge{display:inline-flex;align-items:center;padding:4px 7px;border-radius:999px;font-size:10px;font-weight:900;white-space:nowrap}.traffic-badge.human{background:#edf8f0;color:#23753a}.traffic-badge.search_bot{background:#eaf2ff;color:#1967d2}.traffic-badge.scanner{background:#fff0f0;color:#b42318}
 .traffic-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}
 .traffic-card{background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:18px}.traffic-card b{display:block;font-size:12px;color:#777;margin-bottom:7px}.traffic-card strong{font-size:29px;color:#c91f26}.traffic-card small{display:block;color:#999;margin-top:5px}
 .traffic-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.traffic-panel{background:#fff;border:1px solid #e7e7e7;border-radius:14px;padding:18px;margin-bottom:16px}
@@ -27,33 +29,41 @@
     <p>실시간·일간·주간·월간 유입, 검색 키워드, IP와 유입경로를 확인합니다.</p>
   </div>
   <div class="traffic-tabs">
-    <a class="{% if period == 'realtime' %}active{% endif %}" href="?period=realtime">실시간</a>
-    <a class="{% if period == 'today' %}active{% endif %}" href="?period=today">일일</a>
-    <a class="{% if period == 'week' %}active{% endif %}" href="?period=week">매주</a>
-    <a class="{% if period == 'month' %}active{% endif %}" href="?period=month">매월</a>
+    <a class="{% if period == 'realtime' %}active{% endif %}" href="?period=realtime&visitor={{ visitor_filter }}">실시간</a>
+    <a class="{% if period == 'today' %}active{% endif %}" href="?period=today&visitor={{ visitor_filter }}">일일</a>
+    <a class="{% if period == 'week' %}active{% endif %}" href="?period=week&visitor={{ visitor_filter }}">매주</a>
+    <a class="{% if period == 'month' %}active{% endif %}" href="?period=month&visitor={{ visitor_filter }}">매월</a>
   </div>
 </div>
 
 <div class="traffic-note">
-  IP 위치는 서버·CDN이 제공하는 정보가 있을 때 표시되는 근사 위치입니다. 검색엔진이 검색어를 숨기는 경우에는 <b>키워드 미제공</b>으로 표시됩니다. IP와 위치정보는 개인정보 처리방침의 수집항목·보유기간에 반영하는 것을 권장합니다.
+  기본 통계는 <b>실제 방문 추정</b>만 집계합니다. 검색봇과 짧은 시간에 여러 기기·경로를 훑는 자동접속은 별도로 분류해 제외합니다. 현재 선택 기간에서 제외된 자동 트래픽은 <b>{{ excluded_counts.total }}건</b>이며, 검색봇 {{ excluded_counts.search_bot }}건 / 보안스캐너·자동봇 {{ excluded_counts.scanner }}건입니다.
+</div>
+
+<div class="traffic-type-tabs">
+  <a class="{% if visitor_filter == 'human' %}active{% endif %}" href="?period={{ period }}&visitor=human">실제 방문 추정</a>
+  <a class="{% if visitor_filter == 'all' %}active{% endif %}" href="?period={{ period }}&visitor=all">전체 로그</a>
+  <a class="{% if visitor_filter == 'search_bot' %}active{% endif %}" href="?period={{ period }}&visitor=search_bot">검색봇</a>
+  <a class="{% if visitor_filter == 'scanner' %}active{% endif %}" href="?period={{ period }}&visitor=scanner">보안스캐너·자동봇</a>
 </div>
 
 <div class="traffic-cards">
-  <div class="traffic-card"><b>실시간 · 최근 30분</b><strong>{{ realtime.count }}</strong><small>순방문 {{ realtime.unique }}명</small></div>
-  <div class="traffic-card"><b>오늘</b><strong>{{ today.count }}</strong><small>순방문 {{ today.unique }}명</small></div>
-  <div class="traffic-card"><b>이번 주</b><strong>{{ week.count }}</strong><small>순방문 {{ week.unique }}명</small></div>
-  <div class="traffic-card"><b>이번 달</b><strong>{{ month.count }}</strong><small>순방문 {{ month.unique }}명</small></div>
+  <div class="traffic-card"><b>실시간 · 실제 방문 추정</b><strong>{{ realtime.count }}</strong><small>최근 30분 순방문 {{ realtime.unique }}명</small></div>
+  <div class="traffic-card"><b>오늘 · 실제 방문 추정</b><strong>{{ today.count }}</strong><small>순방문 {{ today.unique }}명</small></div>
+  <div class="traffic-card"><b>이번 주 · 실제 방문 추정</b><strong>{{ week.count }}</strong><small>순방문 {{ week.unique }}명</small></div>
+  <div class="traffic-card"><b>이번 달 · 실제 방문 추정</b><strong>{{ month.count }}</strong><small>순방문 {{ month.unique }}명</small></div>
 </div>
 
 <form class="traffic-search" method="get">
   <input type="hidden" name="period" value="{{ period }}">
+  <input type="hidden" name="visitor" value="{{ visitor_filter }}">
   <input name="q" value="{{ q }}" placeholder="IP, 키워드, 유입처, 지역, 방문경로 검색">
   <button type="submit">검색</button>
 </form>
 
 <div class="traffic-grid">
   <section class="traffic-panel">
-    <h3>{{ period_label }} 유입경로</h3>
+    <h3>{{ period_label }} · {{ visitor_filter_label }} 유입경로</h3>
     <table class="traffic-table">
       <thead><tr><th>유형</th><th>유입처</th><th>유입수</th></tr></thead>
       <tbody>
@@ -79,7 +89,7 @@
 
 <div class="traffic-grid">
   <section class="traffic-panel">
-    <h3>최근 14일 일자별 유입</h3>
+    <h3>최근 14일 실제 방문 추정</h3>
     <div class="traffic-bars">
       {% for row in daily_rows %}
       <div class="traffic-bar-row">
@@ -105,15 +115,16 @@
 </div>
 
 <section class="traffic-panel">
-  <h3>{{ period_label }} 최근 유입 로그 · {{ filtered_count }}건</h3>
+  <h3>{{ period_label }} · {{ visitor_filter_label }} 최근 로그 · {{ filtered_count }}건</h3>
   <table class="traffic-table">
     <thead>
-      <tr><th>시각</th><th>IP</th><th>위치</th><th>유입처</th><th>키워드</th><th>첫 방문 페이지</th><th>기기</th></tr>
+      <tr><th>시각</th><th>분류</th><th>IP</th><th>위치</th><th>유입처</th><th>키워드</th><th>첫 방문 페이지</th><th>기기</th></tr>
     </thead>
     <tbody>
     {% for row in visit_rows %}
       <tr>
         <td>{{ row.visit.visited_at|date:"Y.m.d H:i:s" }}</td>
+        <td><span class="traffic-badge {{ row.visit.visitor_type }}" title="{{ row.visit.classification_reason }}">{{ row.visitor_label }}</span></td>
         <td>{{ row.visit.ip_address }}</td>
         <td>{{ row.location }}</td>
         <td>{{ row.visit.source_name }}{% if row.visit.referrer_host %}<br><small class="muted">{{ row.visit.referrer_host }}</small>{% endif %}</td>
@@ -122,7 +133,7 @@
         <td>{% if row.visit.is_mobile %}모바일{% else %}PC/기타{% endif %}</td>
       </tr>
     {% empty %}
-      <tr><td colspan="7">선택한 기간의 유입 데이터가 없습니다.</td></tr>
+      <tr><td colspan="8">선택한 기간의 유입 데이터가 없습니다.</td></tr>
     {% endfor %}
     </tbody>
   </table>
