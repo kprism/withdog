@@ -723,6 +723,13 @@ def traffic_analytics(request):
     from django.db.models import Count
     from django.db.models.functions import TruncDate
     from django.utils import timezone
+    from .traffic import reclassify_recent_visits
+
+    # Re-run improved detection rules over recent legacy rows.
+    reclassify_recent_visits(
+        days=7,
+        limit=5000,
+    )
 
     ranges = _traffic_period_ranges()
     period = (
@@ -733,12 +740,41 @@ def traffic_analytics(request):
     if period not in ranges:
         period = 'today'
 
+    visitor_filter = (
+        request.GET.get('visitor')
+        or 'human'
+    ).strip()
+
+    allowed_visitors = {
+        'human',
+        'search_bot',
+        'scanner',
+        'all',
+    }
+
+    if visitor_filter not in allowed_visitors:
+        visitor_filter = 'human'
+
+    visitor_labels = {
+        'human': '실제 방문 추정',
+        'search_bot': '검색봇',
+        'scanner': '보안스캐너·자동봇',
+        'all': '전체 로그',
+    }
+
     period_start, period_label = ranges[period]
     now = timezone.now()
 
-    base = TrafficVisit.objects.filter(
+    period_all = TrafficVisit.objects.filter(
         visited_at__gte=period_start
     )
+
+    if visitor_filter == 'all':
+        base = period_all
+    else:
+        base = period_all.filter(
+            visitor_type=visitor_filter
+        )
 
     q = (
         request.GET.get('q')
@@ -755,11 +791,13 @@ def traffic_analytics(request):
             | Q(city__icontains=q)
             | Q(path__icontains=q)
             | Q(referrer_host__icontains=q)
+            | Q(classification_reason__icontains=q)
         )
 
-    def summary(start):
+    def human_summary(start):
         qs = TrafficVisit.objects.filter(
-            visited_at__gte=start
+            visited_at__gte=start,
+            visitor_type='human',
         )
 
         return {
@@ -769,17 +807,30 @@ def traffic_analytics(request):
             ).distinct().count(),
         }
 
-    realtime = summary(
+    realtime = human_summary(
         ranges['realtime'][0]
     )
-    today = summary(
+    today = human_summary(
         ranges['today'][0]
     )
-    week = summary(
+    week = human_summary(
         ranges['week'][0]
     )
-    month = summary(
+    month = human_summary(
         ranges['month'][0]
+    )
+
+    excluded_counts = {
+        'search_bot': period_all.filter(
+            visitor_type='search_bot'
+        ).count(),
+        'scanner': period_all.filter(
+            visitor_type='scanner'
+        ).count(),
+    }
+    excluded_counts['total'] = (
+        excluded_counts['search_bot']
+        + excluded_counts['scanner']
     )
 
     source_rows = list(
@@ -828,7 +879,8 @@ def traffic_analytics(request):
             visited_at__gte=(
                 now
                 - timedelta(days=13)
-            )
+            ),
+            visitor_type='human',
         )
         .annotate(
             day=TruncDate('visited_at')
@@ -864,6 +916,12 @@ def traffic_analytics(request):
 
     visit_rows = []
 
+    type_labels = {
+        'human': '실제 방문 추정',
+        'search_bot': '검색봇',
+        'scanner': '보안스캐너·자동봇',
+    }
+
     for visit in base.order_by(
         '-visited_at'
     )[:150]:
@@ -892,6 +950,10 @@ def traffic_analytics(request):
                     else '-'
                 )
             ),
+            'visitor_label': type_labels.get(
+                visit.visitor_type,
+                visit.visitor_type,
+            ),
         })
 
     return render(
@@ -900,11 +962,16 @@ def traffic_analytics(request):
         {
             'period': period,
             'period_label': period_label,
+            'visitor_filter': visitor_filter,
+            'visitor_filter_label': visitor_labels[
+                visitor_filter
+            ],
             'q': q,
             'realtime': realtime,
             'today': today,
             'week': week,
             'month': month,
+            'excluded_counts': excluded_counts,
             'source_rows': source_rows,
             'keyword_rows': keyword_rows,
             'landing_rows': landing_rows,
