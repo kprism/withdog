@@ -62,7 +62,7 @@ jobs:
           r.delete()
           print('MEMBER_DELETE_LEDGER_PRESERVED')
           PY
-      - name: Verify traffic analytics tracking and admin dashboard
+      - name: Verify traffic analytics human bot scanner classification
         working-directory: backend
         run: |
           python manage.py migrate --noinput
@@ -74,6 +74,8 @@ jobs:
           TrafficVisit.objects.all().delete()
 
           visitor=Client()
+
+          # Normal Naver search entry -> estimated human traffic.
           response=visitor.get(
               '/',
               HTTP_X_FORWARDED_FOR='203.0.113.25',
@@ -85,24 +87,63 @@ jobs:
           )
           assert response.status_code == 200
 
-          visit=TrafficVisit.objects.get()
-          assert visit.ip_address == '203.0.113.25'
-          assert visit.source_type == 'search'
-          assert visit.source_name == '네이버'
-          assert visit.keyword == '강아지 산책'
-          assert visit.is_mobile is True
-          assert visit.country == 'KR'
-          assert visit.region == 'Gyeongsangnam-do'
-          assert visit.city == 'Changwon-si'
-          assert visit.path == '/'
+          human=TrafficVisit.objects.get(ip_address='203.0.113.25')
+          assert human.visitor_type == 'human'
+          assert human.source_type == 'search'
+          assert human.source_name == '네이버'
+          assert human.keyword == '강아지 산책'
+          assert human.is_mobile is True
+          assert human.country == 'KR'
+          assert human.region == 'Gyeongsangnam-do'
+          assert human.city == 'Changwon-si'
 
-          # Same fingerprint inside 30 minutes is one entry session.
+          # Same fingerprint inside 30 minutes remains one entry session.
           visitor.get(
               '/about.html',
               HTTP_X_FORWARDED_FOR='203.0.113.25',
               HTTP_USER_AGENT='Mozilla/5.0 (Linux; Android 14) Mobile Safari/537.36',
           )
-          assert TrafficVisit.objects.count() == 1
+          assert TrafficVisit.objects.filter(
+              ip_address='203.0.113.25'
+          ).count() == 1
+
+          # Search bots are retained for audit, but not counted as humans.
+          visitor.get(
+              '/',
+              HTTP_X_FORWARDED_FOR='198.51.100.20',
+              HTTP_USER_AGENT='Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+          )
+          search_bot=TrafficVisit.objects.get(
+              ip_address='198.51.100.20'
+          )
+          assert search_bot.visitor_type == 'search_bot'
+          assert '검색엔진' in search_bot.classification_reason
+
+          # A spoofed scanner rotates browser identities and races across pages.
+          scanner_ip='192.0.2.77'
+          scanner_requests=[
+              ('/about.html','Mozilla/5.0 Chrome/126.0 Scanner-A'),
+              ('/benefits.html','Mozilla/5.0 Firefox/128.0 Scanner-B'),
+              ('/partners.html','Mozilla/5.0 Safari/605.1 Scanner-C'),
+          ]
+          for path,ua in scanner_requests:
+              response=visitor.get(
+                  path,
+                  HTTP_X_FORWARDED_FOR=scanner_ip,
+                  HTTP_USER_AGENT=ua,
+              )
+              assert response.status_code == 200
+
+          scanner_rows=TrafficVisit.objects.filter(
+              ip_address=scanner_ip
+          )
+          assert scanner_rows.count() == 3
+          assert scanner_rows.exclude(
+              visitor_type='scanner'
+          ).count() == 0
+          assert scanner_rows.filter(
+              classification_reason__icontains='자동접속'
+          ).count() == 3
 
           User=get_user_model()
           admin=User.objects.create_superuser(
@@ -114,15 +155,36 @@ jobs:
           admin_client.force_login(admin)
 
           before=TrafficVisit.objects.count()
-          dashboard=admin_client.get('/dashboard/traffic/?period=today')
+
+          # Default dashboard shows estimated humans only.
+          dashboard=admin_client.get(
+              '/dashboard/traffic/?period=today'
+          )
           assert dashboard.status_code == 200
           dashboard_html=dashboard.content.decode('utf-8','replace')
           assert '사이트 유입 분석' in dashboard_html
-          assert '실시간 · 최근 30분' in dashboard_html
+          assert '실제 방문 추정' in dashboard_html
           assert '강아지 산책' in dashboard_html
           assert '203.0.113.25' in dashboard_html
-          assert 'Changwon-si' in dashboard_html
-          assert '유입 분석' in dashboard_html
+          assert scanner_ip not in dashboard_html
+          assert '198.51.100.20' not in dashboard_html
+
+          scanner_dashboard=admin_client.get(
+              '/dashboard/traffic/?period=today&visitor=scanner'
+          )
+          scanner_html=scanner_dashboard.content.decode('utf-8','replace')
+          assert scanner_dashboard.status_code == 200
+          assert scanner_ip in scanner_html
+          assert '보안스캐너·자동봇' in scanner_html
+
+          bot_dashboard=admin_client.get(
+              '/dashboard/traffic/?period=today&visitor=search_bot'
+          )
+          bot_html=bot_dashboard.content.decode('utf-8','replace')
+          assert bot_dashboard.status_code == 200
+          assert '198.51.100.20' in bot_html
+          assert '검색봇' in bot_html
+
           assert TrafficVisit.objects.count() == before
 
           # API/admin/static requests are excluded from analytics.
@@ -133,9 +195,18 @@ jobs:
           )
           assert TrafficVisit.objects.count() == before
 
+          template=open(
+              'partners/templates/dashboard/traffic_analytics.html',
+              encoding='utf-8',
+          ).read()
+          assert 'visitor=human' in template
+          assert 'visitor=search_bot' in template
+          assert 'visitor=scanner' in template
+          assert 'traffic-badge' in template
+
           admin.delete()
           TrafficVisit.objects.all().delete()
-          print('TRAFFIC_ANALYTICS_OK')
+          print('TRAFFIC_HUMAN_BOT_SCANNER_OK')
           PY
       - name: Verify advertisement slot rendering
         working-directory: backend
@@ -835,6 +906,8 @@ jobs:
           assert TrafficVisit._meta.get_field('ip_address')
           assert TrafficVisit._meta.get_field('keyword')
           assert TrafficVisit._meta.get_field('city')
+          assert TrafficVisit._meta.get_field('visitor_type')
+          assert TrafficVisit._meta.get_field('classification_reason')
           assert IntroLayer._meta.get_field('x_px')
           assert SiteSetting._meta.get_field('intro_stage_width').default == 1920
           assert SiteSetting._meta.get_field('intro_stage_height').default == 864
