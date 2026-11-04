@@ -1,0 +1,1590 @@
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:'Noto Sans KR',sans-serif;color:#111;background:#fff}a{text-decoration:none;color:inherit}button{font:inherit;cursor:pointer}.site-header{height:86px;background:linear-gradient(90deg,#ae0809,#ce292d);color:#fff;display:flex;align-items:center;padding:0 20px;justify-content:space-between;position:relative;z-index:20}.brand{display:flex;align-items:center;gap:12px}.brand-dog{width:48px;height:48px;background:#fff;border-radius:50%;display:grid;place-items:center;font-size:29px}.brand b{display:block;font-size:17px}.brand small{display:block;font-size:12px;opacity:.7;margin-top:10px}.header-actions{display:flex;align-items:center;gap:11px;font-size:14px}.header-actions>a{margin-right:10px}.btn{border:0;border-radius:8px;padding:12px 25px;font-weight:800}.btn-outline{color:#fff;background:transparent;border:1px solid rgba(255,255,255,.55)}.btn-gold{background:#dab43d;color:#17120b}.mobile-menu{display:none;background:none;border:0;color:#fff;font-size:28px}.hero{height:778px;position:relative;overflow:hidden;color:#fff}.hero-slide{position:absolute;inset:0;background-image:var(--bg);background-size:cover;background-position:center;opacity:0;transform:scale(1.02);transition:opacity .8s,transform 5s}.hero-slide.active{opacity:1;transform:scale(1.07)}.hero-media{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border:0;pointer-events:none}.hero-shade{position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.63) 0%,rgba(0,0,0,.26) 46%,rgba(0,0,0,.06) 100%)}.hero-content{position:absolute;left:7%;top:28%;z-index:2}.eyebrow{font-weight:800;letter-spacing:3px;font-size:14px}.hero h1{font-size:58px;line-height:1.55;margin:8px 0 5px;font-weight:900;text-shadow:0 4px 5px rgba(0,0,0,.5)}.hero-meta{font-size:16px;font-weight:600;margin:14px 0}.hero-buttons{display:flex;gap:14px;margin-top:35px}.hero-buttons .btn{min-width:126px;text-align:center;padding:17px 28px}.btn-red{background:#cf292c;color:#fff}.btn-glass{background:rgba(20,20,20,.25);border:1px solid rgba(255,255,255,.5);color:#fff}.slider-control{position:absolute;z-index:3;left:4%;bottom:45px;display:flex;align-items:center;gap:25px}.slider-control strong{font-size:34px}.slider-control>span{opacity:.5}.slider-control button{border:0;background:none;color:#fff;font-size:19px}.slider-control .pause{border:1px solid rgba(255,255,255,.5);border-radius:50%;width:45px;height:45px;font-size:12px}.slider-control i{width:150px;height:3px;background:#fff;display:block}.quick-nav{height:106px;display:grid;grid-template-columns:repeat(6,1fr);background:#fafafa;border-bottom:1px solid #eee}.quick-nav a{display:flex;align-items:center;justify-content:center;gap:17px;border-right:1px solid #eee;font-weight:700;font-size:18px}.quick-nav span{width:42px;height:42px;border-radius:50%;background:#fff0f0;display:grid;place-items:center}.stats{background:#10245f;color:#fff;display:grid;grid-template-columns:300px 1fr;gap:35px;padding:60px max(2%,calc((100% - 1280px)/2));min-height:330px}.blue{color:#8ea0d3}.stats-intro h2{font-size:28px;margin:10px 0 20px}.stats-intro>p:last-of-type{line-height:1.9;font-size:14px}.stats-intro i{display:block;width:40px;height:2px;background:#8a9bbd;margin-top:22px}.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;align-items:center}.stat-grid article{background:#fff;color:#111;border-radius:14px;padding:28px 25px;min-height:155px;display:flex;flex-direction:column}.stat-grid strong{font-size:30px;color:#d1282c}.stat-grid strong small{font-size:13px}.stat-grid b{font-size:14px;margin:4px 0 12px}.stat-grid span{font-size:12px;color:#aaa;border-top:2px solid #eee;padding-top:12px}.services{max-width:1240px;margin:auto;display:grid;grid-template-columns:380px 1fr;border-left:1px solid #ddd;border-right:1px solid #ddd}.service-lead{padding:48px 24px 20px}.service-lead>img{width:100%;height:438px;object-fit:cover}.service-lead h2{font-size:30px;line-height:1.35}.service-lead>p{color:#777;line-height:1.8;font-size:15px}.service-grid{border-left:1px solid #ddd;padding:18px 24px;display:grid;grid-template-columns:1fr 1fr;gap:24px}.service-grid article{border:1px solid #ddd;border-radius:0 0 16px 16px;overflow:hidden}.service-grid img,.service-grid video,.service-grid iframe,.service-media{width:100%;height:252px;object-fit:cover;display:block;border:0}.service-grid article>div{padding:20px 26px}.service-grid em{font-style:normal;color:#d32428;font-weight:800;font-size:12px}.service-grid h3{font-size:18px;margin:12px 0}.service-grid p{color:#888;font-size:14px;line-height:1.8;margin:0}.news{max-width:1260px;margin:0 auto;padding:45px 0 35px}.news>h2{font-size:30px}.news-cols{display:grid;grid-template-columns:1.4fr 1fr;gap:40px}.news-cols header{display:flex;justify-content:space-between;border-bottom:2px solid #cf292c;padding-bottom:15px}.news-row{min-height:68px;display:grid;grid-template-columns:42px 1fr 80px;gap:10px;align-items:center;border-bottom:1px solid #eee;font-size:14px}.footer{background:#061c0f;color:#8c9d91;padding:55px max(2%,calc((100% - 1280px)/2)) 25px}.footer-top{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,1fr);border-bottom:1px solid #183020;padding-bottom:45px;gap:80px;align-items:start}.footer-brand{color:#fff}.footer-top p{font-size:13px;line-height:2}.footer-top ul{list-style:none;padding:25px 0 0;line-height:2.2;font-size:13px}.footer-social{justify-self:end;min-width:280px;text-align:right}.footer-social__eyebrow{font-size:10px;font-weight:900;letter-spacing:.22em;color:#d8e2db}.footer-social h3{margin:8px 0 16px;color:#fff;font-size:17px}.footer-social__links{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}.footer-social__links a{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;overflow:hidden;background:#fff;border:1px solid rgba(255,255,255,.18);box-shadow:0 6px 18px rgba(0,0,0,.16);transition:transform .18s ease,box-shadow .18s ease}.footer-social__links a:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(0,0,0,.22)}.footer-social__links img{width:100%;height:100%;object-fit:contain;display:block;padding:6px}.footer-social__links span{font-size:12px;font-weight:900;color:#0b2a18}.footer-bottom{padding-top:24px;display:flex;justify-content:space-between;font-size:12px}.bot-float{position:fixed;right:36px;bottom:85px;z-index:50;display:flex;flex-direction:column;align-items:center}.bot-tip{background:#fff;padding:13px 17px;border-radius:17px;font-size:13px;font-weight:700;box-shadow:0 4px 20px #0002;margin-bottom:10px}.bot-float button{width:80px;height:80px;border-radius:50%;background:#fff;border:4px solid #f4c7c7;box-shadow:0 8px 22px #0002;font-size:38px}.association-chatbot{position:fixed;left:28px;top:115px;width:450px;height:700px;max-height:calc(100vh - 140px);z-index:10000;background:#f5f6f7;border-radius:22px;box-shadow:0 25px 80px #0005;overflow:hidden;display:none;grid-template-rows:auto 1fr auto}.association-chatbot.open{display:grid;animation:chatIn .24s ease-out}.association-chatbot header{background:linear-gradient(135deg,#ad0809,#d52d31);color:#fff;padding:24px 22px;display:flex;justify-content:space-between;align-items:center}.chat-brand{display:flex;gap:13px;align-items:center}.chat-brand>span{width:45px;height:45px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:27px}.chat-brand b,.chat-brand small{display:block}.chat-brand small{margin-top:6px;opacity:.8}.chat-close{border:0;background:#ffffff24;color:#fff;border-radius:50%;width:40px;height:40px;font-size:27px}.chat-body{padding:23px 20px;overflow:auto}.chat-msg{max-width:82%;padding:15px 17px;border-radius:16px;margin-bottom:14px;line-height:1.65;font-size:14px;box-shadow:0 3px 12px #0001}.chat-msg.bot{background:#fff}.chat-msg.user{background:#d3282d;color:#fff;margin-left:auto}.chat-msg a{color:#c91f26;font-weight:800}.chat-quick{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}.chat-quick button{height:90px;border:1px solid #e2e2e2;border-radius:12px;background:#fff;font-size:24px}.chat-quick b{display:block;font-size:13px;margin-top:8px}.chat-input{display:grid;grid-template-columns:1fr 46px;gap:8px;padding:16px 18px;background:#fff;border-top:1px solid #eee}.chat-input input{border:1px solid #ddd;border-radius:28px;padding:0 18px;font-size:14px}.chat-input button{width:46px;height:46px;border:0;border-radius:50%;background:#d3282d;color:#fff;font-size:20px}@keyframes chatIn{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:none}}.btn,.quick-nav a,.stat-grid article,.service-grid article,.bot-float button{transition:transform .22s,box-shadow .22s}.btn:hover,.quick-nav a:hover,.stat-grid article:hover,.service-grid article:hover{transform:translateY(-4px);box-shadow:0 12px 28px #0002}.reveal-motion{opacity:0;transform:translateY(24px);transition:.48s}.reveal-motion.is-visible{opacity:1;transform:none}@media(max-width:900px){.site-header{height:70px}.header-actions{display:none}.mobile-menu{display:block}.hero{height:650px}.hero h1{font-size:42px}.quick-nav{height:auto;grid-template-columns:repeat(3,1fr)}.stats{grid-template-columns:1fr;padding:45px 25px}.stat-grid{grid-template-columns:1fr 1fr}.services{grid-template-columns:1fr}.service-grid{border-left:0}.news{padding:40px 20px}.news-cols{grid-template-columns:1fr}.footer{padding:45px 25px}.footer-top{grid-template-columns:1fr;gap:28px}.footer-social{justify-self:start;min-width:0;text-align:left}.footer-social__links{justify-content:flex-start}.association-chatbot{left:12px;right:12px;top:85px;width:auto;height:calc(100vh - 105px);max-height:none}}@media(max-width:560px){.hero h1{font-size:37px}.quick-nav{grid-template-columns:repeat(2,1fr)}.stat-grid,.service-grid{grid-template-columns:1fr}.bot-float button{width:66px;height:66px}.chat-quick button{height:76px}}
+/* === SITE BRAND LOGO FIX === */
+.site-header .brand{min-width:0;flex:0 1 auto}
+.site-header .brand-dog{flex:0 0 48px;width:48px;height:48px;min-width:48px;min-height:48px;overflow:hidden;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center}
+.site-header .brand-dog img{display:block;width:100%!important;height:100%!important;max-width:100%;max-height:100%;object-fit:contain!important;object-position:center;border-radius:50%;background:#fff}
+.site-header .brand>span:last-child{min-width:0;white-space:nowrap}
+.site-header .brand b,.site-header .brand small{white-space:nowrap}
+@media(max-width:560px){.site-header .brand-dog{flex-basis:42px;width:42px;height:42px;min-width:42px;min-height:42px}.site-header .brand b{font-size:14px}.site-header .brand small{font-size:10px;margin-top:5px}}
+
+
+/* ============================================================
+   AI CHATBOT VIDEO + CONTACT
+============================================================ */
+
+#botButton{
+    overflow:hidden;
+    padding:0;
+}
+
+#botButton video{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    border-radius:50%;
+    display:block;
+}
+
+.chat-contact-wrap{
+    display:flex;
+    justify-content:flex-start;
+    margin:8px 0 14px;
+}
+
+.chat-contact-button{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-height:40px;
+    padding:9px 16px;
+    border-radius:999px;
+    background:#d2292d;
+    color:#fff !important;
+    font-size:13px;
+    font-weight:800;
+    text-decoration:none !important;
+    box-shadow:0 5px 15px rgba(210,41,45,.18);
+}
+
+.chat-contact-button:hover{
+    filter:brightness(.95);
+}
+
+.chat-thinking{
+    opacity:.65;
+}
+
+.chat-input button:disabled,
+.chat-input input:disabled{
+    opacity:.55;
+    cursor:not-allowed;
+}
+
+
+/* =========================================================
+   INTRO NOTICE / ASSOCIATION NEWS
+   ========================================================= */
+
+.intro-news-list {
+    margin-top: 18px;
+    border-top: 1px solid #222;
+}
+
+.intro-news-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 54px;
+    padding: 12px 2px;
+    border-bottom: 1px solid #e5e5e5;
+    text-decoration: none;
+    color: #171717;
+    transition:
+        color .18s ease,
+        padding-left .18s ease;
+}
+
+.intro-news-item:hover {
+    color: #d71920;
+    padding-left: 6px;
+}
+
+.intro-news-item.has-thumb{
+    min-height:78px;
+}
+
+.intro-news-thumb{
+    flex:0 0 58px;
+    width:58px;
+    height:58px;
+    overflow:hidden;
+    border-radius:8px;
+    background:#f1f2f4;
+}
+
+.intro-news-thumb img{
+    display:block;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+.intro-news-category {
+    flex: 0 0 auto;
+    font-size: 12px;
+    font-weight: 800;
+    color: #d71920;
+}
+
+.intro-news-title {
+    flex: 1 1 auto;
+    min-width: 0;
+    display:flex;
+    align-items:baseline;
+    gap:5px;
+    font-size: 15px;
+    font-weight: 600;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.intro-news-title-text{
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.intro-news-comments{
+    flex:0 0 auto;
+    color:#8b8f94;
+    font-size:12px;
+    font-weight:700;
+}
+
+.intro-news-date {
+    flex: 0 0 auto;
+    font-size: 12px;
+    color: #888;
+}
+
+.intro-news-empty {
+    padding: 18px 2px;
+    margin: 0;
+    border-bottom: 1px solid #e5e5e5;
+    color: #999;
+    font-size: 14px;
+}
+
+@media (max-width: 768px) {
+
+    .intro-news-item {
+        gap: 8px;
+    }
+
+    .intro-news-item.has-thumb{
+        min-height:70px;
+    }
+
+    .intro-news-thumb{
+        flex-basis:52px;
+        width:52px;
+        height:52px;
+        border-radius:7px;
+    }
+
+    .intro-news-category {
+        display: none;
+    }
+
+    .intro-news-title {
+        font-size: 14px;
+        gap:4px;
+    }
+
+    .intro-news-comments{
+        font-size:11px;
+    }
+
+    .intro-news-date {
+        font-size: 11px;
+    }
+}
+
+.member-mypage-overlay{position:fixed;inset:0;background:#0009;z-index:20000;display:grid;place-items:center;padding:20px}.member-mypage-modal{position:relative;background:#fff;width:min(520px,96vw);max-height:92vh;overflow:auto;border-radius:20px;padding:30px}.mypage-close{position:absolute;right:18px;top:14px;border:0;background:none;font-size:32px}.digital-member-card{background:linear-gradient(135deg,#9d0708,#db2c31);color:#fff;border-radius:18px;padding:28px;box-shadow:0 15px 35px #0003}.digital-member-card h2{font-size:20px}.digital-member-card h3{font-size:28px;margin:22px 0}.digital-member-card dl{background:#ffffff18;border-radius:12px;padding:14px}.digital-member-card dl div{display:grid;grid-template-columns:90px 1fr;padding:7px 0;border-bottom:1px solid #ffffff22}.digital-member-card dl div:last-child{border:0}.digital-member-card dt{opacity:.75}.digital-member-card dd{margin:0;font-weight:800}.member-card-guide{text-align:center;font-weight:700;line-height:1.6}.member-share-actions{display:flex;gap:10px;margin:16px 0}.member-share-actions button,.member-share-actions a{flex:1;text-align:center;border:0;border-radius:9px;padding:13px;background:#f4c430;color:#171717;font-weight:800}.member-withdraw-btn{width:100%;margin-top:22px;padding:13px;border:1px solid #ddd;background:#fff;color:#b51f24;border-radius:9px;font-weight:800}.member-status-box{padding:20px;background:#f6f6f6;border-radius:12px}
+
+.footer-brand{display:flex;align-items:center;gap:10px}.footer-brand-logo{display:block;width:38px;height:38px;object-fit:contain;border-radius:50%;background:#fff;flex:0 0 38px}
+
+
+/* ============================================================
+   INTRO STAGE / GLOBAL GLASS NAVIGATION 2026-10-08
+   ============================================================ */
+.site-header{
+    height:86px;
+    display:grid;
+    grid-template-columns:minmax(250px,1fr) auto minmax(250px,1fr);
+    align-items:center;
+    gap:18px;
+    padding:0 20px;
+    color:#171717;
+    z-index:20;
+    transition:background-color .28s ease,box-shadow .28s ease,border-color .28s ease;
+}
+.site-header--intro{
+    position:absolute;
+    inset:0 0 auto 0;
+    background:rgba(255,255,255,.82);
+    border-bottom:1px solid rgba(255,255,255,.55);
+    box-shadow:0 7px 26px rgba(0,0,0,.07);
+    -webkit-backdrop-filter:blur(14px);
+    backdrop-filter:blur(14px);
+    animation:navReveal .65s cubic-bezier(.2,.75,.25,1) both;
+}
+.site-header--inner{
+    position:relative;
+    background:rgba(232,234,237,.97);
+    border-bottom:1px solid #d7d9dd;
+    box-shadow:0 5px 18px rgba(0,0,0,.05);
+}
+.site-header .brand{
+    justify-self:start;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    min-width:0;
+}
+.site-header .brand-dog{
+    width:var(--brand-logo-size,48px);
+    height:var(--brand-logo-size,48px);
+    min-width:var(--brand-logo-size,48px);
+    min-height:var(--brand-logo-size,48px);
+    flex:0 0 var(--brand-logo-size,48px);
+}
+.site-header .brand-copy{min-width:0}
+.site-header .brand b{
+    font-size:var(--brand-name-size,17px);
+    font-weight:var(--brand-name-weight,800);
+    line-height:1.2;
+    color:#171717;
+}
+.site-header .brand small{
+    font-size:var(--brand-subtitle-size,12px);
+    font-weight:var(--brand-subtitle-weight,500);
+    line-height:1.2;
+    margin-top:7px;
+    color:#51545a;
+    opacity:1;
+}
+.primary-nav{
+    justify-self:center;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:clamp(18px,2vw,38px);
+    min-width:0;
+    white-space:nowrap;
+}
+.primary-nav a{
+    position:relative;
+    padding:31px 0 29px;
+    font-size:clamp(13px,.88vw,16px);
+    font-weight:700;
+    color:#202226;
+    transition:transform .22s ease,color .22s ease;
+}
+.primary-nav a::after{
+    content:"";
+    position:absolute;
+    left:50%;
+    bottom:22px;
+    width:0;
+    height:2px;
+    border-radius:2px;
+    background:#d1282d;
+    transform:translateX(-50%);
+    transition:width .24s ease;
+}
+.primary-nav a:hover{color:#c91f26;transform:translateY(-2px)}
+.primary-nav a:hover::after{width:100%}
+.header-actions{
+    justify-self:end;
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:9px;
+    font-size:14px;
+    white-space:nowrap;
+}
+.header-actions>a{margin-right:0}
+.auth-link{
+    appearance:none;
+    border:0;
+    background:transparent;
+    color:#202226;
+    font-weight:750;
+    padding:10px 11px;
+    border-radius:9px;
+    transition:background .2s ease,transform .2s ease,color .2s ease;
+}
+.auth-link:hover{background:rgba(0,0,0,.06);transform:translateY(-1px)}
+.auth-link--accent{background:#d1282d;color:#fff;padding-inline:16px}
+.auth-link--accent:hover{background:#bd1d22;color:#fff}
+.public-logout-form{margin:0;padding:0;display:inline-flex}
+.mobile-menu{display:none!important}
+.site-header--intro + .hero{height:864px}
+.site-header--intro + .hero .hero-content{top:35.2%}
+
+.intro-layer-host{position:absolute;inset:0;pointer-events:none}
+.intro-layer{position:absolute;display:flex;overflow:hidden;box-sizing:border-box;transform-origin:center;pointer-events:none}
+.intro-layer--text{align-items:center;white-space:pre-line;line-height:1.35;text-shadow:0 3px 12px rgba(0,0,0,.28)}
+.intro-layer--image img,.intro-layer--video video{width:100%;height:100%;display:block}
+.intro-layer--button{align-items:center;justify-content:center;text-decoration:none;pointer-events:auto;cursor:pointer}
+.intro-layer--overlay{pointer-events:none}
+.intro-anim-fade{animation:introFade var(--intro-anim-duration,.7s) ease both;animation-delay:var(--intro-anim-delay,0s)}
+.intro-anim-fade-up{animation:introFadeUp var(--intro-anim-duration,.7s) ease both;animation-delay:var(--intro-anim-delay,0s)}
+.intro-anim-slide-left{animation:introSlideLeft var(--intro-anim-duration,.7s) ease both;animation-delay:var(--intro-anim-delay,0s)}
+.intro-anim-slide-right{animation:introSlideRight var(--intro-anim-duration,.7s) ease both;animation-delay:var(--intro-anim-delay,0s)}
+.intro-anim-zoom-in{animation:introZoomIn var(--intro-anim-duration,.7s) ease both;animation-delay:var(--intro-anim-delay,0s)}
+@keyframes navReveal{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
+@keyframes introFade{from{opacity:0}to{opacity:var(--intro-opacity,1)}}
+@keyframes introFadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:var(--intro-opacity,1);transform:none}}
+@keyframes introSlideLeft{from{opacity:0;transform:translateX(34px)}to{opacity:var(--intro-opacity,1);transform:none}}
+@keyframes introSlideRight{from{opacity:0;transform:translateX(-34px)}to{opacity:var(--intro-opacity,1);transform:none}}
+@keyframes introZoomIn{from{opacity:0;transform:scale(.94)}to{opacity:var(--intro-opacity,1);transform:none}}
+@media(max-width:1250px){
+    .site-header{grid-template-columns:auto minmax(0,1fr) auto;gap:12px}
+    .primary-nav{justify-self:stretch;overflow-x:auto;justify-content:flex-start;padding:0 12px;scrollbar-width:none}
+    .primary-nav::-webkit-scrollbar{display:none}
+    .primary-nav a{flex:0 0 auto}
+    .site-header .brand small{display:none}
+}
+@media(max-width:760px){
+    .site-header{
+        height:108px;
+        grid-template-columns:minmax(0,1fr) auto;
+        grid-template-areas:"brand auth" "nav nav";
+        align-content:center;
+        row-gap:0;
+        padding:8px 12px 0;
+    }
+    .site-header .brand{grid-area:brand}
+    .header-actions{grid-area:auth}
+    .primary-nav{grid-area:nav;height:42px;margin:0 -2px;padding:0 2px;gap:20px}
+    .primary-nav a{padding:11px 0 13px;font-size:13px}
+    .primary-nav a::after{bottom:8px}
+    .public-user-name{display:none}
+    .auth-link{padding:8px 7px;font-size:12px}
+    .auth-link--accent{padding-inline:10px}
+    .site-header--intro + .hero{height:720px}
+    .site-header--intro + .hero .hero-content{top:31%}
+}
+
+
+/* ============================================================
+   INTRO PRESENTATION CONTROLS 2026-10-08
+   ============================================================ */
+.site-header--intro{
+    background:rgb(255 255 255 / var(--intro-nav-opacity,82%));
+}
+.primary-nav a{
+    font-size:var(--menu-font-size,16px);
+    font-weight:var(--menu-font-weight,700);
+}
+.header-actions,
+.auth-link{
+    font-size:var(--menu-font-size,16px);
+    font-weight:var(--menu-font-weight,700);
+}
+.site-header .brand-dog{
+    background:transparent!important;
+    border-radius:0!important;
+    overflow:visible!important;
+}
+.site-header .brand-dog img{
+    background:transparent!important;
+    border-radius:0!important;
+}
+.footer-brand-logo{
+    background:transparent!important;
+    border-radius:0!important;
+}
+.bot-float{
+    right:36px;
+    bottom:220px;
+}
+@media(max-width:760px){
+    .bot-float{right:18px;bottom:105px}
+}
+
+
+/* ============================================================
+   SINGLE TRANSPARENT CHATBOT + DOG LIFE WEB MAGAZINE 2026-10-08
+   ============================================================ */
+.bot-tip{display:none!important}
+.bot-float{
+    right:28px!important;
+    bottom:190px!important;
+    align-items:center;
+}
+.bot-float button,
+#botButton{
+    width:108px!important;
+    height:108px!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+    overflow:visible!important;
+}
+#botButton video{
+    width:100%!important;
+    height:100%!important;
+    object-fit:contain!important;
+    border:0!important;
+    border-radius:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+}
+.brand-dog video,
+.footer-brand-video{
+    display:block;
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    background:transparent;
+    border:0;
+}
+.slider-control{display:none!important}
+
+.web-magazine{
+    width:min(1380px,calc(100% - 48px));
+    margin:0 auto;
+    padding:64px 0 90px;
+}
+.mag-head{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:30px;
+    margin-bottom:34px;
+    padding-bottom:22px;
+    border-bottom:1px solid #ddd;
+}
+.mag-head .eyebrow{color:#d1282d;margin:0 0 7px}
+.mag-head h2{font-size:36px;margin:0 0 10px}
+.mag-head p{margin:0;color:#777}
+.mag-filters{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.mag-filters button{
+    border:1px solid #ddd;background:#fff;border-radius:999px;
+    padding:9px 14px;font-weight:750;color:#555
+}
+.mag-filters button.active{background:#171717;color:#fff;border-color:#171717}
+.mag-feed{display:grid;grid-template-columns:repeat(12,1fr);gap:20px}
+.mag-card{
+    position:relative;background:#fff;border:1px solid #e7e7e7;
+    border-radius:18px;overflow:hidden;min-height:220px;
+    transition:transform .2s ease,box-shadow .2s ease
+}
+.mag-card:hover{transform:translateY(-3px);box-shadow:0 14px 34px #00000012}
+.mag-copy{padding:25px}
+.mag-category{
+    display:inline-flex;margin-bottom:13px;color:#d1282d;
+    font-size:12px;font-weight:900;letter-spacing:.02em
+}
+.mag-card h3{font-size:22px;line-height:1.45;margin:0 0 12px}
+.mag-card p{font-size:14px;line-height:1.8;color:#666;margin:0 0 20px}
+.mag-meta{display:flex;gap:14px;flex-wrap:wrap;color:#999;font-size:12px}
+.mag-media{position:relative;overflow:hidden;background:#eee}
+.mag-media img{width:100%;height:100%;display:block;object-fit:cover}
+.mag-card-text{grid-column:span 4;background:#faf8f4}
+.mag-card-half{grid-column:span 8;display:grid;grid-template-columns:1fr 1fr}
+.mag-card-half .mag-media{min-height:330px}
+.mag-card-thumb{grid-column:span 7;display:grid;grid-template-columns:110px 1fr;align-items:stretch}
+.mag-card-thumb .mag-media{min-height:190px}
+.mag-card-video-wide{grid-column:span 7}
+.mag-card-video-wide .mag-media{aspect-ratio:16/9}
+.mag-card-video-vertical{grid-column:span 5;display:grid;grid-template-columns:minmax(180px,42%) 1fr}
+.mag-card-video-vertical .mag-media{aspect-ratio:9/16;max-height:520px}
+.mag-video-poster:after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 55%,#0008)}
+.mag-play{
+    position:absolute;z-index:2;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:60px;height:60px;border-radius:50%;display:grid;place-items:center;
+    background:#ffffffdd;color:#d1282d;font-size:22px;padding-left:4px
+}
+.mag-format{
+    position:absolute;z-index:2;left:16px;bottom:14px;
+    color:#fff;font-size:11px;font-weight:900;background:#0008;
+    padding:6px 9px;border-radius:999px
+}
+@media(max-width:900px){
+    .web-magazine{width:min(100% - 28px,720px);padding-top:40px}
+    .mag-head{display:block}.mag-filters{justify-content:flex-start;margin-top:18px}
+    .mag-card-text,.mag-card-half,.mag-card-thumb,.mag-card-video-wide,.mag-card-video-vertical{grid-column:1/-1}
+    .mag-card-half{grid-template-columns:1fr}.mag-card-half .mag-media{min-height:240px}
+    .mag-card-video-vertical{grid-template-columns:180px 1fr}
+    .bot-float{right:12px!important;bottom:110px!important}
+    .bot-float button,#botButton{width:92px!important;height:92px!important}
+}
+@media(max-width:560px){
+    .mag-card-thumb{grid-template-columns:90px 1fr}
+    .mag-card-video-vertical{grid-template-columns:140px 1fr}
+}
+
+
+/* ============================================================
+   COMPACT DOG LIFE FEED + CIRCULAR BRAND/BOT 2026-10-08
+   ============================================================ */
+
+/* Header logo: clean circular crop, no ring/border/background */
+.site-header .brand-dog{
+    border-radius:50%!important;
+    overflow:hidden!important;
+    background:transparent!important;
+    border:0!important;
+    box-shadow:none!important;
+}
+.site-header .brand-dog img,
+.site-header .brand-dog video,
+.brand-logo-video{
+    width:100%!important;
+    height:100%!important;
+    object-fit:cover!important;
+    border-radius:50%!important;
+    border:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+}
+
+/* Floating bot: circular visual only, no border/background plate */
+.bot-float{
+    right:24px!important;
+    bottom:90px!important;
+}
+.bot-float button,
+#botButton{
+    width:82px!important;
+    height:82px!important;
+    border-radius:50%!important;
+    overflow:hidden!important;
+    border:0!important;
+    outline:0!important;
+    padding:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+}
+#botButton video,
+#botButton img{
+    width:100%!important;
+    height:100%!important;
+    object-fit:cover!important;
+    border-radius:50%!important;
+    border:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+}
+
+/* DOG LIFE portal layout inspired by dense content magazines */
+.doglife-portal{
+    width:min(1360px,calc(100% - 44px));
+    margin:0 auto;
+    padding:42px 0 66px;
+}
+.doglife-portal-head{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:24px;
+    padding-bottom:16px;
+    margin-bottom:16px;
+    border-bottom:2px solid #202124;
+}
+.doglife-portal-head h2{
+    margin:0 0 6px;
+    font-size:30px;
+    letter-spacing:-.04em;
+}
+.doglife-portal-head p{margin:0;color:#777;font-size:13px}
+.doglife-portal-actions{
+    display:flex;
+    align-items:center;
+    gap:15px;
+    flex:0 0 auto;
+}
+.doglife-sort-tabs{
+    display:flex;
+    padding:3px;
+    border:1px solid #dfe1e5;
+    border-radius:9px;
+    background:#f7f8f9;
+}
+.doglife-sort-tabs a{
+    min-width:66px;
+    padding:7px 12px;
+    border-radius:7px;
+    color:#666;
+    text-align:center;
+    text-decoration:none;
+    font-size:12px;
+    font-weight:800;
+}
+.doglife-sort-tabs a.active{
+    background:#202124;
+    color:#fff;
+    box-shadow:0 2px 8px rgba(0,0,0,.12);
+}
+.doglife-portal .doglife-more{
+    color:#202124;
+    text-decoration:none;
+    font-size:12px;
+    font-weight:850;
+    white-space:nowrap;
+}
+
+.doglife-cover-row{
+    display:grid;
+    grid-template-columns:repeat(5,minmax(0,1fr));
+    gap:12px;
+    padding-bottom:22px;
+    margin-bottom:22px;
+    border-bottom:1px solid #e4e6e8;
+}
+.doglife-cover-card{min-width:0}
+.doglife-cover-card>a{display:block;color:inherit;text-decoration:none}
+.doglife-cover-media{
+    position:relative;
+    height:210px;
+    overflow:hidden;
+    border-radius:10px;
+    background:#eceff1;
+}
+.doglife-cover-media img,
+.doglife-cover-media video,
+.doglife-feed-thumb img,
+.doglife-feed-thumb video,
+.doglife-rank-thumb img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+}
+.doglife-cover-rank{
+    position:absolute;
+    z-index:4;
+    left:8px;
+    bottom:8px;
+    width:26px;
+    height:26px;
+    display:grid;
+    place-items:center;
+    border-radius:7px;
+    background:rgba(0,0,0,.8);
+    color:#fff;
+    font-size:12px;
+    font-weight:900;
+}
+.doglife-card-category{
+    display:block;
+    margin-top:8px;
+    color:#d1282d;
+    font-size:10px;
+    font-weight:900;
+}
+.doglife-cover-card h3{
+    margin:4px 0 6px;
+    font-size:14px;
+    line-height:1.38;
+    letter-spacing:-.025em;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+}
+.doglife-card-meta{
+    display:flex;
+    gap:8px;
+    color:#999;
+    font-size:9px;
+}
+.doglife-media-badge{
+    position:absolute;
+    z-index:3;
+    left:8px;
+    top:8px;
+    padding:4px 7px;
+    border-radius:999px;
+    background:rgba(0,0,0,.72);
+    color:#fff;
+    font-size:9px;
+    font-weight:850;
+}
+.doglife-play{
+    position:absolute;
+    z-index:3;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    width:38px;
+    height:38px;
+    display:grid;
+    place-items:center;
+    border-radius:50%;
+    background:rgba(255,255,255,.9);
+    color:#d1282d;
+    font-size:14px;
+    padding-left:2px;
+}
+.doglife-play--small{width:30px;height:30px;font-size:11px}
+.doglife-card-placeholder{
+    width:100%;
+    height:100%;
+    box-sizing:border-box;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    gap:5px;
+    padding:16px;
+    text-align:center;
+    background:linear-gradient(145deg,#27313a,#15191d);
+    color:#fff;
+}
+.doglife-card-placeholder>span{font-size:20px;font-weight:900}
+.doglife-card-placeholder small{font-size:10px;line-height:1.45;opacity:.78}
+.doglife-card-placeholder--text{
+    align-items:flex-start;
+    justify-content:flex-end;
+    text-align:left;
+    background:linear-gradient(145deg,#f5f0e8,#e8ecf1);
+    color:#32363a;
+}
+.doglife-card-placeholder--text>span{
+    color:#d1282d;
+    font-size:11px;
+}
+.doglife-card-placeholder--text small{
+    color:#555;
+    opacity:1;
+}
+
+.doglife-portal-body{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 290px;
+    gap:26px;
+    align-items:start;
+}
+.doglife-panel-title{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:12px;
+    padding-bottom:10px;
+    margin-bottom:12px;
+    border-bottom:1px solid #dfe1e5;
+}
+.doglife-panel-title h3{
+    margin:0;
+    font-size:18px;
+    letter-spacing:-.03em;
+}
+.doglife-panel-title span{color:#999;font-size:10px}
+.doglife-feed-grid{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:16px 14px;
+}
+.doglife-feed-card{min-width:0}
+.doglife-feed-card>a{display:block;color:inherit;text-decoration:none}
+.doglife-feed-thumb{
+    position:relative;
+    height:160px;
+    overflow:hidden;
+    border-radius:9px;
+    background:#edf0f2;
+}
+.doglife-feed-copy{padding-top:8px}
+.doglife-feed-copy .doglife-card-category{margin:0 0 4px}
+.doglife-feed-copy h3{
+    margin:0 0 5px;
+    font-size:13px;
+    line-height:1.4;
+    letter-spacing:-.025em;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+}
+.doglife-feed-copy p{
+    margin:0 0 7px;
+    color:#777;
+    font-size:10px;
+    line-height:1.5;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+}
+
+.doglife-rank-panel{
+    padding-left:20px;
+    border-left:1px solid #e2e4e7;
+}
+.doglife-panel-title--rank{display:block}
+.doglife-panel-title--rank span{display:block;margin-top:4px}
+.doglife-rank-list{
+    margin:0;
+    padding:0;
+    list-style:none;
+}
+.doglife-rank-list li{border-bottom:1px solid #eceeef}
+.doglife-rank-list a{
+    display:grid;
+    grid-template-columns:25px minmax(0,1fr) 54px;
+    gap:9px;
+    align-items:center;
+    padding:11px 0;
+    color:inherit;
+    text-decoration:none;
+}
+.doglife-rank-list b{
+    align-self:start;
+    padding-top:2px;
+    color:#d1282d;
+    font-size:17px;
+    font-weight:950;
+}
+.doglife-rank-copy{min-width:0}
+.doglife-rank-copy>span{
+    color:#8a8f95;
+    font-size:9px;
+    font-weight:800;
+}
+.doglife-rank-copy h4{
+    margin:3px 0 4px;
+    font-size:11px;
+    line-height:1.35;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+}
+.doglife-rank-copy small{color:#aaa;font-size:8px}
+.doglife-rank-thumb{
+    width:54px;
+    height:54px;
+    overflow:hidden;
+    display:grid;
+    place-items:center;
+    border-radius:7px;
+    background:#eceff1;
+    color:#666;
+    font-size:18px;
+}
+.doglife-cover-card:hover h3,
+.doglife-feed-card:hover h3,
+.doglife-rank-list a:hover h4{color:#d1282d}
+.mag-empty{
+    grid-column:1/-1;
+    padding:34px 0;
+    color:#999;
+    text-align:center;
+    border-top:1px solid #eee;
+    border-bottom:1px solid #eee;
+}
+
+@media(max-width:1050px){
+    .doglife-cover-row{grid-template-columns:repeat(4,minmax(0,1fr))}
+    .doglife-cover-card:nth-child(5){display:none}
+    .doglife-portal-body{grid-template-columns:minmax(0,1fr) 250px;gap:20px}
+    .doglife-feed-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:760px){
+    .doglife-portal{
+        width:calc(100% - 24px);
+        padding:28px 0 42px;
+    }
+    .doglife-portal-head{
+        display:block;
+        padding-bottom:12px;
+        margin-bottom:12px;
+    }
+    .doglife-portal-head h2{font-size:23px}
+    .doglife-portal-head p{font-size:11px;line-height:1.45}
+    .doglife-portal-actions{
+        justify-content:space-between;
+        margin-top:12px;
+        gap:10px;
+    }
+    .doglife-sort-tabs a{min-width:58px;padding:7px 10px}
+    .doglife-cover-row{
+        display:flex;
+        gap:10px;
+        overflow-x:auto;
+        padding-bottom:15px;
+        margin-bottom:18px;
+        scrollbar-width:none;
+        scroll-snap-type:x proximity;
+    }
+    .doglife-cover-row::-webkit-scrollbar{display:none}
+    .doglife-cover-card{
+        flex:0 0 42vw;
+        max-width:178px;
+        scroll-snap-align:start;
+    }
+    .doglife-cover-card:nth-child(5){display:block}
+    .doglife-cover-media{height:160px}
+    .doglife-cover-card h3{font-size:15px;line-height:1.45}
+    .doglife-portal-body{display:block}
+    .doglife-feed-grid{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+        gap:14px 10px;
+    }
+    .doglife-feed-thumb{height:128px}
+    .doglife-feed-copy h3{font-size:14px;line-height:1.45}
+    .doglife-feed-copy p{display:none}
+    .doglife-cover-card .doglife-card-category,
+    .doglife-feed-copy .doglife-card-category{font-size:11px}
+    .doglife-cover-card .doglife-card-meta,
+    .doglife-feed-copy .doglife-card-meta{font-size:10px}
+    .doglife-rank-panel{
+        padding-left:0;
+        margin-top:28px;
+        border-left:0;
+        border-top:2px solid #202124;
+        padding-top:17px;
+    }
+    .doglife-rank-list a{
+        grid-template-columns:24px minmax(0,1fr) 58px;
+        padding:10px 0;
+    }
+    .doglife-rank-thumb{width:58px;height:58px}
+    .bot-float{right:12px!important;bottom:78px!important}
+    .bot-float button,#botButton{width:72px!important;height:72px!important}
+}
+@media(max-width:390px){
+    .doglife-cover-card{flex-basis:46vw}
+    .doglife-feed-grid{gap:12px 8px}
+    .doglife-feed-thumb{height:128px}
+}
+
+/* === FOOTER BRAND MEDIA SIZE RESTORE 2026-10-08 === */
+.footer .footer-brand-logo,
+.footer .footer-brand-video{
+    width:38px!important;
+    height:38px!important;
+    min-width:38px!important;
+    min-height:38px!important;
+    flex:0 0 38px!important;
+    object-fit:cover!important;
+    border-radius:50%!important;
+    overflow:hidden!important;
+    background:transparent!important;
+    border:0!important;
+    box-shadow:none!important;
+}
+
+
+/* ============================================================
+   DOG LIFE ACTIONS / DYNAMIC FEED 2026-10-08
+   ============================================================ */
+.policy-body{white-space:pre-wrap}
+.doglife-more{color:#222;text-decoration:none;font-weight:850;font-size:13px}
+.mag-text-item{display:block;text-decoration:none;color:inherit}
+.mag-tile>a{display:block;color:inherit;text-decoration:none}
+.bot-float{overflow:visible!important}
+.bot-radial-actions{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+}
+.bot-radial-action{
+    position:absolute;
+    min-width:54px;
+    height:26px;
+    padding:0 8px;
+    border:1px solid rgba(0,0,0,.12);
+    border-radius:999px;
+    background:rgba(255,255,255,.96);
+    color:#5f6368!important;
+    font-size:10px!important;
+    line-height:1!important;
+    letter-spacing:-.02em;
+    font-weight:800!important;
+    box-shadow:0 5px 14px #0001;
+    opacity:0;
+    transform:scale(.78);
+    pointer-events:none;
+    transition:opacity .18s ease,transform .18s ease;
+    white-space:nowrap;
+}
+.bot-radial-ask{right:54px;bottom:58px}
+.bot-radial-share{right:-4px;bottom:82px;background:#f3f4f6;color:#5f6368!important}
+.bot-radial-actions.open .bot-radial-action{
+    opacity:1;
+    transform:scale(1);
+    pointer-events:auto;
+}
+@media(max-width:760px){
+    .bot-radial-ask{right:46px;bottom:50px}
+    .bot-radial-share{right:-2px;bottom:72px}
+    .bot-radial-action{min-width:50px;height:24px;padding:0 7px;font-size:9px!important}
+}
+
+
+/* ============================================================
+   MOBILE HEADER AFFORDANCE + ADVERTISEMENT SYSTEM 2026-10-12
+   ============================================================ */
+/* MOBILE NAVBAR REFINEMENT 2026-10-12 */
+@media(max-width:760px){
+    .site-header{
+        height:110px!important;
+        grid-template-columns:minmax(0,1fr) max-content!important;
+        grid-template-areas:"brand auth" "nav nav"!important;
+        column-gap:7px!important;
+        row-gap:5px!important;
+        padding:8px 9px 6px!important;
+        overflow:visible!important;
+    }
+    .site-header .brand{
+        min-width:0!important;
+        max-width:calc(100vw - 112px)!important;
+        gap:7px!important;
+    }
+    .site-header .brand-dog{
+        width:36px!important;
+        height:36px!important;
+        min-width:36px!important;
+        min-height:36px!important;
+        flex-basis:36px!important;
+    }
+    .site-header .brand-copy{min-width:0!important;overflow:hidden!important}
+    .site-header .brand b{
+        font-size:14px!important;
+        line-height:1.12!important;
+        letter-spacing:-.035em!important;
+        white-space:nowrap!important;
+        overflow:hidden!important;
+        text-overflow:ellipsis!important;
+    }
+    .site-header .brand small{display:none!important}
+    .header-actions{gap:2px!important;min-width:0!important}
+    .header-actions .auth-link,
+    .header-actions button.auth-link{
+        font-size:9px!important;
+        line-height:1!important;
+        padding:6px 4px!important;
+        border-radius:7px!important;
+        min-height:27px!important;
+    }
+    .header-actions .auth-link--accent{padding-inline:7px!important}
+    .public-logout-form .auth-link{padding-inline:6px!important}
+
+    .primary-nav{
+        grid-area:nav!important;
+        justify-self:stretch!important;
+        width:100%!important;
+        height:42px!important;
+        margin:0!important;
+        padding:4px 5px!important;
+        gap:0!important;
+        overflow-x:auto!important;
+        overflow-y:hidden!important;
+        scroll-snap-type:x proximity;
+        scrollbar-width:none;
+        border:1px solid rgba(79,83,88,.14)!important;
+        border-radius:11px!important;
+        background:rgba(255,255,255,.72)!important;
+        box-shadow:0 3px 12px rgba(0,0,0,.055)!important;
+        backdrop-filter:blur(12px)!important;
+        -webkit-backdrop-filter:blur(12px)!important;
+    }
+    .primary-nav::-webkit-scrollbar{display:none!important}
+    .site-header--inner .primary-nav{background:rgba(244,245,247,.94)!important}
+    .primary-nav a{
+        flex:0 0 auto!important;
+        scroll-snap-align:start;
+        min-height:32px!important;
+        display:flex!important;
+        align-items:center!important;
+        justify-content:center!important;
+        padding:0 11px!important;
+        border:0!important;
+        border-radius:8px!important;
+        background:transparent!important;
+        box-shadow:none!important;
+        color:#34373c!important;
+        font-size:11px!important;
+        font-weight:750!important;
+        line-height:1!important;
+        transition:background .16s ease,color .16s ease,transform .16s ease!important;
+    }
+    .primary-nav a:hover,
+    .primary-nav a:focus-visible{
+        background:rgba(209,40,45,.08)!important;
+        color:#b91f24!important;
+        transform:none!important;
+    }
+    .primary-nav a:active{
+        background:rgba(209,40,45,.16)!important;
+        color:#a8161b!important;
+        transform:scale(.97)!important;
+    }
+    .primary-nav a::after{display:none!important}
+}
+@media(max-width:390px){
+    .site-header{padding-inline:7px!important}
+    .site-header .brand{max-width:calc(100vw - 104px)!important}
+    .site-header .brand b{font-size:13px!important}
+    .site-header .brand-dog{width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important;flex-basis:34px!important}
+    .header-actions .auth-link,.header-actions button.auth-link{font-size:8.5px!important;padding-inline:3px!important}
+    .header-actions .auth-link--accent{padding-inline:6px!important}
+    .primary-nav a{font-size:10.5px!important;padding-inline:10px!important}
+}
+
+.public-ad-infrastructure{display:contents}.public-ad-layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:22px;align-items:start;width:100%;max-width:1920px;margin:0 auto}.public-ad-content{min-width:0;overflow:hidden}.public-ad-rail{display:flex;flex-direction:column;gap:14px;position:sticky;top:18px;align-self:start;padding:14px 14px 30px 0;min-width:0}.public-ad-card{position:relative;overflow:hidden;background:#f6f7f8;border:1px solid #e2e4e7;cursor:pointer}.public-ad-card img,.public-ad-card video{display:block;width:100%;height:100%;object-fit:cover;background:#f4f4f4}.public-ad-card--right{width:100%;aspect-ratio:1/2;border-radius:13px}.public-ad-card--inline{flex:1 1 360px;max-width:100%;height:180px;border-radius:12px}.public-ad-card--popup{border:0;border-radius:13px;max-height:72vh}.public-ad-card--popup img,.public-ad-card--popup video{max-height:72vh;object-fit:contain;background:#fff}.public-ad-label{position:absolute;z-index:4;left:8px;top:8px;padding:4px 7px;border-radius:999px;background:rgba(0,0,0,.67);color:#fff;font-size:9px;font-weight:850;letter-spacing:.03em}.public-ad-caption{position:absolute;z-index:3;left:0;right:0;bottom:0;padding:32px 11px 10px;background:linear-gradient(transparent,rgba(0,0,0,.82));color:#fff;font-size:12px;font-weight:800}.public-inline-ad-slot{width:min(1240px,calc(100% - 36px));margin:22px auto;display:flex;gap:12px;align-items:stretch}.public-ad-popup[hidden]{display:none!important}.public-ad-popup{position:fixed;inset:0;z-index:20000;display:grid;place-items:center;padding:20px}.public-ad-popup__backdrop{position:absolute;inset:0;background:rgba(0,0,0,.58);backdrop-filter:blur(3px)}.public-ad-popup__dialog{position:relative;z-index:1;width:min(600px,94vw);max-height:86vh;background:#fff;border-radius:16px;padding:10px;box-shadow:0 28px 100px rgba(0,0,0,.45)}.public-ad-popup__close{position:absolute;right:-9px;top:-9px;z-index:6;width:34px;height:34px;border:0;border-radius:50%;background:#222;color:#fff;font-size:24px;line-height:1}body.public-ad-popup-open{overflow:hidden}
+@media(max-width:1180px){.public-ad-layout{grid-template-columns:minmax(0,1fr) 240px;gap:14px}}
+@media(max-width:900px){.public-ad-layout{display:block}.public-ad-rail{position:relative;top:auto;padding:14px 12px 22px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.public-ad-card--right{aspect-ratio:16/7}.public-inline-ad-slot{width:calc(100% - 24px);margin:14px auto;overflow-x:auto}.public-ad-card--inline{min-width:78vw;height:130px}}
+@media(max-width:520px){.public-ad-rail{grid-template-columns:1fr}.public-ad-card--right{aspect-ratio:16/8}}
+
+
+/* ============================================================
+   RESERVED RIGHT AD RAIL 2026-10-12
+   Public content pages keep the desktop ad column even empty.
+   ============================================================ */
+.public-ad-rail--empty{
+    min-height:1px;
+    visibility:hidden;
+    pointer-events:none;
+}
+@media(max-width:900px){
+    .public-ad-rail--empty{
+        display:none!important;
+        padding:0!important;
+        margin:0!important;
+        min-height:0!important;
+    }
+}
+
+
+/* ============================================================
+   MOBILE HEADER COMPACT HERO 2026-10-12
+   ============================================================ */
+@media(max-width:760px){
+    /* Top row + nav bar sit flush with no wasted vertical band */
+    .site-header{
+        height:96px!important;
+        grid-template-rows:56px 40px!important;
+        row-gap:0!important;
+        padding:0 8px!important;
+        align-content:stretch!important;
+    }
+    .site-header .brand,
+    .header-actions{
+        align-self:center!important;
+    }
+    .primary-nav{
+        height:40px!important;
+        min-height:40px!important;
+        padding:0 4px!important;
+        margin:0!important;
+        border-radius:9px!important;
+        align-self:stretch!important;
+    }
+    .primary-nav a{
+        min-height:38px!important;
+        padding:0 10px!important;
+    }
+
+    /* LOGIN / 회원가입 are lightweight text actions, not CTA buttons */
+    .header-actions .auth-link--plain{
+        background:transparent!important;
+        border:0!important;
+        box-shadow:none!important;
+        color:#282b2f!important;
+        padding:5px 3px!important;
+        min-height:auto!important;
+        border-radius:0!important;
+        font-size:9px!important;
+        font-weight:700!important;
+    }
+    .header-actions .auth-link--plain + .auth-link--plain{
+        margin-left:4px!important;
+    }
+    .header-actions .auth-link--plain:hover,
+    .header-actions .auth-link--plain:focus-visible{
+        color:#b91f24!important;
+        background:transparent!important;
+        transform:none!important;
+        text-decoration:underline;
+        text-underline-offset:3px;
+    }
+
+    /* Give the video more visual breathing room on the intro */
+    .site-header--intro + .hero{
+        height:540px!important;
+    }
+    .site-header--intro + .hero .hero-content{
+        left:7%!important;
+        right:7%!important;
+        top:16%!important;
+        max-width:86%!important;
+    }
+    .site-header--intro + .hero .eyebrow{
+        font-size:10px!important;
+        letter-spacing:2.2px!important;
+        margin-bottom:7px!important;
+    }
+    .site-header--intro + .hero h1{
+        font-size:31px!important;
+        line-height:1.42!important;
+        margin:4px 0 12px!important;
+    }
+    .site-header--intro + .hero .hero-meta{
+        font-size:12.5px!important;
+        line-height:1.55!important;
+        margin:8px 0!important;
+        max-width:330px!important;
+    }
+    .site-header--intro + .hero .hero-buttons{
+        gap:10px!important;
+        margin-top:20px!important;
+    }
+    .site-header--intro + .hero .hero-buttons .btn{
+        min-width:100px!important;
+        padding:12px 16px!important;
+        border-radius:8px!important;
+        font-size:13px!important;
+        line-height:1!important;
+    }
+
+    /* Footer becomes one clean information column */
+    .footer{
+        padding:34px 24px 20px!important;
+    }
+    .footer-top{
+        display:block!important;
+        padding-bottom:26px!important;
+        border-bottom:1px solid #183020!important;
+    }
+    .footer-bottom{
+        padding-top:18px!important;
+        gap:12px!important;
+    }
+}
+@media(max-width:390px){
+    .site-header--intro + .hero h1{font-size:29px!important}
+    .site-header--intro + .hero .hero-meta{font-size:12px!important}
+    .site-header--intro + .hero .hero-buttons .btn{min-width:94px!important;padding:11px 14px!important;font-size:12px!important}
+}
+
+
+/* FOOTER SINGLE COLUMN 2026-10-12 */
+.footer-top{
+    grid-template-columns:1fr!important;
+    gap:0!important;
+}
+.footer-top>div:first-child{
+    max-width:760px;
+}
+
+
+/* ============================================================
+   MOBILE FINAL COMPOSITION 2026-10-12
+   ============================================================ */
+.doglife-external-media{
+    width:100%;
+    height:100%;
+    min-height:180px;
+    display:grid;
+    place-items:center;
+    background:linear-gradient(145deg,#202936,#0f141a);
+    color:#fff;
+    text-align:center;
+}
+.doglife-external-media span{display:block;font-size:34px;line-height:1;margin-bottom:7px}
+.doglife-external-media small{font-size:11px;opacity:.78}
+
+@media(max-width:760px){
+    .site-header{
+        height:90px!important;
+        grid-template-rows:56px 34px!important;
+        padding:0 8px!important;
+        row-gap:0!important;
+        overflow:visible!important;
+    }
+    .site-header .brand b{
+        font-size:15px!important;
+        line-height:1.08!important;
+        letter-spacing:-.04em!important;
+    }
+
+    /* Full-bleed, thinner semi-transparent menu rail */
+    .site-header .primary-nav{
+        width:calc(100% + 16px)!important;
+        max-width:none!important;
+        height:34px!important;
+        min-height:34px!important;
+        margin:0 -8px!important;
+        padding:0 7px!important;
+        gap:0!important;
+        border-left:0!important;
+        border-right:0!important;
+        border-radius:0!important;
+        background:rgba(238,240,242,.76)!important;
+        border-top:1px solid rgba(255,255,255,.5)!important;
+        border-bottom:1px solid rgba(65,70,76,.12)!important;
+        box-shadow:0 3px 9px rgba(0,0,0,.045)!important;
+        -webkit-backdrop-filter:blur(12px)!important;
+        backdrop-filter:blur(12px)!important;
+    }
+    .site-header .primary-nav a{
+        min-height:32px!important;
+        padding:0 10px!important;
+        font-size:10.5px!important;
+        line-height:1!important;
+        border-radius:6px!important;
+    }
+
+    /* Never render mobile signup as a red CTA in the account row */
+    .site-header .header-actions [data-member-login],
+    .site-header .header-actions [data-member-join],
+    .site-header .header-actions .auth-link--plain{
+        appearance:none!important;
+        background:transparent!important;
+        background-color:transparent!important;
+        color:#2f3338!important;
+        border:0!important;
+        box-shadow:none!important;
+        min-width:0!important;
+        min-height:0!important;
+        padding:4px 2px!important;
+        border-radius:0!important;
+        font-size:9px!important;
+        font-weight:700!important;
+    }
+    .site-header .header-actions [data-member-login] + [data-member-join]{
+        margin-left:5px!important;
+    }
+
+    /* Anchor intro copy to the lower part of the video, not the upper third */
+    .site-header--intro + .hero .hero-content{
+        top:auto!important;
+        bottom:7.5%!important;
+        left:7%!important;
+        right:6%!important;
+        max-width:87%!important;
+        transform:none!important;
+    }
+    .site-header--intro + .hero .eyebrow{
+        font-size:9.5px!important;
+        letter-spacing:2px!important;
+        margin:0 0 5px!important;
+    }
+    .site-header--intro + .hero h1{
+        font-size:30px!important;
+        line-height:1.38!important;
+        margin:2px 0 9px!important;
+    }
+    .site-header--intro + .hero .hero-meta{
+        font-size:11.5px!important;
+        line-height:1.48!important;
+        margin:6px 0!important;
+        max-width:335px!important;
+    }
+    .site-header--intro + .hero .hero-buttons{
+        gap:8px!important;
+        margin-top:14px!important;
+    }
+    .site-header--intro + .hero .hero-buttons .btn{
+        min-width:86px!important;
+        padding:9px 12px!important;
+        border-radius:7px!important;
+        font-size:11.5px!important;
+        line-height:1!important;
+    }
+}
+@media(max-width:390px){
+    .site-header .brand b{font-size:14.5px!important}
+    .site-header .primary-nav a{font-size:10px!important;padding-inline:9px!important}
+    .site-header--intro + .hero .hero-content{bottom:6.5%!important}
+    .site-header--intro + .hero h1{font-size:28px!important}
+    .site-header--intro + .hero .hero-buttons .btn{min-width:82px!important;padding:9px 11px!important;font-size:11px!important}
+}
+
+
+/* ============================================================
+   MOBILE HERO DOM + ADMIN MENU SIZE FIX 2026-10-12
+   Root cause: .site-header--intro + .hero never matched because
+   <main> sits between the header and the hero section.
+   ============================================================ */
+@media(max-width:760px){
+    .site-header .primary-nav a{
+        font-size:var(--mobile-menu-font-size,13px)!important;
+        font-weight:var(--menu-font-weight,700)!important;
+        padding-inline:11px!important;
+    }
+
+    .site-header--intro + main .hero{
+        height:540px!important;
+    }
+    .site-header--intro + main .hero .hero-content{
+        top:auto!important;
+        bottom:7%!important;
+        left:7%!important;
+        right:6%!important;
+        max-width:87%!important;
+        transform:none!important;
+    }
+    .site-header--intro + main .hero .eyebrow{
+        font-size:9.5px!important;
+        letter-spacing:2px!important;
+        margin:0 0 5px!important;
+    }
+    .site-header--intro + main .hero h1{
+        font-size:30px!important;
+        line-height:1.36!important;
+        margin:2px 0 8px!important;
+    }
+    .site-header--intro + main .hero .hero-meta{
+        font-size:11.5px!important;
+        line-height:1.45!important;
+        margin:5px 0!important;
+        max-width:335px!important;
+    }
+    .site-header--intro + main .hero .hero-buttons{
+        gap:7px!important;
+        margin-top:11px!important;
+    }
+    .site-header--intro + main .hero .hero-buttons .btn{
+        min-width:78px!important;
+        padding:8px 10px!important;
+        border-radius:7px!important;
+        font-size:11px!important;
+        line-height:1!important;
+    }
+}
+@media(max-width:390px){
+    .site-header .primary-nav a{
+        font-size:var(--mobile-menu-font-size,13px)!important;
+        padding-inline:10px!important;
+    }
+    .site-header--intro + main .hero .hero-content{
+        bottom:6%!important;
+    }
+    .site-header--intro + main .hero h1{
+        font-size:28px!important;
+    }
+    .site-header--intro + main .hero .hero-buttons .btn{
+        min-width:72px!important;
+        padding:7px 9px!important;
+        font-size:10.5px!important;
+    }
+}
+
+
+/* ============================================================
+   FLOATING AI / DOG LIFE SPLIT HUB 2026-10-20
+   Persistent labels make the two functions understandable at a glance.
+   ============================================================ */
+.bot-float.bot-float--split{
+    right:24px!important;
+    bottom:76px!important;
+    width:100px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:flex-end!important;
+    gap:5px!important;
+    overflow:visible!important;
+}
+
+.bot-float.bot-float--split[hidden]{
+    display:none!important;
+}
+
+.bot-float.bot-float--split .bot-direct-action{
+    width:94px!important;
+    height:32px!important;
+    min-width:94px!important;
+    min-height:32px!important;
+    padding:0 10px!important;
+    border-radius:999px!important;
+    border:1px solid rgba(255,255,255,.72)!important;
+    box-shadow:0 6px 18px rgba(0,0,0,.18)!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:5px!important;
+    overflow:visible!important;
+    font-size:12px!important;
+    line-height:1!important;
+    font-weight:900!important;
+    letter-spacing:-.025em!important;
+    white-space:nowrap!important;
+    cursor:pointer!important;
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+}
+
+.bot-float.bot-float--split .bot-direct-ask{
+    background:rgba(9,56,34,.96)!important;
+    color:#fff!important;
+}
+
+.bot-float.bot-float--split .bot-direct-share{
+    background:rgba(204,38,44,.96)!important;
+    color:#fff!important;
+}
+
+.bot-float.bot-float--split .bot-direct-action:hover,
+.bot-float.bot-float--split .bot-direct-action:focus-visible{
+    transform:translateY(-1px)!important;
+    box-shadow:0 9px 22px rgba(0,0,0,.24)!important;
+}
+
+.bot-float.bot-float--split .bot-direct-icon{
+    font-size:13px!important;
+    line-height:1!important;
+}
+
+.bot-float.bot-float--split #botButton{
+    width:82px!important;
+    height:82px!important;
+    min-width:82px!important;
+    min-height:82px!important;
+    flex:0 0 82px!important;
+    border-radius:50%!important;
+    overflow:hidden!important;
+    border:0!important;
+    outline:0!important;
+    padding:0!important;
+    margin:0!important;
+    background:transparent!important;
+    box-shadow:0 8px 22px rgba(0,0,0,.14)!important;
+    cursor:pointer!important;
+}
+
+.bot-float.bot-float--split #botButton video,
+.bot-float.bot-float--split #botButton img{
+    width:100%!important;
+    height:100%!important;
+    object-fit:cover!important;
+    border-radius:50%!important;
+    display:block!important;
+    background:transparent!important;
+}
+
+/* The old radial popup is retired. */
+.bot-radial-actions{
+    display:none!important;
+}
+
+@media(max-width:760px){
+    .bot-float.bot-float--split{
+        right:12px!important;
+        bottom:82px!important;
+        width:88px!important;
+        gap:4px!important;
+    }
+
+    .bot-float.bot-float--split .bot-direct-action{
+        width:84px!important;
+        min-width:84px!important;
+        height:29px!important;
+        min-height:29px!important;
+        padding:0 8px!important;
+        font-size:11px!important;
+        gap:4px!important;
+    }
+
+    .bot-float.bot-float--split .bot-direct-icon{
+        font-size:12px!important;
+    }
+
+    .bot-float.bot-float--split #botButton{
+        width:72px!important;
+        height:72px!important;
+        min-width:72px!important;
+        min-height:72px!important;
+        flex-basis:72px!important;
+    }
+}

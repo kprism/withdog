@@ -1,0 +1,618 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}{{ board_label }} 글 관리{% endblock %}
+
+{% block content %}
+
+<div class="board-editor-page">
+
+    <div class="board-editor-head">
+
+        <div>
+
+            <h1>
+                {{ board_label }}
+                {% if post %}
+                    수정
+                {% else %}
+                    작성
+                {% endif %}
+            </h1>
+
+            <p>
+                게시글 내용과 첨부파일을 관리합니다.
+            </p>
+
+        </div>
+
+        <a
+            href="{% url 'operator_dashboard:board_admin_list' board_type %}"
+            class="editor-btn editor-btn-light"
+        >
+            목록으로
+        </a>
+
+    </div>
+
+
+    <form
+        method="post"
+        enctype="multipart/form-data"
+        class="board-editor-form"
+    >
+
+        {% csrf_token %}
+
+
+        <div class="editor-card">
+
+            <div class="editor-grid">
+
+                <label>
+
+                    <span>카테고리</span>
+
+                    <select name="category">
+
+                        <option value="">
+                            카테고리 선택
+                        </option>
+
+                        {% for category in categories %}
+
+                            <option
+                                value="{{ category.pk }}"
+                                {% if post and post.category_id == category.pk %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ category.name }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </label>
+
+
+                <label>
+
+                    <span>제목</span>
+
+                    <input
+                        type="text"
+                        name="title"
+                        value="{{ post.title|default:'' }}"
+                        placeholder="제목을 입력하세요"
+                        required
+                    >
+
+                </label>
+
+            </div>
+
+
+            <label class="editor-field">
+
+                <span>내용</span>
+
+                <div class="editor-toolbar">
+
+                    <button
+                        type="button"
+                        data-command="bold"
+                    >
+                        <b>B</b>
+                    </button>
+
+                    <button
+                        type="button"
+                        data-command="italic"
+                    >
+                        <i>I</i>
+                    </button>
+
+                    <button
+                        type="button"
+                        data-command="underline"
+                    >
+                        <u>U</u>
+                    </button>
+
+                    <button
+                        type="button"
+                        data-command="insertUnorderedList"
+                    >
+                        • 목록
+                    </button>
+
+                    <button
+                        type="button"
+                        id="insertLink"
+                    >
+                        링크
+                    </button>
+
+                </div>
+
+                <div
+                    id="boardRichEditor"
+                    class="board-rich-editor"
+                    contenteditable="true"
+                >{{ post.body|default:''|safe }}</div>
+
+                <textarea
+                    name="body"
+                    id="boardBody"
+                    hidden
+                ></textarea>
+
+            </label>
+
+
+            <label class="editor-field">
+
+                <span>파일 · 사진 첨부</span>
+
+                <div class="upload-box">
+
+                    <input
+                        type="file"
+                        name="attachments"
+                        id="boardAttachments"
+                        multiple
+                    >
+
+                    <small>
+                        이미지와 일반 파일을 여러 개 선택할 수 있습니다.
+                    </small>
+
+                </div>
+
+                <div id="attachmentPreview"></div>
+
+            </label>
+
+
+            {% if post.attachments.all %}
+
+            <div class="editor-field">
+
+                <span>기존 첨부파일</span>
+
+                <div class="existing-files">
+
+                    {% for attachment in post.attachments.all %}
+
+                        <div>
+                            {{ attachment }}
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+            {% endif %}
+
+
+            <div class="editor-options">
+
+                <label>
+                    <input
+                        type="checkbox"
+                        name="is_published"
+                        {% if not post or post.is_published %}checked{% endif %}
+                    >
+                    공개
+                </label>
+
+                <label>
+                    <input
+                        type="checkbox"
+                        name="is_pinned"
+                        {% if post and post.is_pinned %}checked{% endif %}
+                    >
+                    상단 고정
+                </label>
+
+                <label>
+                    <input
+                        type="checkbox"
+                        name="is_important"
+                        {% if post and post.is_important %}checked{% endif %}
+                    >
+                    중요 게시물
+                </label>
+
+                <label>
+                    <input
+                        type="checkbox"
+                        name="is_featured"
+                        {% if post and post.is_featured %}checked{% endif %}
+                    >
+                    추천 게시물
+                </label>
+
+                <label>
+                    <input
+                        type="checkbox"
+                        name="allow_comments"
+                        {% if not post or post.allow_comments %}checked{% endif %}
+                    >
+                    댓글 허용
+                </label>
+
+            </div>
+
+        </div>
+
+
+        <div class="editor-submit">
+
+            {% if post %}
+
+            <button
+                type="submit"
+                formaction="{% url 'operator_dashboard:board_admin_delete' board_type post.pk %}"
+                class="editor-btn editor-btn-danger"
+                onclick="return confirm('이 게시글을 삭제하시겠습니까?');"
+            >
+                삭제
+            </button>
+
+            {% endif %}
+
+
+            <button
+                type="submit"
+                class="editor-btn editor-btn-primary"
+            >
+                저장
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+<style>
+
+.board-editor-page{
+    max-width:1100px;
+    margin:0 auto;
+}
+
+.board-editor-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:22px;
+}
+
+.board-editor-head h1{
+    margin:0 0 6px;
+    font-size:25px;
+}
+
+.board-editor-head p{
+    margin:0;
+    color:#777;
+    font-size:13px;
+}
+
+.editor-card{
+    padding:22px;
+    border:1px solid #e4e4e4;
+    border-radius:14px;
+    background:#fff;
+}
+
+.editor-grid{
+    display:grid;
+    grid-template-columns:220px 1fr;
+    gap:14px;
+    margin-bottom:18px;
+}
+
+.editor-grid label,
+.editor-field{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
+.editor-grid label > span,
+.editor-field > span{
+    font-size:13px;
+    font-weight:700;
+}
+
+.editor-grid input,
+.editor-grid select{
+    height:42px;
+    padding:0 12px;
+    border:1px solid #ddd;
+    border-radius:9px;
+    background:#fff;
+    box-sizing:border-box;
+}
+
+.editor-field{
+    margin-top:18px;
+}
+
+.editor-toolbar{
+    display:flex;
+    gap:5px;
+    padding:7px;
+    border:1px solid #ddd;
+    border-bottom:0;
+    border-radius:9px 9px 0 0;
+    background:#fafafa;
+}
+
+.editor-toolbar button{
+    height:31px;
+    padding:0 10px;
+    border:1px solid #ddd;
+    border-radius:6px;
+    background:#fff;
+    cursor:pointer;
+}
+
+.board-rich-editor{
+    min-height:360px;
+    padding:18px;
+    border:1px solid #ddd;
+    border-radius:0 0 9px 9px;
+    outline:0;
+    line-height:1.7;
+}
+
+.upload-box{
+    padding:18px;
+    border:1px dashed #ccc;
+    border-radius:10px;
+    background:#fafafa;
+}
+
+.upload-box small{
+    display:block;
+    margin-top:8px;
+    color:#888;
+}
+
+#attachmentPreview{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+}
+
+.attachment-preview-item{
+    padding:7px 10px;
+    border-radius:7px;
+    background:#f3f4f6;
+    font-size:12px;
+}
+
+.editor-options{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-top:20px;
+    padding-top:18px;
+    border-top:1px solid #eee;
+}
+
+.editor-options label{
+    display:inline-flex;
+    min-height:36px;
+    padding:0 11px;
+    align-items:center;
+    gap:6px;
+    border:1px solid #e3e3e3;
+    border-radius:8px;
+    background:#fafafa;
+    font-size:12px;
+    font-weight:600;
+}
+
+.editor-submit{
+    display:flex;
+    justify-content:flex-end;
+    gap:8px;
+    margin-top:16px;
+}
+
+.editor-btn{
+    display:inline-flex;
+    min-width:78px;
+    height:40px;
+    padding:0 15px;
+    align-items:center;
+    justify-content:center;
+    border:1px solid #ddd;
+    border-radius:9px;
+    font-weight:700;
+    text-decoration:none;
+    cursor:pointer;
+    box-sizing:border-box;
+}
+
+.editor-btn-light{
+    background:#fff;
+    color:#222;
+}
+
+.editor-btn-primary{
+    background:#d9232e;
+    border-color:#d9232e;
+    color:#fff;
+}
+
+.editor-btn-danger{
+    margin-right:auto;
+    background:#fff;
+    border-color:#efc7ca;
+    color:#c9232c;
+}
+
+@media(max-width:700px){
+
+    .editor-grid{
+        grid-template-columns:1fr;
+    }
+
+}
+
+</style>
+
+
+<script>
+
+(function(){
+
+    const form =
+        document.querySelector(
+            '.board-editor-form'
+        );
+
+    const editor =
+        document.getElementById(
+            'boardRichEditor'
+        );
+
+    const content =
+        document.getElementById(
+            'boardBody'
+        );
+
+    if(form && editor && content){
+
+        form.addEventListener(
+            'submit',
+            function(){
+
+                content.value =
+                    editor.innerHTML;
+
+            }
+        );
+
+    }
+
+
+    document
+        .querySelectorAll(
+            '[data-command]'
+        )
+        .forEach(
+            function(button){
+
+                button.addEventListener(
+                    'click',
+                    function(){
+
+                        document.execCommand(
+                            button.dataset.command,
+                            false,
+                            null
+                        );
+
+                        editor.focus();
+
+                    }
+                );
+
+            }
+        );
+
+
+    const linkButton =
+        document.getElementById(
+            'insertLink'
+        );
+
+    if(linkButton){
+
+        linkButton.addEventListener(
+            'click',
+            function(){
+
+                const url =
+                    window.prompt(
+                        '연결할 주소를 입력하세요.'
+                    );
+
+                if(url){
+
+                    document.execCommand(
+                        'createLink',
+                        false,
+                        url
+                    );
+
+                }
+
+            }
+        );
+
+    }
+
+
+    const files =
+        document.getElementById(
+            'boardAttachments'
+        );
+
+    const preview =
+        document.getElementById(
+            'attachmentPreview'
+        );
+
+    if(files && preview){
+
+        files.addEventListener(
+            'change',
+            function(){
+
+                preview.innerHTML = '';
+
+                Array.from(
+                    files.files
+                ).forEach(
+                    function(file){
+
+                        const item =
+                            document.createElement(
+                                'div'
+                            );
+
+                        item.className =
+                            'attachment-preview-item';
+
+                        item.textContent =
+                            file.name;
+
+                        preview.appendChild(
+                            item
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+    }
+
+})();
+
+</script>
+
+{% endblock %}
