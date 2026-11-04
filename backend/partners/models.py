@@ -1372,6 +1372,12 @@ class TrafficVisit(models.Model):
         ('internal', '내부 이동'),
     ]
 
+    VISITOR_TYPES = [
+        ('human', '실제 방문 추정'),
+        ('search_bot', '검색봇'),
+        ('scanner', '보안스캐너·자동봇'),
+    ]
+
     visited_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     ip_address = models.GenericIPAddressField(db_index=True)
@@ -1404,6 +1410,17 @@ class TrafficVisit(models.Model):
 
     user_agent = models.TextField(blank=True, default='')
     is_mobile = models.BooleanField(default=False)
+    visitor_type = models.CharField(
+        max_length=20,
+        choices=VISITOR_TYPES,
+        default='human',
+        db_index=True,
+    )
+    classification_reason = models.CharField(
+        max_length=220,
+        blank=True,
+        default='',
+    )
 
     country_code = models.CharField(max_length=8, blank=True, default='')
     country = models.CharField(max_length=100, blank=True, default='')
@@ -1435,6 +1452,10 @@ class TrafficVisit(models.Model):
             models.Index(
                 fields=['ip_address', 'visited_at'],
                 name='traffic_ip_time_idx',
+            ),
+            models.Index(
+                fields=['visited_at', 'visitor_type'],
+                name='traffic_time_visitor_idx',
             ),
         ]
 
