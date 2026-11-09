@@ -733,6 +733,13 @@ def public_partner_map_api(request):
             'phone': partner.phone or '',
             'city': partner.city or '',
             'city_unit': city_unit,
+            'discount_min_percent': max(
+                0,
+                min(
+                    100,
+                    int(partner.discount_min_percent or 0),
+                ),
+            ),
             'discount_percent': max(
                 0,
                 min(
@@ -772,11 +779,13 @@ def public_partner_map_api(request):
         })
 
     # 광고업체 우선, 같은 광고업체끼리는 광고금액 우선.
-    # 그 다음에는 공개 시/군 순서와 상호명으로 정렬한다.
+    # 이후 최대 할인율이 높은 업체를 먼저 노출하고 지역/상호명으로 정렬한다.
     rows.sort(
         key=lambda x: (
             0 if x['is_ad'] else 1,
             -x['ad_monthly_fee'],
+            -x['discount_percent'],
+            -x['discount_min_percent'],
             city_sort_key(x['city_unit']),
             x['name'],
         )
