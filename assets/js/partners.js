@@ -322,8 +322,13 @@
 
         const discountHtml =
             '<span class="partner-discount">' +
-            escapeHtml(discountPercent) +
-            '% 할인</span>';
+                '<span class="partner-discount-prefix">최대</span>' +
+                '<strong class="partner-discount-rate">' +
+                    escapeHtml(discountPercent) +
+                    '%' +
+                '</strong>' +
+                '<span class="partner-discount-suffix">할인</span>' +
+            '</span>';
 
         const phoneHtml = p.phone
             ? '<p class="partner-phone">☎ ' +
