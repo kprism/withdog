@@ -639,6 +639,75 @@ jobs:
 
           print('FLOATING_SPLIT_HUB_OK')
           PY
+      - name: Verify membership contact notice and popup
+        working-directory: backend
+        run: |
+          python manage.py migrate --noinput
+          python manage.py shell <<'PY'
+          from django.test import Client
+          from partners.models import BoardPost, ContentItem
+
+          title='경상남도 반려견 협회 회원가입 및 이용 문의 안내'
+          notice=BoardPost.objects.get(
+              board_type='notice',
+              title=title,
+          )
+          assert notice.is_published is True
+          assert notice.is_hidden is False
+          assert notice.is_pinned is True
+          assert notice.is_important is True
+          assert '010-3556-8603' in notice.body
+          assert '010-6622-3454' in notice.body
+          assert '제휴업체 등록 및 제휴 관련 문의' in notice.body
+
+          popup=ContentItem.objects.get(
+              kind='popup',
+              label='contact-notice',
+          )
+          assert popup.is_published is True
+          assert popup.sort_order == -10000
+          assert popup.title == '회원가입 · 협회 이용 문의'
+          assert '010-3556-8603' in popup.body
+          assert '010-6622-3454' in popup.body
+          assert popup.link == f'/board/{notice.pk}/'
+
+          client=Client()
+          popup_response=client.get('/api/content/?kind=popup')
+          assert popup_response.status_code == 200
+          popup_data=popup_response.json()['results']
+          popup_row=next(
+              x for x in popup_data
+              if x['id'] == popup.pk
+          )
+          assert popup_row['label'] == 'contact-notice'
+          assert popup_row['link'] == f'/board/{notice.pk}/'
+          assert '010-3556-8603' in popup_row['body']
+          assert '010-6622-3454' in popup_row['body']
+
+          detail=client.get(f'/board/{notice.pk}/')
+          detail_html=detail.content.decode('utf-8','replace')
+          assert detail.status_code == 200
+          assert title in detail_html
+          assert '010-3556-8603' in detail_html
+          assert '010-6622-3454' in detail_html
+
+          intro_news=client.get('/api/intro-news/')
+          assert intro_news.status_code == 200
+          assert any(
+              row['id'] == notice.pk
+              for row in intro_news.json()['notice']
+          )
+
+          cms_js=open('../assets/js/cms.js',encoding='utf-8').read()
+          index_html=open('../index.html',encoding='utf-8').read()
+          assert "x.label==='contact-notice'" in cms_js
+          assert 'popup-contact-phone' in cms_js
+          assert 'font-size:27px' in cms_js
+          assert '공지사항 자세히 보기' in cms_js
+          assert 'cms.js?v=20261109-contact-popup-v1' in index_html
+
+          print('MEMBERSHIP_CONTACT_NOTICE_POPUP_OK', notice.pk, popup.pk)
+          PY
       - name: Verify homepage notice and pet news feed
         working-directory: backend
         run: |
@@ -1168,6 +1237,29 @@ jobs:
               if 'app.js?v=20261020-live-intro-v3' not in direct_join_html:
                   raise SystemExit('Partner join deep link app asset version missing')
 
+          with urllib.request.urlopen('https://thepetkorea.co.kr/api/content/?kind=popup', timeout=20) as response:
+              popup_payload=json.loads(response.read().decode('utf-8','replace'))
+              contact_popups=[
+                  row for row in popup_payload.get('results',[])
+                  if row.get('label') == 'contact-notice'
+              ]
+              if not contact_popups:
+                  raise SystemExit('Membership contact popup missing in production')
+              contact_popup=contact_popups[0]
+              if '010-3556-8603' not in contact_popup.get('body','') or '010-6622-3454' not in contact_popup.get('body',''):
+                  raise SystemExit('Membership contact phone numbers missing in production popup')
+              if not str(contact_popup.get('link','')).startswith('/board/'):
+                  raise SystemExit('Membership contact popup notice link missing')
+
+          with urllib.request.urlopen('https://thepetkorea.co.kr/api/intro-news/', timeout=20) as response:
+              intro_news_payload=json.loads(response.read().decode('utf-8','replace'))
+              notice_titles={
+                  row.get('title')
+                  for row in intro_news_payload.get('notice',[])
+              }
+              if '경상남도 반려견 협회 회원가입 및 이용 문의 안내' not in notice_titles:
+                  raise SystemExit('Membership contact notice missing from homepage notice feed')
+
           with urllib.request.urlopen('https://thepetkorea.co.kr/', timeout=20) as response:
               home_html=response.read().decode('utf-8','replace')
               if 'site-header--intro' not in home_html:
@@ -1200,6 +1292,8 @@ jobs:
                   raise SystemExit('Floating hub vertical action order is wrong')
               if 'chatbot.js?v=20261020-split-actions-v3' not in home_html:
                   raise SystemExit('Floating hub chatbot asset version missing')
+              if 'cms.js?v=20261109-contact-popup-v1' not in home_html:
+                  raise SystemExit('Contact popup CMS asset version missing')
               if 'data-live-hero="1"' not in home_html or 'data-server-hero="1"' not in home_html:
                   raise SystemExit('Live hero was not server-rendered on first paint')
               if 'images.unsplash.com/photo-1558788353-f76d92427f16' in home_html:
