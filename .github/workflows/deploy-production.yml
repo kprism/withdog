@@ -465,7 +465,7 @@ jobs:
               media_type='image',
               is_published=True,
               sort_order=-999,
-              hero_button1_text='반려견 회원등록',
+              hero_button1_text='반려견 회원가입',
               hero_button1_link='#join',
               hero_button2_text='회원혜택',
               hero_button2_link='/benefits.html',
@@ -478,7 +478,7 @@ jobs:
           assert 'data-hero-button="1"' in hero_html
           assert 'data-hero-button="partner"' in hero_html
           assert 'data-hero-button="2"' in hero_html
-          assert hero_html.find('반려견 회원등록') < hero_html.find('제휴업체 등록') < hero_html.find('회원혜택')
+          assert hero_html.find('반려견 회원가입') < hero_html.find('제휴업체 등록') < hero_html.find('회원혜택')
           assert 'href="/join/partner"' in hero_html
 
           direct=client.get('/join/partner')
