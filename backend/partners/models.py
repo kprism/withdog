@@ -19,9 +19,41 @@ class Partner(models.Model):
     address=models.CharField(max_length=300)
     phone=models.CharField(max_length=40,blank=True)
     city=models.CharField(max_length=30,db_index=True)
+    discount_min_percent=models.PositiveSmallIntegerField(
+        default=0,
+        verbose_name='최소 회원 할인율(%)',
+    )
     discount_percent=models.PositiveSmallIntegerField(
         default=0,
-        verbose_name='회원 할인율(%)',
+        verbose_name='최대 회원 할인율(%)',
+    )
+
+    representative_name=models.CharField(
+        max_length=100,
+        blank=True,
+        default='',
+        verbose_name='대표자명',
+    )
+    contact_email=models.EmailField(
+        blank=True,
+        default='',
+        verbose_name='이메일',
+    )
+    application_note=models.TextField(
+        blank=True,
+        default='',
+        verbose_name='제휴 신청 내용',
+    )
+    application_status=models.CharField(
+        max_length=20,
+        choices=[
+            ('approved','승인'),
+            ('pending','승인대기'),
+            ('rejected','반려'),
+        ],
+        default='approved',
+        db_index=True,
+        verbose_name='제휴 등록 상태',
     )
 
     latitude=models.DecimalField(
