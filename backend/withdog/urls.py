@@ -151,15 +151,20 @@ def _render_live_home_hero(request):
         buttons = []
         if first.hero_button1_text:
             buttons.append(
-                '<a class="btn btn-red" href="'
+                '<a class="btn btn-red" data-hero-button="1" href="'
                 + escape(first.hero_button1_link or '#')
                 + '">'
                 + escape(first.hero_button1_text)
                 + '</a>'
             )
+        buttons.append(
+            '<a class="btn btn-red hero-partner-register" '
+            'data-hero-button="partner" href="/join/partner">'
+            '제휴업체 등록</a>'
+        )
         if first.hero_button2_text:
             buttons.append(
-                '<a class="btn btn-glass" href="'
+                '<a class="btn btn-glass" data-hero-button="2" href="'
                 + escape(first.hero_button2_link or '#')
                 + '">'
                 + escape(first.hero_button2_text)

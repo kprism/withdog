@@ -194,3 +194,15 @@
 @media(max-width:600px){
     .term-detail{margin-left:0;max-height:125px}
 }
+
+
+/* PARTNER REGISTRATION 2026-11-09 */
+.partner-discount-range{align-items:end}
+.partner-discount-guide{
+    margin-top:8px!important;
+    background:#fff8e8!important;
+    border-color:#efdca7!important;
+    color:#7a6328!important;
+    font-size:12px!important;
+    font-weight:700!important;
+}

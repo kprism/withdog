@@ -340,8 +340,10 @@ jobs:
 
           assert '>제휴업체</a>' in header
           assert '>후원업체</a>' not in header
+          assert 'name="discount_min_percent"' in partner_form
           assert 'name="discount_percent"' in partner_form
-          assert '회원 할인율 (%)' in partner_form
+          assert '최소 회원 할인율 (%)' in partner_form
+          assert '최대 회원 할인율 (%)' in partner_form
           assert '//dapi.kakao.com/v2/maps/sdk.js?appkey=' not in partner_page
           assert "fetch(\n            '/api/site-settings/" in partner_js
           assert 'kakao_javascript_key' in partner_js
@@ -355,6 +357,163 @@ jobs:
           category.delete()
 
           print('PARTNER_MENU_CITY_DISCOUNT_KAKAO_OK')
+          PY
+      - name: Verify partner registration flow, hero button, address and discount ranking
+        working-directory: backend
+        run: |
+          python manage.py migrate --noinput
+          python manage.py shell <<'PY'
+          from django.test import Client
+          from partners.models import ContentItem, Partner, PartnerCategory
+
+          category=PartnerCategory.objects.filter(name='미용센터').first()
+          if category is None:
+              category=PartnerCategory.objects.create(
+                  code='grooming-ci',
+                  name='미용센터',
+                  sort_order=10,
+              )
+
+          client=Client()
+
+          payload={
+              'name':'CI 공개제휴 신청업체',
+              'category_name':'미용센터',
+              'representative_name':'홍길동',
+              'phone':'010-1234-5678',
+              'email':'partner-ci@example.com',
+              'postcode':'51430',
+              'address':'경상남도 창원시 성산구 중앙대로 1',
+              'address_detail':'101호',
+              'city':'창원시',
+              'discount_min_percent':5,
+              'discount_max_percent':20,
+              'proposal':'회원 대상 5~20% 할인',
+          }
+
+          response=client.post(
+              '/api/partner-register/',
+              data=payload,
+              content_type='application/json',
+          )
+          assert response.status_code == 201, response.content
+          data=response.json()
+          assert data['ok'] is True
+
+          pending=Partner.objects.get(pk=data['id'])
+          assert pending.application_status == 'pending'
+          assert pending.is_active is False
+          assert pending.is_affiliated is True
+          assert pending.discount_min_percent == 5
+          assert pending.discount_percent == 20
+          assert pending.representative_name == '홍길동'
+          assert pending.contact_email == 'partner-ci@example.com'
+          assert '51430' in pending.address
+
+          invalid=dict(payload)
+          invalid['name']='CI 잘못된 할인율'
+          invalid['discount_min_percent']=40
+          invalid['discount_max_percent']=10
+          bad=client.post(
+              '/api/partner-register/',
+              data=invalid,
+              content_type='application/json',
+          )
+          assert bad.status_code == 400
+          assert '최소 할인율' in bad.json()['message']
+
+          low=Partner.objects.create(
+              category=category,
+              name='CI 할인 낮음',
+              address='경상남도 창원시 테스트로 10',
+              phone='010-0000-0010',
+              city='창원시',
+              discount_min_percent=2,
+              discount_percent=10,
+              is_active=True,
+          )
+          high=Partner.objects.create(
+              category=category,
+              name='CI 할인 높음',
+              address='경상남도 창원시 테스트로 30',
+              phone='010-0000-0030',
+              city='창원시',
+              discount_min_percent=10,
+              discount_percent=30,
+              is_active=True,
+          )
+
+          public=client.get('/api/partners/public-map/?city=창원시')
+          assert public.status_code == 200
+          rows=[
+              row for row in public.json()['partners']
+              if row['name'] in {'CI 할인 낮음','CI 할인 높음'}
+          ]
+          assert [row['name'] for row in rows] == ['CI 할인 높음','CI 할인 낮음'], rows
+          assert rows[0]['discount_min_percent'] == 10
+          assert rows[0]['discount_percent'] == 30
+
+          existing_states=list(
+              ContentItem.objects
+              .filter(kind='hero')
+              .values_list('pk','is_published')
+          )
+          ContentItem.objects.filter(kind='hero').update(is_published=False)
+          hero=ContentItem.objects.create(
+              kind='hero',
+              title='CI partner hero',
+              media_type='image',
+              is_published=True,
+              sort_order=-999,
+              hero_button1_text='반려견 회원등록',
+              hero_button1_link='#join',
+              hero_button2_text='회원혜택',
+              hero_button2_link='/benefits.html',
+          )
+
+          home=client.get('/')
+          assert home.status_code == 200
+          html=home.content.decode('utf-8','replace')
+          hero_html=html.split('<section class="hero"',1)[1].split('</section>',1)[0]
+          assert 'data-hero-button="1"' in hero_html
+          assert 'data-hero-button="partner"' in hero_html
+          assert 'data-hero-button="2"' in hero_html
+          assert hero_html.find('반려견 회원등록') < hero_html.find('제휴업체 등록') < hero_html.find('회원혜택')
+          assert 'href="/join/partner"' in hero_html
+
+          direct=client.get('/join/partner')
+          direct_html=direct.content.decode('utf-8','replace')
+          assert direct.status_code == 200
+          assert '<base href="/">' in direct_html
+          assert 'app.js?v=20261109-partner-register-v1' in direct_html
+
+          app_js=open('../assets/js/app.js',encoding='utf-8').read()
+          cms_js=open('../assets/js/cms.js',encoding='utf-8').read()
+          partner_js=open('../assets/js/partners.js',encoding='utf-8').read()
+          partner_css=open('../assets/css/partners.css',encoding='utf-8').read()
+          auth_css=open('../assets/css/auth-modal.css',encoding='utf-8').read()
+
+          assert app_js.count('data-address-search') >= 2
+          assert 'data-partner-discount-min' in app_js
+          assert 'data-partner-discount-max' in app_js
+          assert '할인율에 따라, 제휴업체 페이지내 노출순위가 변경됩니다.' in app_js
+          assert "fetch('/api/partner-register/'" in app_js
+          assert 'data-hero-button="partner"' in cms_js
+          assert 'partner-discount-prefix">최대' in partner_js
+          assert 'partner-discount-rate' in partner_js
+          assert 'border-radius:0!important' in partner_css
+          assert 'background:transparent!important' in partner_css
+          assert 'PARTNER REGISTRATION 2026-11-09' in auth_css
+
+          hero.delete()
+          for pk,is_published in existing_states:
+              ContentItem.objects.filter(pk=pk).update(is_published=is_published)
+
+          pending.delete()
+          low.delete()
+          high.delete()
+
+          print('PARTNER_REGISTER_DISCOUNT_RANGE_OK')
           PY
       - name: Verify footer social settings and homepage cleanup
         working-directory: backend
@@ -704,7 +863,7 @@ jobs:
           assert 'popup-contact-phone' in cms_js
           assert 'font-size:27px' in cms_js
           assert '공지사항 자세히 보기' in cms_js
-          assert 'cms.js?v=20261109-contact-popup-v1' in index_html
+          assert 'cms.js?v=20261109-partner-register-v1' in index_html
 
           print('MEMBERSHIP_CONTACT_NOTICE_POPUP_OK', notice.pk, popup.pk)
           PY
@@ -977,6 +1136,11 @@ jobs:
           assert TrafficVisit._meta.get_field('city')
           assert TrafficVisit._meta.get_field('visitor_type')
           assert TrafficVisit._meta.get_field('classification_reason')
+          from partners.models import Partner
+          assert Partner._meta.get_field('discount_min_percent')
+          assert Partner._meta.get_field('application_status')
+          assert Partner._meta.get_field('representative_name')
+          assert Partner._meta.get_field('contact_email')
           assert IntroLayer._meta.get_field('x_px')
           assert SiteSetting._meta.get_field('intro_stage_width').default == 1920
           assert SiteSetting._meta.get_field('intro_stage_height').default == 864
@@ -1234,7 +1398,7 @@ jobs:
                   raise SystemExit('Partner join deep link base href missing')
               if 'site-header--intro' not in direct_join_html:
                   raise SystemExit('Partner join deep link did not render intro header')
-              if 'app.js?v=20261020-live-intro-v3' not in direct_join_html:
+              if 'app.js?v=20261109-partner-register-v1' not in direct_join_html:
                   raise SystemExit('Partner join deep link app asset version missing')
 
           with urllib.request.urlopen('https://thepetkorea.co.kr/api/content/?kind=popup', timeout=20) as response:
@@ -1292,7 +1456,7 @@ jobs:
                   raise SystemExit('Floating hub vertical action order is wrong')
               if 'chatbot.js?v=20261020-split-actions-v3' not in home_html:
                   raise SystemExit('Floating hub chatbot asset version missing')
-              if 'cms.js?v=20261109-contact-popup-v1' not in home_html:
+              if 'cms.js?v=20261109-partner-register-v1' not in home_html:
                   raise SystemExit('Contact popup CMS asset version missing')
               if 'data-live-hero="1"' not in home_html or 'data-server-hero="1"' not in home_html:
                   raise SystemExit('Live hero was not server-rendered on first paint')
@@ -1359,7 +1523,7 @@ jobs:
                   raise SystemExit('Affiliated partner page heading missing')
               if '//dapi.kakao.com/v2/maps/sdk.js?appkey=' in partners_html:
                   raise SystemExit('Legacy hardcoded Kakao map SDK still present')
-              if 'partners.js?v=20261019-partner-v2' not in partners_html:
+              if 'partners.js?v=20261109-discount-text-v1' not in partners_html:
                   raise SystemExit('New partner map loader asset missing')
 
           with urllib.request.urlopen('https://thepetkorea.co.kr/api/site-settings/', timeout=20) as response:
@@ -1424,8 +1588,8 @@ jobs:
           with urllib.request.urlopen('https://thepetkorea.co.kr/api/partners/public-map/', timeout=20) as response:
               partner_data=json.loads(response.read().decode('utf-8','replace'))
               partner_rows=partner_data.get('partners') or []
-              if partner_rows and 'discount_percent' not in partner_rows[0]:
-                  raise SystemExit('Partner discount field missing from public API')
+              if partner_rows and ('discount_percent' not in partner_rows[0] or 'discount_min_percent' not in partner_rows[0]):
+                  raise SystemExit('Partner discount range fields missing from public API')
               priority=['창원시','김해시','진주시','양산시','밀양시']
               normalized=[
                   str(city).replace('경상남도 ','').replace('경남 ','').strip()

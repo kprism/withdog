@@ -996,8 +996,13 @@ def partner_edit(request,pk=None):
  p=get_object_or_404(Partner,pk=pk) if pk else None; categories=PartnerCategory.objects.order_by('sort_order','name')
  if request.method=='POST':
   obj=p or Partner(); obj.name=request.POST.get('name','').strip(); obj.address=request.POST.get('address','').strip(); obj.phone=request.POST.get('phone','').strip(); obj.city=request.POST.get('city','').strip(); obj.category=get_object_or_404(PartnerCategory,pk=request.POST.get('category')); obj.latitude=request.POST.get('latitude') or None; obj.longitude=request.POST.get('longitude') or None
+  try: obj.discount_min_percent=max(0,min(100,int(request.POST.get('discount_min_percent') or 0)))
+  except (TypeError,ValueError): obj.discount_min_percent=0
   try: obj.discount_percent=max(0,min(100,int(request.POST.get('discount_percent') or 0)))
   except (TypeError,ValueError): obj.discount_percent=0
+  if obj.discount_min_percent > obj.discount_percent: obj.discount_min_percent=obj.discount_percent
+  obj.representative_name=request.POST.get('representative_name','').strip(); obj.contact_email=request.POST.get('contact_email','').strip(); obj.application_note=request.POST.get('application_note','').strip()
+  status=request.POST.get('application_status','approved'); obj.application_status=status if status in {'approved','pending','rejected'} else 'approved'
   obj.is_affiliated='is_affiliated' in request.POST; obj.is_active='is_active' in request.POST; obj.save(); messages.success(request,'업체 정보가 저장되었습니다.'); return redirect('operator_dashboard:partners')
  return render(request,'dashboard/partner_form.html',locals())
 
@@ -1481,6 +1486,25 @@ def partner_ad_update(request, pk):
     from datetime import datetime
 
     p.is_affiliated = request.POST.get('is_affiliated') == '1'
+    p.is_active = request.POST.get('is_active') == '1'
+
+    status = request.POST.get('application_status', 'approved')
+    p.application_status = (
+        status
+        if status in {'approved', 'pending', 'rejected'}
+        else 'approved'
+    )
+
+    try:
+        p.discount_min_percent = max(
+            0,
+            min(
+                100,
+                int(request.POST.get('discount_min_percent') or 0),
+            ),
+        )
+    except (TypeError, ValueError):
+        p.discount_min_percent = 0
 
     try:
         p.discount_percent = max(
@@ -1492,6 +1516,16 @@ def partner_ad_update(request, pk):
         )
     except (TypeError, ValueError):
         p.discount_percent = 0
+
+    if p.discount_min_percent > p.discount_percent:
+        messages.error(
+            request,
+            '최소 할인율은 최대 할인율보다 클 수 없습니다.'
+        )
+        return redirect('operator_dashboard:partner_page_editor')
+
+    if p.is_active and p.application_status == 'pending':
+        p.application_status = 'approved'
 
     try:
         p.ad_monthly_fee = max(

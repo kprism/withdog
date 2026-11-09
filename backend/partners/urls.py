@@ -13,6 +13,11 @@ urlpatterns += [
         _member_register,
         name="member_register",
     ),
+    _member_path(
+        "partner-register/",
+        views.partner_register,
+        name="partner_register",
+    ),
 ]
 
 
