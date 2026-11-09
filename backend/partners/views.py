@@ -71,6 +71,149 @@ def save_coordinates(request,pk):
  p.latitude=request.POST.get('latitude') or None;p.longitude=request.POST.get('longitude') or None;p.save(update_fields=['latitude','longitude','updated_at']);return JsonResponse({'ok':True})
 
 
+# === PUBLIC PARTNER REGISTER API ===
+@require_POST
+def partner_register(request):
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return JsonResponse(
+            {'ok': False, 'message': '잘못된 요청입니다.'},
+            status=400,
+        )
+
+    name = str(data.get('name') or '').strip()
+    category_name = str(data.get('category_name') or '').strip()
+    representative_name = str(data.get('representative_name') or '').strip()
+    phone = str(data.get('phone') or '').strip()
+    email = str(data.get('email') or '').strip().lower()
+    postcode = str(data.get('postcode') or '').strip()
+    base_address = str(data.get('address') or '').strip()
+    detail_address = str(data.get('address_detail') or '').strip()
+    city = str(data.get('city') or '').strip()
+    proposal = str(data.get('proposal') or '').strip()
+
+    try:
+        discount_min = int(data.get('discount_min_percent') or 0)
+        discount_max = int(data.get('discount_max_percent') or 0)
+    except (TypeError, ValueError):
+        return JsonResponse(
+            {'ok': False, 'message': '할인율은 숫자로 입력해 주세요.'},
+            status=400,
+        )
+
+    if not name:
+        return JsonResponse(
+            {'ok': False, 'message': '업체명을 입력해 주세요.'},
+            status=400,
+        )
+    if not category_name:
+        return JsonResponse(
+            {'ok': False, 'message': '업종을 선택해 주세요.'},
+            status=400,
+        )
+    if not representative_name:
+        return JsonResponse(
+            {'ok': False, 'message': '대표자명을 입력해 주세요.'},
+            status=400,
+        )
+    if not phone:
+        return JsonResponse(
+            {'ok': False, 'message': '연락처를 입력해 주세요.'},
+            status=400,
+        )
+    if not email:
+        return JsonResponse(
+            {'ok': False, 'message': '이메일을 입력해 주세요.'},
+            status=400,
+        )
+    if not base_address:
+        return JsonResponse(
+            {'ok': False, 'message': '주소검색을 눌러 주소를 선택해 주세요.'},
+            status=400,
+        )
+    if not (0 <= discount_min <= 100 and 0 <= discount_max <= 100):
+        return JsonResponse(
+            {'ok': False, 'message': '할인율은 0~100 사이로 입력해 주세요.'},
+            status=400,
+        )
+    if discount_min > discount_max:
+        return JsonResponse(
+            {'ok': False, 'message': '최소 할인율은 최대 할인율보다 클 수 없습니다.'},
+            status=400,
+        )
+
+    category_codes = {
+        '동물병원': 'animal-hospital',
+        '미용센터': 'grooming',
+        '펫마트': 'pet-mart',
+        '애견호텔': 'pet-hotel',
+        '훈련소': 'training',
+        '용품점': 'supplies',
+        '반려견 카페': 'pet-cafe',
+    }
+    code = category_codes.get(category_name)
+    if not code:
+        return JsonResponse(
+            {'ok': False, 'message': '등록 가능한 업종을 선택해 주세요.'},
+            status=400,
+        )
+
+    category, _ = PartnerCategory.objects.get_or_create(
+        name=category_name,
+        defaults={
+            'code': code,
+            'sort_order': 100,
+        },
+    )
+
+    address = ' '.join(
+        part for part in (base_address, detail_address) if part
+    )
+    if postcode:
+        address = f'{address} ({postcode})'
+
+    duplicate = Partner.objects.filter(
+        category=category,
+        name=name,
+        address=address,
+    ).exists()
+    if duplicate:
+        return JsonResponse(
+            {
+                'ok': False,
+                'message': '이미 같은 업체의 제휴 신청이 등록되어 있습니다.',
+            },
+            status=409,
+        )
+
+    partner = Partner.objects.create(
+        category=category,
+        name=name,
+        address=address,
+        phone=phone,
+        city=city or base_address.split(' ')[1] if len(base_address.split(' ')) > 1 else city,
+        discount_min_percent=discount_min,
+        discount_percent=discount_max,
+        representative_name=representative_name,
+        contact_email=email,
+        application_note=proposal,
+        application_status='pending',
+        is_affiliated=True,
+        is_active=False,
+        source='public_partner_application',
+    )
+
+    return JsonResponse(
+        {
+            'ok': True,
+            'message': '제휴업체 등록 신청이 접수되었습니다. 관리자 확인 후 노출됩니다.',
+            'id': partner.pk,
+        },
+        status=201,
+    )
+
+
 # === PUBLIC MEMBER REGISTER API ===
 import json
 from datetime import datetime
