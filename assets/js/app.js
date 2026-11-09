@@ -1,4 +1,4 @@
-(()=>{document.querySelector('.mobile-menu')?.addEventListener('click',()=>document.querySelector('.primary-nav')?.scrollIntoView({behavior:'smooth'}));if(!document.querySelector('link[href*="auth-modal.css"]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./assets/css/auth-modal.css?v=20261008-terms-v1';document.head.appendChild(l);}const wrap=document.createElement('div');wrap.innerHTML=`<div class="auth-overlay" id="authOverlay"><div class="auth-modal"><header class="auth-head"><h2 id="authTitle">로그인</h2><button class="auth-close" id="authClose">×</button></header><nav class="auth-tabs"><button class="auth-tab" data-auth="login">로그인</button><button class="auth-tab" data-auth="member">회원가입</button><button class="auth-tab" data-auth="partner">제휴업체 등록</button></nav><div class="auth-body"><section class="auth-panel" data-panel="login"><form class="auth-form"><label>이메일<input type="email" placeholder="example@email.com"></label><label>비밀번호<input type="password"></label><button class="auth-submit">로그인</button><p class="auth-message"></p></form></section><section class="auth-panel" data-panel="member"><form class="auth-form"><label>이름<input placeholder="홍길동"></label><div class="auth-grid"><label>생년월일<input placeholder="예) 1999.01.20"></label><label>성별<select><option>남성</option><option>여성</option></select></label></div><label>전화번호<input placeholder="010-0000-0000"></label><label>이메일 (로그인 아이디로 사용)<input type="email" placeholder="example@email.com"></label><div class="auth-grid"><label>비밀번호<input type="password"></label><label>비밀번호 확인<input type="password"></label></div><div class="kakao-address"><label>주소</label><div class="postcode-row"><input data-postcode readonly placeholder="우편번호"><button type="button" class="address-search-btn" data-address-search>주소검색</button></div><input data-road-address readonly placeholder="도로명 또는 지번 주소"><input data-address-detail placeholder="상세주소를 입력하세요"></div><div class="terms-consent"><label class="auth-check terms-select-all"><input type="checkbox" data-agree-all><span>모두선택</span></label><div class="term-item"><label class="auth-check"><input type="checkbox" data-agreement="privacy"><span><b>[필수]</b> <button type="button" class="term-link" data-term-toggle="privacy" aria-expanded="false">개인정보처리방침</button> 동의</span></label><div class="term-detail" data-term-panel="privacy" hidden><b>개인정보처리방침</b><p>협회는 회원가입 및 회원관리, 본인확인, 회원증 발급과 서비스 제공을 위해 성명, 생년월일, 성별, 연락처, 이메일, 주소 등 가입 과정에서 입력한 정보를 수집·이용합니다.</p><p>수집된 정보는 회원 탈퇴 시까지 보관하는 것을 원칙으로 하며, 관계 법령에 따라 보존이 필요한 정보는 해당 기간 동안 별도 보관할 수 있습니다. 개인정보 수집·이용에 동의하지 않을 수 있으나, 필수정보 동의를 거부할 경우 회원가입이 제한될 수 있습니다.</p></div></div><div class="term-item"><label class="auth-check"><input type="checkbox" data-agreement="terms"><span><b>[필수]</b> <button type="button" class="term-link" data-term-toggle="terms" aria-expanded="false">웹사이트 이용약관</button> 동의</span></label><div class="term-detail" data-term-panel="terms" hidden><b>웹사이트 이용약관</b><p>회원은 정확한 정보를 제공하고 본인의 계정을 안전하게 관리해야 하며, 타인의 권리를 침해하거나 서비스 운영을 방해하는 행위를 해서는 안 됩니다.</p><p>협회는 서비스 품질 개선이나 운영상 필요에 따라 웹사이트의 일부 기능과 콘텐츠를 변경할 수 있으며, 중요한 변경사항은 가능한 범위에서 사전에 안내합니다.</p></div></div><div class="term-item"><label class="auth-check"><input type="checkbox" data-agreement="rules"><span><b>[필수]</b> <button type="button" class="term-link" data-term-toggle="rules" aria-expanded="false">[협회] 회원규칙</button> 동의</span></label><div class="term-detail" data-term-panel="rules" hidden><b>경상남도 반려견 협회 회원규칙</b><p>회원은 협회의 목적과 운영질서를 존중하고 회원정보를 사실대로 유지하며, 협회와 다른 회원의 명예 또는 권익을 침해하는 행위를 하지 않아야 합니다.</p><p>정회원 혜택과 온라인 회원증은 정해진 연회비 및 회원정책에 따라 제공되며, 연회비는 1년 단위로 갱신됩니다. 회원은 탈퇴를 요청할 수 있으며, 이미 납부한 연회비는 안내된 환불정책에 따릅니다.</p></div></div></div><label class="auth-check"><input type="checkbox" data-regular-member><span><b>[선택]</b> 가입과 함께 연회비를 납부하고 정회원 혜택 및 회원증을 발급받고 싶습니다.</span></label><div class="fee-box"><strong>💳 연회비 안내</strong><h3>연회비 30,000원</h3><p>가입 후 아래 계좌로 연회비를 입금해주시면, <b>1년 유효기간</b>의 온라인 회원증이 마이페이지에 자동 발급됩니다.</p><p class="refund-note">가입 후 환불은 불가합니다. 1년마다 갱신되며, 별도 연락 없을 시 자동갱신 됩니다.</p><div class="account">입금계좌 : 농협 351-2027-0000-43<br>(예금주 : 경상남도 반려견 협회)</div><a class="benefit-link" href="benefits.html">🎁 회원 혜택 자세히 보기 →</a></div><button class="auth-submit">회원가입</button><p class="auth-message"></p></form></section><section class="auth-panel" data-panel="partner"><form class="auth-form"><div class="auth-note">동물병원·미용센터·용품점 등 반려동물 관련 업체의 제휴 신청 폼입니다.</div><label>업체명<input placeholder="예) 경남동물병원"></label><div class="auth-grid"><label>업종<select><option>동물병원</option><option>미용센터</option><option>용품점</option></select></label><label>대표자명<input></label></div><label>연락처<input placeholder="010-0000-0000"></label><label>이메일<input type="email"></label><label>업체 주소<input></label><label>제휴 제안 내용<textarea></textarea></label><button class="auth-submit">제휴 신청하기</button><p class="auth-message"></p></form></section></div></div></div>`;document.body.appendChild(wrap.firstElementChild);const overlay=document.getElementById('authOverlay'),title=document.getElementById('authTitle'),tabs=[...overlay.querySelectorAll('.auth-tab')],panels=[...overlay.querySelectorAll('.auth-panel')],authBody=overlay.querySelector('.auth-body');function activate(type){tabs.forEach(t=>t.classList.toggle('active',t.dataset.auth===type));panels.forEach(p=>p.classList.toggle('active',p.dataset.panel===type));title.textContent=type==='login'?'로그인':type==='member'?'회원가입':'제휴업체 등록';authBody.scrollTop=0;}function openAuth(type){activate(type);overlay.classList.add('open');document.body.style.overflow='hidden';}function closeAuth(){overlay.classList.remove('open');document.body.style.overflow='';}tabs.forEach(t=>t.addEventListener('click',()=>activate(t.dataset.auth)));document.getElementById('authClose').addEventListener('click',closeAuth);overlay.addEventListener('mousedown',e=>{if(e.target===overlay)closeAuth();});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAuth();});
+(()=>{document.querySelector('.mobile-menu')?.addEventListener('click',()=>document.querySelector('.primary-nav')?.scrollIntoView({behavior:'smooth'}));if(!document.querySelector('link[href*="auth-modal.css"]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./assets/css/auth-modal.css?v=20261008-terms-v1';document.head.appendChild(l);}const wrap=document.createElement('div');wrap.innerHTML=`<div class="auth-overlay" id="authOverlay"><div class="auth-modal"><header class="auth-head"><h2 id="authTitle">로그인</h2><button class="auth-close" id="authClose">×</button></header><nav class="auth-tabs"><button class="auth-tab" data-auth="login">로그인</button><button class="auth-tab" data-auth="member">회원가입</button><button class="auth-tab" data-auth="partner">제휴업체 등록</button></nav><div class="auth-body"><section class="auth-panel" data-panel="login"><form class="auth-form"><label>이메일<input type="email" placeholder="example@email.com"></label><label>비밀번호<input type="password"></label><button class="auth-submit">로그인</button><p class="auth-message"></p></form></section><section class="auth-panel" data-panel="member"><form class="auth-form"><label>이름<input placeholder="홍길동"></label><div class="auth-grid"><label>생년월일<input placeholder="예) 1999.01.20"></label><label>성별<select><option>남성</option><option>여성</option></select></label></div><label>전화번호<input placeholder="010-0000-0000"></label><label>이메일 (로그인 아이디로 사용)<input type="email" placeholder="example@email.com"></label><div class="auth-grid"><label>비밀번호<input type="password"></label><label>비밀번호 확인<input type="password"></label></div><div class="kakao-address"><label>주소</label><div class="postcode-row"><input data-postcode readonly placeholder="우편번호"><button type="button" class="address-search-btn" data-address-search>주소검색</button></div><input data-road-address readonly placeholder="도로명 또는 지번 주소"><input data-address-detail placeholder="상세주소를 입력하세요"></div><div class="terms-consent"><label class="auth-check terms-select-all"><input type="checkbox" data-agree-all><span>모두선택</span></label><div class="term-item"><label class="auth-check"><input type="checkbox" data-agreement="privacy"><span><b>[필수]</b> <button type="button" class="term-link" data-term-toggle="privacy" aria-expanded="false">개인정보처리방침</button> 동의</span></label><div class="term-detail" data-term-panel="privacy" hidden><b>개인정보처리방침</b><p>협회는 회원가입 및 회원관리, 본인확인, 회원증 발급과 서비스 제공을 위해 성명, 생년월일, 성별, 연락처, 이메일, 주소 등 가입 과정에서 입력한 정보를 수집·이용합니다.</p><p>수집된 정보는 회원 탈퇴 시까지 보관하는 것을 원칙으로 하며, 관계 법령에 따라 보존이 필요한 정보는 해당 기간 동안 별도 보관할 수 있습니다. 개인정보 수집·이용에 동의하지 않을 수 있으나, 필수정보 동의를 거부할 경우 회원가입이 제한될 수 있습니다.</p></div></div><div class="term-item"><label class="auth-check"><input type="checkbox" data-agreement="terms"><span><b>[필수]</b> <button type="button" class="term-link" data-term-toggle="terms" aria-expanded="false">웹사이트 이용약관</button> 동의</span></label><div class="term-detail" data-term-panel="terms" hidden><b>웹사이트 이용약관</b><p>회원은 정확한 정보를 제공하고 본인의 계정을 안전하게 관리해야 하며, 타인의 권리를 침해하거나 서비스 운영을 방해하는 행위를 해서는 안 됩니다.</p><p>협회는 서비스 품질 개선이나 운영상 필요에 따라 웹사이트의 일부 기능과 콘텐츠를 변경할 수 있으며, 중요한 변경사항은 가능한 범위에서 사전에 안내합니다.</p></div></div><div class="term-item"><label class="auth-check"><input type="checkbox" data-agreement="rules"><span><b>[필수]</b> <button type="button" class="term-link" data-term-toggle="rules" aria-expanded="false">[협회] 회원규칙</button> 동의</span></label><div class="term-detail" data-term-panel="rules" hidden><b>경상남도 반려견 협회 회원규칙</b><p>회원은 협회의 목적과 운영질서를 존중하고 회원정보를 사실대로 유지하며, 협회와 다른 회원의 명예 또는 권익을 침해하는 행위를 하지 않아야 합니다.</p><p>정회원 혜택과 온라인 회원증은 정해진 연회비 및 회원정책에 따라 제공되며, 연회비는 1년 단위로 갱신됩니다. 회원은 탈퇴를 요청할 수 있으며, 이미 납부한 연회비는 안내된 환불정책에 따릅니다.</p></div></div></div><label class="auth-check"><input type="checkbox" data-regular-member><span><b>[선택]</b> 가입과 함께 연회비를 납부하고 정회원 혜택 및 회원증을 발급받고 싶습니다.</span></label><div class="fee-box"><strong>💳 연회비 안내</strong><h3>연회비 30,000원</h3><p>가입 후 아래 계좌로 연회비를 입금해주시면, <b>1년 유효기간</b>의 온라인 회원증이 마이페이지에 자동 발급됩니다.</p><p class="refund-note">가입 후 환불은 불가합니다. 1년마다 갱신되며, 별도 연락 없을 시 자동갱신 됩니다.</p><div class="account">입금계좌 : 농협 351-2027-0000-43<br>(예금주 : 경상남도 반려견 협회)</div><a class="benefit-link" href="benefits.html">🎁 회원 혜택 자세히 보기 →</a></div><button class="auth-submit">회원가입</button><p class="auth-message"></p></form></section><section class="auth-panel" data-panel="partner"><form class="auth-form"><div class="auth-note">동물병원·미용센터·펫마트·애견호텔 등 반려동물 관련 업체의 제휴 신청 폼입니다.</div><label>업체명<input data-partner-name placeholder="예) 경남동물병원"></label><div class="auth-grid"><label>업종<select data-partner-category><option>동물병원</option><option>미용센터</option><option>펫마트</option><option>애견호텔</option><option>훈련소</option><option>용품점</option><option>반려견 카페</option></select></label><label>대표자명<input data-partner-representative></label></div><label>연락처<input data-partner-phone placeholder="010-0000-0000"></label><label>이메일<input data-partner-email type="email" placeholder="example@email.com"></label><div class="kakao-address"><label>주소</label><div class="postcode-row"><input data-postcode readonly placeholder="우편번호"><button type="button" class="address-search-btn" data-address-search>주소검색</button></div><input data-road-address readonly placeholder="도로명 또는 지번 주소"><input data-address-detail placeholder="상세주소를 입력하세요"></div><label>회원 할인율</label><div class="auth-grid partner-discount-range"><label>최소 (%)<input data-partner-discount-min type="number" min="0" max="100" step="1" value="0"></label><label>최대 (%)<input data-partner-discount-max type="number" min="0" max="100" step="1" value="0"></label></div><input class="partner-discount-guide" value="할인율에 따라, 제휴업체 페이지내 노출순위가 변경됩니다." readonly aria-label="할인율 안내"><label>제휴 제안 내용<textarea data-partner-proposal placeholder="제휴 내용이나 회원 혜택을 입력해 주세요."></textarea></label><button class="auth-submit">제휴업체 등록 신청</button><p class="auth-message"></p></form></section></div></div></div>`;document.body.appendChild(wrap.firstElementChild);const overlay=document.getElementById('authOverlay'),title=document.getElementById('authTitle'),tabs=[...overlay.querySelectorAll('.auth-tab')],panels=[...overlay.querySelectorAll('.auth-panel')],authBody=overlay.querySelector('.auth-body');function activate(type){tabs.forEach(t=>t.classList.toggle('active',t.dataset.auth===type));panels.forEach(p=>p.classList.toggle('active',p.dataset.panel===type));title.textContent=type==='login'?'로그인':type==='member'?'회원가입':'제휴업체 등록';authBody.scrollTop=0;}function openAuth(type){activate(type);overlay.classList.add('open');document.body.style.overflow='hidden';}function closeAuth(){overlay.classList.remove('open');document.body.style.overflow='';}tabs.forEach(t=>t.addEventListener('click',()=>activate(t.dataset.auth)));document.getElementById('authClose').addEventListener('click',closeAuth);overlay.addEventListener('mousedown',e=>{if(e.target===overlay)closeAuth();});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAuth();});
 
 function loadDaumPostcode(){
     if(window.daum?.Postcode) return Promise.resolve();
@@ -266,11 +266,89 @@ if(location.hash==='#join') setTimeout(()=>openAuth('member'),0);
             return;
         }
 
-        // 제휴업체 등록은 별도 구현
         if(type === 'partner'){
-            if(msg){
-                msg.textContent =
-                    '제휴 신청 기능은 다음 단계에서 연결합니다.';
+            const name=form.querySelector('[data-partner-name]')?.value.trim() || '';
+            const category_name=form.querySelector('[data-partner-category]')?.value || '';
+            const representative_name=form.querySelector('[data-partner-representative]')?.value.trim() || '';
+            const phone=form.querySelector('[data-partner-phone]')?.value.trim() || '';
+            const email=form.querySelector('[data-partner-email]')?.value.trim() || '';
+            const postcode=form.querySelector('[data-postcode]')?.value.trim() || '';
+            const roadAddress=form.querySelector('[data-road-address]');
+            const detailAddress=form.querySelector('[data-address-detail]');
+            const address=roadAddress?.value.trim() || '';
+            const address_detail=detailAddress?.value.trim() || '';
+            const city=roadAddress?.dataset.sigungu || roadAddress?.dataset.sido || '';
+            const discount_min_percent=Number(form.querySelector('[data-partner-discount-min]')?.value || 0);
+            const discount_max_percent=Number(form.querySelector('[data-partner-discount-max]')?.value || 0);
+            const proposal=form.querySelector('[data-partner-proposal]')?.value.trim() || '';
+
+            if(!name || !representative_name || !phone || !email){
+                if(msg) msg.textContent='업체명, 대표자명, 연락처, 이메일을 모두 입력해 주세요.';
+                return;
+            }
+            if(!address){
+                if(msg) msg.textContent='주소검색을 눌러 업체 주소를 선택해 주세요.';
+                return;
+            }
+            if(
+                !Number.isFinite(discount_min_percent) ||
+                !Number.isFinite(discount_max_percent) ||
+                discount_min_percent < 0 ||
+                discount_max_percent > 100 ||
+                discount_min_percent > discount_max_percent
+            ){
+                if(msg) msg.textContent='할인율은 0~100 사이에서 최소값이 최대값보다 작거나 같아야 합니다.';
+                return;
+            }
+
+            const button=form.querySelector('.auth-submit');
+            const original=button.textContent;
+            button.disabled=true;
+            button.textContent='등록 신청 중...';
+            if(msg) msg.textContent='';
+
+            try{
+                const csrfToken=await ensureCsrfCookie();
+                const response=await fetch('/api/partner-register/',{
+                    method:'POST',
+                    credentials:'same-origin',
+                    headers:{
+                        'Content-Type':'application/json',
+                        'X-CSRFToken':csrfToken
+                    },
+                    body:JSON.stringify({
+                        name,
+                        category_name,
+                        representative_name,
+                        phone,
+                        email,
+                        postcode,
+                        address,
+                        address_detail,
+                        city,
+                        discount_min_percent,
+                        discount_max_percent,
+                        proposal
+                    })
+                });
+                let data={};
+                try{data=await response.json();}catch(_){}
+                if(!response.ok || !data.ok){
+                    throw new Error(data.message || '제휴업체 등록 신청에 실패했습니다.');
+                }
+                form.reset();
+                if(msg){
+                    msg.textContent=data.message || '제휴업체 등록 신청이 접수되었습니다.';
+                    msg.classList.add('success');
+                }
+            }catch(error){
+                if(msg){
+                    msg.classList.remove('success');
+                    msg.textContent=error.message || '제휴업체 등록 신청에 실패했습니다.';
+                }
+            }finally{
+                button.disabled=false;
+                button.textContent=original;
             }
             return;
         }
