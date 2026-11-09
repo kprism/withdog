@@ -215,7 +215,7 @@ class SiteSetting(models.Model):
     hero_button1_text = models.CharField(
         max_length=80,
         blank=True,
-        default='반려견 회원등록',
+        default='반려견 회원가입',
     )
     hero_button1_link = models.CharField(
         max_length=500,
