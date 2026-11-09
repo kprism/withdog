@@ -1,4 +1,4 @@
-from django.db import migrations
+from django.db import migrations, models
 
 
 OLD_LABEL = '반려견 회원등록'
@@ -48,6 +48,15 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.AlterField(
+            model_name='sitesetting',
+            name='hero_button1_text',
+            field=models.CharField(
+                blank=True,
+                default=NEW_LABEL,
+                max_length=80,
+            ),
+        ),
         migrations.RunPython(
             update_label,
             restore_label,
