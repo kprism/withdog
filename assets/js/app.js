@@ -646,6 +646,12 @@ if(directPartnerJoin){
 }else if(loginParams.get('login')==='1'){
     setTimeout(()=>openAuth('login'),80);
 }
+document.querySelectorAll('.hero-partner-register,[data-hero-button="partner"]').forEach(el=>{
+    el.addEventListener('click',e=>{
+        e.preventDefault();
+        openAuth('partner');
+    });
+});
 document.querySelectorAll('a[href="#join"],a[href="/#join"],.join .btn-gold,.footer-banner .btn-red').forEach(el=>el.addEventListener('click',e=>{e.preventDefault();openAuth('member');}));document.querySelector('.quick-nav a[href="#partners"]')?.addEventListener('click',e=>{e.preventDefault();location.href='partners.html';});document.querySelector('.quick-nav a[href="#about"]')?.addEventListener('click',e=>{e.preventDefault();location.href='about.html';});document.querySelectorAll('a[href="#benefits"],.btn-dark-outline').forEach(el=>el.addEventListener('click',e=>{e.preventDefault();location.href='benefits.html';}));
 // Shared reveal motion: works automatically on current and future pages using these common components.
 const motionGroups=[['.quick-nav a',55],['.stat-grid article',75],['.service-grid article',90],['.featured,.news-row',55],['.join-benefits span,.join-benefits>div',70],['.footer-banner',0]];const observed=[];motionGroups.forEach(([selector,step])=>{document.querySelectorAll(selector).forEach((el,i)=>{el.classList.add('reveal-motion');el.style.transitionDelay=`${Math.min(i*step,320)}ms`;observed.push(el);});});const revealObserver=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('is-visible');revealObserver.unobserve(entry.target);}});},{threshold:.12,rootMargin:'0px 0px -25px 0px'});observed.forEach(el=>revealObserver.observe(el));
