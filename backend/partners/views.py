@@ -159,13 +159,16 @@ def partner_register(request):
             status=400,
         )
 
-    category, _ = PartnerCategory.objects.get_or_create(
-        name=category_name,
-        defaults={
-            'code': code,
-            'sort_order': 100,
-        },
+    category = (
+        PartnerCategory.objects.filter(name=category_name).first()
+        or PartnerCategory.objects.filter(code=code).first()
     )
+    if category is None:
+        category = PartnerCategory.objects.create(
+            name=category_name,
+            code=code,
+            sort_order=100,
+        )
 
     address = ' '.join(
         part for part in (base_address, detail_address) if part
@@ -192,7 +195,14 @@ def partner_register(request):
         name=name,
         address=address,
         phone=phone,
-        city=city or base_address.split(' ')[1] if len(base_address.split(' ')) > 1 else city,
+        city=(
+            city
+            or (
+                base_address.split()[1]
+                if len(base_address.split()) > 1
+                else ''
+            )
+        ),
         discount_min_percent=discount_min,
         discount_percent=discount_max,
         representative_name=representative_name,
