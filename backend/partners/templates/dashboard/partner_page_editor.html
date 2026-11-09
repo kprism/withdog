@@ -591,6 +591,8 @@
     <th>지역</th>
     <th>전화번호</th>
     <th>할인율</th>
+    <th>등록상태</th>
+    <th>홈페이지 노출</th>
     <th>협력</th>
     <th>월 광고금액</th>
     <th>계약 시작</th>
@@ -624,6 +626,11 @@
     <div class="muted">
         {{ p.address }}
     </div>
+    {% if p.representative_name or p.contact_email %}
+    <div class="muted">
+        {{ p.representative_name|default:"-" }} · {{ p.contact_email|default:"-" }}
+    </div>
+    {% endif %}
 </td>
 
 <td>{{ p.category.name }}</td>
@@ -632,16 +639,46 @@
 
 <td>{{ p.phone|default:"-" }}</td>
 
+<td style="min-width:190px">
+    <div style="display:flex;align-items:center;gap:6px">
+        <input
+            type="number"
+            min="0"
+            max="100"
+            step="1"
+            name="discount_min_percent"
+            value="{{ p.discount_min_percent|default:0 }}"
+            title="최소 할인율"
+            style="width:76px;min-width:76px"
+        >
+        <span>~</span>
+        <input
+            type="number"
+            min="0"
+            max="100"
+            step="1"
+            name="discount_percent"
+            value="{{ p.discount_percent|default:0 }}"
+            title="최대 할인율"
+            style="width:76px;min-width:76px"
+        >
+        <span>%</span>
+    </div>
+</td>
+
 <td>
-    <input
-        type="number"
-        min="0"
-        max="100"
-        step="1"
-        name="discount_percent"
-        value="{{ p.discount_percent|default:0 }}"
-        style="width:84px"
-    >
+    <select name="application_status">
+        <option value="approved" {% if p.application_status == 'approved' %}selected{% endif %}>승인</option>
+        <option value="pending" {% if p.application_status == 'pending' %}selected{% endif %}>승인대기</option>
+        <option value="rejected" {% if p.application_status == 'rejected' %}selected{% endif %}>반려</option>
+    </select>
+</td>
+
+<td>
+    <select name="is_active">
+        <option value="1" {% if p.is_active %}selected{% endif %}>노출</option>
+        <option value="0" {% if not p.is_active %}selected{% endif %}>숨김</option>
+    </select>
 </td>
 
 <td>
@@ -743,7 +780,7 @@
 {% empty %}
 
 <tr>
-    <td colspan="12">
+    <td colspan="14">
         검색된 업체가 없습니다.
     </td>
 </tr>
