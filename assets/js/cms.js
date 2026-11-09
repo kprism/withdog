@@ -48,7 +48,39 @@ fetch('/api/content/?kind=hero').then(r=>r.json()).then(d=>{
  if(prev)prev.onclick=e=>{e.preventDefault();show(i-1);restart()};if(next)next.onclick=e=>{e.preventDefault();show(i+1);restart()};if(pause)pause.onclick=e=>{e.preventDefault();paused=!paused;pause.textContent=paused?'▶':'Ⅱ';restart()};show(0);restart();
 }).catch(()=>{});
 fetch('/api/content/?kind=intro').then(r=>r.json()).then(d=>{if(!d.results.length)return;const grid=document.querySelector('.service-grid');if(!grid)return;grid.innerHTML=d.results.map(x=>`<article>${media(x,'service-media')}<div><em>${esc(x.label)}</em><h3>${esc(x.title)}</h3><p>${esc(x.body)}</p></div></article>`).join('');grid.querySelectorAll('video[autoplay]').forEach(v=>v.play().catch(()=>{}))}).catch(()=>{});
-fetch('/api/content/?kind=popup').then(r=>r.json()).then(d=>{const x=d.results[0];if(!x)return;const wrap=document.createElement('div');wrap.style.cssText='position:fixed;inset:0;background:#0008;z-index:99999;display:grid;place-items:center;padding:20px';wrap.innerHTML=`<div style="width:min(520px,94vw);background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 25px 80px #0006"><div style="position:relative">${media(x,'popup-media')}<button data-close style="position:absolute;right:12px;top:12px;border:0;border-radius:50%;width:36px;height:36px;font-size:20px;cursor:pointer">×</button></div><div style="padding:24px"><h2 style="margin:0 0 10px">${esc(x.title)}</h2><p style="white-space:pre-line;color:#666">${esc(x.body)}</p>${x.link?`<a href="${esc(x.link)}" style="display:inline-block;background:#c91f26;color:#fff;padding:11px 16px;border-radius:8px;text-decoration:none">자세히 보기</a>`:''}</div></div>`;document.body.appendChild(wrap);wrap.querySelector('[data-close]').onclick=()=>wrap.remove();wrap.onclick=e=>{if(e.target===wrap)wrap.remove()}}).catch(()=>{})})();
+function popupBodyMarkup(x){
+ const isContact=x.label==='contact-notice';
+ if(!isContact)return `<p style="white-space:pre-line;color:#666;line-height:1.7">${esc(x.body)}</p>`;
+ return String(x.body||'').split('\n').map(line=>{
+  const value=line.trim();
+  if(/^010-\d{4}-\d{4}$/.test(value)){
+   const dial=value.replace(/-/g,'');
+   return `<a href="tel:${dial}" class="popup-contact-phone" style="display:flex;align-items:center;justify-content:center;min-height:62px;margin:10px 0;border-radius:14px;background:#fff0f0;border:1px solid #efb7b9;color:#b51217;font-size:27px;font-weight:900;letter-spacing:.02em;text-decoration:none">☎ ${esc(value)}</a>`;
+  }
+  if(!value)return '<div style="height:8px"></div>';
+  return `<div style="color:#555;line-height:1.65;font-size:14px">${esc(value)}</div>`;
+ }).join('');
+}
+fetch('/api/content/?kind=popup').then(r=>r.json()).then(d=>{
+ const x=d.results[0];if(!x)return;
+ const isContact=x.label==='contact-notice';
+ const wrap=document.createElement('div');
+ wrap.style.cssText='position:fixed;inset:0;background:#0009;z-index:99999;display:grid;place-items:center;padding:20px';
+ const mediaMarkup=media(x,'popup-media');
+ wrap.innerHTML=`<div style="position:relative;width:min(520px,94vw);background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 25px 80px #0006">
+   ${mediaMarkup?`<div>${mediaMarkup}</div>`:''}
+   <button data-close aria-label="팝업 닫기" style="position:absolute;right:12px;top:12px;z-index:2;border:1px solid #e5e5e5;background:#fff;color:#333;border-radius:50%;width:38px;height:38px;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 3px 12px #0002">×</button>
+   <div style="padding:${isContact?'30px 26px 26px':'24px'}">
+     ${isContact?'<div style="display:inline-flex;padding:6px 10px;border-radius:999px;background:#fff0f0;color:#b51217;font-size:11px;font-weight:900;margin-bottom:10px">경상남도 반려견 협회</div>':''}
+     <h2 style="margin:0 42px 12px 0;font-size:${isContact?'24px':'22px'};line-height:1.35">${esc(x.title)}</h2>
+     <div>${popupBodyMarkup(x)}</div>
+     ${x.link?`<a href="${esc(x.link)}" style="display:flex;align-items:center;justify-content:center;margin-top:18px;background:#c91f26;color:#fff;padding:13px 16px;border-radius:10px;text-decoration:none;font-weight:800">${isContact?'공지사항 자세히 보기':'자세히 보기'}</a>`:''}
+   </div>
+ </div>`;
+ document.body.appendChild(wrap);
+ wrap.querySelector('[data-close]').onclick=()=>wrap.remove();
+ wrap.onclick=e=>{if(e.target===wrap)wrap.remove()};
+}).catch(()=>{})})();
 
 
 /* =========================================================
