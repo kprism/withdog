@@ -1588,3 +1588,12 @@
         flex-basis:72px!important;
     }
 }
+
+
+/* HERO PARTNER REGISTER BUTTON 2026-11-09 */
+.hero-buttons{flex-wrap:wrap}
+.hero-buttons .hero-partner-register{background:#cf292c;color:#fff}
+@media(max-width:560px){
+    .hero-buttons{gap:8px}
+    .hero-buttons .btn{min-width:0;padding:13px 15px;font-size:12px}
+}
