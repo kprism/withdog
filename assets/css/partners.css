@@ -1110,3 +1110,40 @@
 .partners #regions{margin:0 0 24px;padding:0}
 .partners .region-filter{max-width:none;margin:0;padding:0;gap:8px}
 .partners .count{margin-bottom:14px}
+
+
+/* ============================================================
+   PARTNER DISCOUNT TEXT 2026-11-09
+   ============================================================ */
+.partner-discount{
+    display:inline-flex!important;
+    align-items:baseline!important;
+    gap:3px!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:0!important;
+    background:transparent!important;
+    color:#d52228!important;
+    white-space:nowrap;
+}
+.partner-discount-prefix,
+.partner-discount-suffix{
+    font-size:10px;
+    font-weight:800;
+    color:#8a8a8a;
+}
+.partner-discount-rate{
+    font-size:20px;
+    line-height:1;
+    font-weight:900;
+    color:#d52228;
+}
+@media(max-width:760px){
+    .partner-discount{
+        padding:0!important;
+        font-size:inherit!important;
+    }
+    .partner-discount-rate{font-size:18px}
+    .partner-discount-prefix,
+    .partner-discount-suffix{font-size:9px}
+}
