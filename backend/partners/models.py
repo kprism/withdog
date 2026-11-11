@@ -1359,6 +1359,13 @@ class ChatbotSetting(models.Model):
         verbose_name='문의 전화번호'
     )
 
+    bot_icon = models.ImageField(
+        upload_to='chatbot/icon/',
+        blank=True,
+        null=True,
+        verbose_name='챗봇 아이콘 이미지'
+    )
+
     bot_video = models.FileField(
         upload_to='chatbot/',
         blank=True,

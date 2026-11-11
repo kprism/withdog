@@ -1908,6 +1908,15 @@ def chatbot_editor(request):
             or '010-3556-8603'
         )
 
+        if request.POST.get('delete_bot_icon') == '1' and setting.bot_icon:
+            setting.bot_icon.delete(save=False)
+            setting.bot_icon = None
+
+        if request.FILES.get('bot_icon'):
+            if setting.bot_icon:
+                setting.bot_icon.delete(save=False)
+            setting.bot_icon = request.FILES['bot_icon']
+
         if request.FILES.get('bot_video'):
             setting.bot_video = request.FILES['bot_video']
 
@@ -1951,7 +1960,16 @@ def public_chatbot_config(request):
 
     setting, _ = ChatbotSetting.objects.get_or_create(pk=1)
 
+    icon_url = ''
     video_url = ''
+
+    if setting.bot_icon:
+        try:
+            icon_url = setting.bot_icon.url
+            separator = '&' if '?' in icon_url else '?'
+            icon_url = icon_url + separator + 'v=' + str(int(setting.updated_at.timestamp()))
+        except Exception:
+            icon_url = ''
 
     if setting.bot_video:
         try:
@@ -1971,6 +1989,7 @@ def public_chatbot_config(request):
         'ai_enabled': setting.ai_enabled,
         'bot_name': setting.bot_name,
         'greeting': setting.greeting,
+        'icon_url': icon_url,
         'video_url': video_url,
         'contact_button_text': setting.contact_button_text,
         'contact_phone': setting.contact_phone,
