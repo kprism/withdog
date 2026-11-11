@@ -414,6 +414,23 @@ class AboutOrgItem(models.Model):
     role=models.CharField(max_length=80); count=models.PositiveIntegerField(default=1); sort_order=models.IntegerField(default=0)
     class Meta: ordering=['sort_order','pk']
 
+class AboutCongratulatoryMessage(models.Model):
+    photo=models.ImageField(upload_to='about/congratulations/',blank=True)
+    position=models.CharField(max_length=150,blank=True)
+    name=models.CharField(max_length=120,blank=True)
+    message=models.TextField(blank=True)
+    sort_order=models.IntegerField(default=0)
+    is_visible=models.BooleanField(default=True)
+    created_at=models.DateTimeField(auto_now_add=True)
+    updated_at=models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering=['sort_order','pk']
+
+    def __str__(self):
+        return f'{self.position} {self.name}'.strip() or f'축사 #{self.pk}'
+
+
 class AboutContactItem(models.Model):
     label=models.CharField(max_length=100)
     value=models.CharField(max_length=500)
