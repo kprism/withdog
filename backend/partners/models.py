@@ -380,6 +380,8 @@ class AboutPageSetting(models.Model):
     org_image=models.FileField(upload_to='about/org/',blank=True)
     org_video=models.FileField(upload_to='about/org/video/',blank=True)
     org_video_url=models.URLField(max_length=1200,blank=True)
+    contact_eyebrow=models.CharField(max_length=100,default='CONTACT')
+    contact_title=models.CharField(max_length=150,default='찾아오시는 길')
     member_card_image=models.FileField(upload_to='about/membership/',blank=True)
     partner_sticker_image=models.FileField(upload_to='about/membership/',blank=True)
     updated_at=models.DateTimeField(auto_now=True)
@@ -411,6 +413,16 @@ class AboutHistoryItem(models.Model):
 class AboutOrgItem(models.Model):
     role=models.CharField(max_length=80); count=models.PositiveIntegerField(default=1); sort_order=models.IntegerField(default=0)
     class Meta: ordering=['sort_order','pk']
+
+class AboutContactItem(models.Model):
+    label=models.CharField(max_length=100)
+    value=models.CharField(max_length=500)
+    sort_order=models.IntegerField(default=0)
+    is_visible=models.BooleanField(default=True)
+    class Meta:
+        ordering=['sort_order','pk']
+    def __str__(self):
+        return f'{self.label} · {self.value}'
 
 
 # ============================================================
