@@ -515,6 +515,116 @@ jobs:
 
           print('PARTNER_REGISTER_DISCOUNT_RANGE_OK')
           PY
+      - name: Verify editable About contact elements
+        working-directory: backend
+        run: |
+          python manage.py migrate --noinput
+          python manage.py shell <<'PY'
+          from django.contrib.auth import get_user_model
+          from django.test import Client
+          from partners.models import AboutContactItem, AboutPageSetting
+
+          defaults=list(AboutContactItem.objects.order_by('sort_order','pk'))
+          assert len(defaults) >= 6
+          assert [x.label for x in defaults[:6]] == [
+              '주소','대표자','고유번호','전화','이메일','운영시간'
+          ]
+
+          User=get_user_model()
+          admin=User.objects.create_superuser(
+              username='ci-about-contact-admin',
+              email='ci-about-contact@example.com',
+              password='ci-test-password',
+          )
+          client=Client()
+          client.force_login(admin)
+
+          editor=client.get('/dashboard/website/about/')
+          assert editor.status_code == 200
+          editor_html=editor.content.decode('utf-8','replace')
+          assert '⑧ 찾아오시는 길' in editor_html
+          assert '＋ 항목 추가' in editor_html
+          assert 'contact_visible_' in editor_html
+          assert 'value="contact_delete"' in editor_html
+          assert '⑨ 온라인 회원증 · 제휴업체 스티커' in editor_html
+
+          first=defaults[0]
+          second=defaults[1]
+          third=defaults[2]
+
+          payload={
+              'action':'save_8',
+              'contact_eyebrow':'LOCATION & CONTACT',
+              'contact_title':'오시는 길 · 연락처',
+          }
+          for item in defaults:
+              payload[f'contact_label_{item.pk}']=item.label
+              payload[f'contact_value_{item.pk}']=item.value
+              payload[f'contact_order_{item.pk}']=item.sort_order
+              payload[f'contact_visible_{item.pk}']='1'
+
+          payload[f'contact_label_{first.pk}']='협회 주소'
+          payload[f'contact_value_{first.pk}']='경남 창원시 테스트 주소'
+          payload[f'contact_order_{first.pk}']='20'
+          payload[f'contact_order_{second.pk}']='1'
+          payload.pop(f'contact_visible_{third.pk}')
+
+          save=client.post(
+              '/dashboard/website/about/',
+              data=payload,
+              HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+          )
+          assert save.status_code == 200
+          assert save.json()['ok'] is True
+
+          api=client.get('/api/about-page/')
+          assert api.status_code == 200
+          data=api.json()
+          assert data['contact_eyebrow'] == 'LOCATION & CONTACT'
+          assert data['contact_title'] == '오시는 길 · 연락처'
+          rows=data['contact_items']
+          assert rows[0]['label'] == second.label
+          assert any(
+              row['label'] == '협회 주소'
+              and row['value'] == '경남 창원시 테스트 주소'
+              for row in rows
+          )
+          assert third.label not in [row['label'] for row in rows]
+
+          before=AboutContactItem.objects.count()
+          add=client.post(
+              '/dashboard/website/about/',
+              data={'action':'contact_add'},
+          )
+          assert add.status_code == 302
+          assert AboutContactItem.objects.count() == before + 1
+          new_item=AboutContactItem.objects.order_by('-pk').first()
+          assert new_item.label == '새 항목'
+
+          delete=client.post(
+              '/dashboard/website/about/',
+              data={
+                  'action':'contact_delete',
+                  'item_id':new_item.pk,
+              },
+          )
+          assert delete.status_code == 302
+          assert AboutContactItem.objects.count() == before
+
+          public=client.get('/about.html')
+          public_html=public.content.decode('utf-8','replace')
+          assert public.status_code == 200
+          assert 'id="about-contact-eyebrow"' in public_html
+          assert 'id="about-contact-title"' in public_html
+          assert 'id="about-contact-box"' in public_html
+          assert 'd.contact_items' in public_html
+
+          setting=AboutPageSetting.get_solo()
+          assert setting.contact_title == '오시는 길 · 연락처'
+
+          admin.delete()
+          print('ABOUT_CONTACT_ELEMENTS_EDITOR_OK')
+          PY
       - name: Verify footer social settings and homepage cleanup
         working-directory: backend
         run: |
@@ -1136,6 +1246,13 @@ jobs:
           assert TrafficVisit._meta.get_field('city')
           assert TrafficVisit._meta.get_field('visitor_type')
           assert TrafficVisit._meta.get_field('classification_reason')
+          from partners.models import AboutContactItem, AboutPageSetting
+          assert AboutPageSetting._meta.get_field('contact_eyebrow')
+          assert AboutPageSetting._meta.get_field('contact_title')
+          assert AboutContactItem._meta.get_field('label')
+          assert AboutContactItem._meta.get_field('value')
+          assert AboutContactItem._meta.get_field('sort_order')
+          assert AboutContactItem._meta.get_field('is_visible')
           from partners.models import Partner
           assert Partner._meta.get_field('discount_min_percent')
           assert Partner._meta.get_field('application_status')
@@ -1489,10 +1606,24 @@ jobs:
               if '최신 견생' not in latest_home_html:
                   raise SystemExit('Dog Life latest sort content heading missing')
 
+          with urllib.request.urlopen('https://thepetkorea.co.kr/api/about-page/', timeout=20) as response:
+              about_payload=json.loads(response.read().decode('utf-8','replace'))
+              contact_items=about_payload.get('contact_items') or []
+              if not contact_items:
+                  raise SystemExit('About contact items missing in production API')
+              if any('label' not in row or 'value' not in row for row in contact_items):
+                  raise SystemExit('About contact item schema incomplete')
+              if not about_payload.get('contact_title'):
+                  raise SystemExit('About contact title missing')
+
           with urllib.request.urlopen('https://thepetkorea.co.kr/about.html', timeout=20) as response:
               inner_html=response.read().decode('utf-8','replace')
               if 'site-header--inner' not in inner_html:
                   raise SystemExit('Inner gray header class missing')
+              if 'id="about-contact-box"' not in inner_html:
+                  raise SystemExit('Editable about contact box hook missing')
+              if 'd.contact_items' not in inner_html:
+                  raise SystemExit('About contact runtime rendering missing')
           with urllib.request.urlopen('https://thepetkorea.co.kr/doglife/', timeout=20) as response:
               doglife_html=response.read().decode('utf-8','replace')
               if '견생 · 반려견과 함께 사는 이야기' not in doglife_html:

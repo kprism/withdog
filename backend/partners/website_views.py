@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Q, Max
 from django.shortcuts import get_object_or_404, redirect, render
-from .models import ContentItem, SiteSetting, IntroLayer, AboutPageSetting, AboutHistoryItem, AboutOrgItem
+from .models import ContentItem, SiteSetting, IntroLayer, AboutPageSetting, AboutHistoryItem, AboutOrgItem, AboutContactItem
 
 def _seo_context(request, title, description, path, *, image='', og_type='website', json_ld=None, robots='index,follow,max-image-preview:large'):
     import json
@@ -355,11 +355,22 @@ def about_editor(request):
         if action=='org_add':
             AboutOrgItem.objects.create(role='직책',count=1,sort_order=(AboutOrgItem.objects.aggregate(m=Max('sort_order'))['m'] or 0)+1)
             return redirect('operator_dashboard:about_editor')
+        if action=='contact_add':
+            AboutContactItem.objects.create(
+                label='새 항목',
+                value='내용을 입력하세요',
+                sort_order=(AboutContactItem.objects.aggregate(m=Max('sort_order'))['m'] or 0)+1,
+                is_visible=True,
+            )
+            return redirect('operator_dashboard:about_editor')
         if action=='history_delete':
             AboutHistoryItem.objects.filter(pk=request.POST.get('item_id')).delete()
             return redirect('operator_dashboard:about_editor')
         if action=='org_delete':
             AboutOrgItem.objects.filter(pk=request.POST.get('item_id')).delete()
+            return redirect('operator_dashboard:about_editor')
+        if action=='contact_delete':
+            AboutContactItem.objects.filter(pk=request.POST.get('item_id')).delete()
             return redirect('operator_dashboard:about_editor')
 
         if action=='save_1':
@@ -442,18 +453,53 @@ def about_editor(request):
             return done('⑦ 조직구성이 바로 반영되었습니다.')
 
         if action=='save_8':
+            s.contact_eyebrow=(request.POST.get('contact_eyebrow') or '').strip() or 'CONTACT'
+            s.contact_title=(request.POST.get('contact_title') or '').strip() or '찾아오시는 길'
+            s.save(update_fields=['contact_eyebrow','contact_title','updated_at'])
+            for item in AboutContactItem.objects.all():
+                item.label=(request.POST.get(f'contact_label_{item.pk}') or item.label).strip()
+                item.value=(request.POST.get(f'contact_value_{item.pk}') or '').strip()
+                item.is_visible=request.POST.get(f'contact_visible_{item.pk}') == '1'
+                try:
+                    item.sort_order=int(request.POST.get(f'contact_order_{item.pk}',item.sort_order))
+                except (TypeError,ValueError):
+                    pass
+                item.save()
+            return done('⑧ 찾아오시는 길 항목이 바로 반영되었습니다.')
+
+        if action=='save_9':
             for f in ['member_card_image','partner_sticker_image']:
                 if request.POST.get('delete_'+f)=='1' and getattr(s,f): _delete_file(getattr(s,f)); setattr(s,f,'')
                 if request.FILES.get(f):
                     if getattr(s,f): _delete_file(getattr(s,f))
                     setattr(s,f,request.FILES[f])
-            s.save(); return done('⑧ 회원증과 제휴업체 스티커가 바로 반영되었습니다.')
+            s.save(); return done('⑨ 회원증과 제휴업체 스티커가 바로 반영되었습니다.')
 
     if not AboutHistoryItem.objects.exists():
         for i,(d,t) in enumerate([('2022.06','경상남도 반려견 협회 규약(정관) 제정 및 협회 설립'),('2022.06','고유번호증 발급 (고유번호 539-80-02508)'),('2023','제휴 동물병원 확대 및 반려견 등록 지원사업 개시'),('2024','반려견 교육·훈련 프로그램 정례화'),('2025','경남 전역 반려견 공원·시설 정보 안내 서비스 확대'),('2026','온라인 회원관리 시스템 구축 및 홈페이지 전면 개편')],1): AboutHistoryItem.objects.create(date=d,text=t,sort_order=i)
     if not AboutOrgItem.objects.exists():
         for i,(r,c) in enumerate([('회장',1),('부회장',1),('총무',1),('감사',1),('이사',3),('사무장',1),('국장',4)],1): AboutOrgItem.objects.create(role=r,count=c,sort_order=i)
-    return render(request,'dashboard/about_editor.html',{'s':s,'history':AboutHistoryItem.objects.all(),'org':AboutOrgItem.objects.all(),'values':s.values_json})
+    if not AboutContactItem.objects.exists():
+        for i,(label,value) in enumerate([
+            ('주소','경남 창원시 성산구 용지로 159, iM뱅크(대구은행) 4층 405호'),
+            ('대표자','심규진'),
+            ('고유번호','539-80-02508'),
+            ('전화','010-3556-8603'),
+            ('이메일','shim194200@gmail.com'),
+            ('운영시간','평일 09:00 ~ 18:00'),
+        ],1):
+            AboutContactItem.objects.create(label=label,value=value,sort_order=i,is_visible=True)
+    return render(
+        request,
+        'dashboard/about_editor.html',
+        {
+            's':s,
+            'history':AboutHistoryItem.objects.all(),
+            'org':AboutOrgItem.objects.all(),
+            'contact_items':AboutContactItem.objects.all(),
+            'values':s.values_json,
+        },
+    )
 
 def about_data(request):
     from django.http import JsonResponse
@@ -461,11 +507,11 @@ def about_data(request):
     def url(field):
         try:return field.url if field else ''
         except:return ''
-    data={f:getattr(s,f) for f in ['title_eyebrow','title_heading','title_tagline','title_contact_text','title_contact_info','gap_title_greeting','greeting_eyebrow','greeting_title','greeting_body','greeting_signature','greeting_subtitle','gap_greeting_mission','mission_eyebrow','mission_title','mission_desc','history_title','org_title']}
+    data={f:getattr(s,f) for f in ['title_eyebrow','title_heading','title_tagline','title_contact_text','title_contact_info','gap_title_greeting','greeting_eyebrow','greeting_title','greeting_body','greeting_signature','greeting_subtitle','gap_greeting_mission','mission_eyebrow','mission_title','mission_desc','history_title','org_title','contact_eyebrow','contact_title']}
     # ABOUT_MEDIA_DISPLAY_DATA_FINAL
     data['title_radius']=s.title_radius;data['greeting_radius']=s.greeting_radius;data['history_radius']=s.history_radius;data['org_radius']=s.org_radius
     data['greeting_media_fit']=s.greeting_media_fit;data['history_media_fit']=s.history_media_fit;data['org_media_fit']=s.org_media_fit
-    data['values']=s.values_json; data['history']=[{'date':x.date,'text':x.text} for x in AboutHistoryItem.objects.all()]; data['org']=[{'role':x.role,'count':x.count} for x in AboutOrgItem.objects.all()]
+    data['values']=s.values_json; data['history']=[{'date':x.date,'text':x.text} for x in AboutHistoryItem.objects.all()]; data['org']=[{'role':x.role,'count':x.count} for x in AboutOrgItem.objects.all()]; data['contact_items']=[{'id':x.pk,'label':x.label,'value':x.value,'sort_order':x.sort_order,'is_visible':x.is_visible} for x in AboutContactItem.objects.all() if x.is_visible]
     for p in ['title','greeting','history','org']:
         data[p+'_media_type']=getattr(s,p+'_media_type'); data[p+'_image']=url(getattr(s,p+'_image')); data[p+'_video']=url(getattr(s,p+'_video')); data[p+'_video_url']=getattr(s,p+'_video_url')
     data['greeting_badge_text']=s.greeting_badge_text
