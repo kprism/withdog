@@ -45,7 +45,16 @@ def public_site(request):
         logo_video_url = ""
 
     chatbot, _ = ChatbotSetting.objects.get_or_create(pk=1)
+    chatbot_icon_url = ''
     chatbot_video_url = ''
+    if chatbot.bot_icon:
+        try:
+            chatbot_icon_url = chatbot.bot_icon.url
+            sep = '&' if '?' in chatbot_icon_url else '?'
+            chatbot_icon_url += sep + 'v=' + str(int(chatbot.updated_at.timestamp()))
+        except Exception:
+            chatbot_icon_url = ''
+
     if chatbot.bot_video:
         try:
             chatbot_video_url = chatbot.bot_video.url
@@ -92,6 +101,7 @@ def public_site(request):
         'public_page_key': page_key,
         'public_ads': ad_slots,
         'public_chatbot_enabled': chatbot.enabled,
+        'public_chatbot_icon_url': chatbot_icon_url,
         'public_chatbot_video_url': chatbot_video_url,
         'public_chatbot_name': chatbot.bot_name,
     }
