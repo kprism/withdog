@@ -130,6 +130,36 @@
     </div>
 
     <div class="field" style="grid-column:1/-1">
+        <label>챗봇 아이콘 이미지</label>
+
+        <input
+            type="file"
+            name="bot_icon"
+            accept="image/*"
+        >
+
+        {% if setting.bot_icon %}
+        <div style="margin-top:16px">
+            <img
+                src="{{ setting.bot_icon.url }}"
+                alt="현재 챗봇 아이콘"
+                style="width:110px;height:110px;object-fit:cover;border-radius:50%;border:1px solid #ddd"
+            >
+            <div class="muted" style="margin-top:7px">
+                현재 이미지: {{ setting.bot_icon.name }}
+            </div>
+            <label style="display:flex;align-items:center;gap:7px;margin-top:8px;font-weight:500">
+                <input type="checkbox" name="delete_bot_icon" value="1" style="width:auto">
+                현재 이미지 삭제
+            </label>
+        </div>
+        {% endif %}
+        <div class="muted" style="margin-top:7px">
+            우측 플로팅 원형 버튼과 챗봇 창 상단 로고에 사용됩니다.
+        </div>
+    </div>
+
+    <div class="field" style="grid-column:1/-1">
         <label>챗봇 아이콘 영상</label>
 
         <input
