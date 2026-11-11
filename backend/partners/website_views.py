@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Q, Max
 from django.shortcuts import get_object_or_404, redirect, render
-from .models import ContentItem, SiteSetting, IntroLayer, AboutPageSetting, AboutHistoryItem, AboutOrgItem, AboutContactItem
+from .models import ContentItem, SiteSetting, IntroLayer, AboutPageSetting, AboutHistoryItem, AboutOrgItem, AboutContactItem, AboutCongratulatoryMessage
 
 def _seo_context(request, title, description, path, *, image='', og_type='website', json_ld=None, robots='index,follow,max-image-preview:large'):
     import json
@@ -355,6 +355,15 @@ def about_editor(request):
         if action=='org_add':
             AboutOrgItem.objects.create(role='직책',count=1,sort_order=(AboutOrgItem.objects.aggregate(m=Max('sort_order'))['m'] or 0)+1)
             return redirect('operator_dashboard:about_editor')
+        if action=='congrats_add':
+            AboutCongratulatoryMessage.objects.create(
+                position='직함',
+                name='성함',
+                message='축사 내용을 입력하세요.',
+                sort_order=(AboutCongratulatoryMessage.objects.aggregate(m=Max('sort_order'))['m'] or 0)+1,
+                is_visible=True,
+            )
+            return redirect('operator_dashboard:about_editor')
         if action=='contact_add':
             AboutContactItem.objects.create(
                 label='새 항목',
@@ -368,6 +377,12 @@ def about_editor(request):
             return redirect('operator_dashboard:about_editor')
         if action=='org_delete':
             AboutOrgItem.objects.filter(pk=request.POST.get('item_id')).delete()
+            return redirect('operator_dashboard:about_editor')
+        if action=='congrats_delete':
+            item=AboutCongratulatoryMessage.objects.filter(pk=request.POST.get('item_id')).first()
+            if item:
+                if item.photo: _delete_file(item.photo)
+                item.delete()
             return redirect('operator_dashboard:about_editor')
         if action=='contact_delete':
             AboutContactItem.objects.filter(pk=request.POST.get('item_id')).delete()
@@ -413,6 +428,25 @@ def about_editor(request):
                 setattr(s,f,request.POST.get(f,'').strip())
             _replace_media(s,'greeting',request); s.save()
             return done('③ 인사말이 바로 반영되었습니다.')
+
+        if action=='save_congrats':
+            for item in AboutCongratulatoryMessage.objects.all():
+                item.position=(request.POST.get(f'congrats_position_{item.pk}') or '').strip()
+                item.name=(request.POST.get(f'congrats_name_{item.pk}') or '').strip()
+                item.message=(request.POST.get(f'congrats_message_{item.pk}') or '').strip()
+                item.is_visible=request.POST.get(f'congrats_visible_{item.pk}') == '1'
+                try:
+                    item.sort_order=int(request.POST.get(f'congrats_order_{item.pk}',item.sort_order))
+                except (TypeError,ValueError):
+                    pass
+                if request.POST.get(f'congrats_photo_delete_{item.pk}') == '1' and item.photo:
+                    _delete_file(item.photo); item.photo=''
+                upload=request.FILES.get(f'congrats_photo_{item.pk}')
+                if upload:
+                    if item.photo: _delete_file(item.photo)
+                    item.photo=upload
+                item.save()
+            return done('④ 축사가 바로 반영되었습니다.')
 
         if action=='save_4':
             try:s.gap_greeting_mission=max(0,min(300,int(request.POST.get('gap_greeting_mission') or 0)))
@@ -497,6 +531,7 @@ def about_editor(request):
             'history':AboutHistoryItem.objects.all(),
             'org':AboutOrgItem.objects.all(),
             'contact_items':AboutContactItem.objects.all(),
+            'congrats_items':AboutCongratulatoryMessage.objects.all(),
             'values':s.values_json,
         },
     )
@@ -511,6 +546,15 @@ def about_data(request):
     # ABOUT_MEDIA_DISPLAY_DATA_FINAL
     data['title_radius']=s.title_radius;data['greeting_radius']=s.greeting_radius;data['history_radius']=s.history_radius;data['org_radius']=s.org_radius
     data['greeting_media_fit']=s.greeting_media_fit;data['history_media_fit']=s.history_media_fit;data['org_media_fit']=s.org_media_fit
+    data['congrats']=[{
+        'id':x.pk,
+        'position':x.position,
+        'name':x.name,
+        'message':x.message,
+        'sort_order':x.sort_order,
+        'is_visible':x.is_visible,
+        'photo':url(x.photo),
+    } for x in AboutCongratulatoryMessage.objects.all() if x.is_visible]
     data['values']=s.values_json; data['history']=[{'date':x.date,'text':x.text} for x in AboutHistoryItem.objects.all()]; data['org']=[{'role':x.role,'count':x.count} for x in AboutOrgItem.objects.all()]; data['contact_items']=[{'id':x.pk,'label':x.label,'value':x.value,'sort_order':x.sort_order,'is_visible':x.is_visible} for x in AboutContactItem.objects.all() if x.is_visible]
     for p in ['title','greeting','history','org']:
         data[p+'_media_type']=getattr(s,p+'_media_type'); data[p+'_image']=url(getattr(s,p+'_image')); data[p+'_video']=url(getattr(s,p+'_video')); data[p+'_video_url']=getattr(s,p+'_video_url')
