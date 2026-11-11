@@ -542,11 +542,11 @@ jobs:
           editor=client.get('/dashboard/website/about/')
           assert editor.status_code == 200
           editor_html=editor.content.decode('utf-8','replace')
-          assert '⑧ 찾아오시는 길' in editor_html
+          assert '⑨ 찾아오시는 길' in editor_html
           assert '＋ 항목 추가' in editor_html
           assert 'contact_visible_' in editor_html
           assert 'value="contact_delete"' in editor_html
-          assert '⑨ 온라인 회원증 · 제휴업체 스티커' in editor_html
+          assert '⑩ 온라인 회원증 · 제휴업체 스티커' in editor_html
 
           first=defaults[0]
           second=defaults[1]
