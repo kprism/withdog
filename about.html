@@ -159,7 +159,7 @@ x.style.borderRadius=p(d.greeting_radius)+'px';
 
 var b=g.querySelector('b');
 if(b){
-if(document.getElementById('about-greeting-tab-main')?.classList.contains('is-active'))b.textContent=d.greeting_badge_text||greetingPersonLabel();
+if(document.getElementById('about-greeting-tab-main')?.classList.contains('is-active'))b.textContent=d.greeting_badge_text||'협회장 조인제';
 b.style.left=(parseInt(d.greeting_badge_left,10)||0)+'px';
 b.style.bottom=(isFinite(parseInt(d.greeting_badge_bottom,10))?parseInt(d.greeting_badge_bottom,10):-20)+'px';
 b.style.borderRadius=p(d.greeting_badge_radius)+'px';
