@@ -451,7 +451,7 @@ def about_editor(request):
         if action=='save_4':
             try:s.gap_greeting_mission=max(0,min(300,int(request.POST.get('gap_greeting_mission') or 0)))
             except ValueError:pass
-            s.save(); return done('④ 인사말과 설립목적 간격이 바로 반영되었습니다.')
+            s.save(); return done('⑤ 인사말과 설립목적 간격이 바로 반영되었습니다.')
 
         if action=='save_5':
             for f in ['mission_eyebrow','mission_title','mission_desc']:
@@ -460,7 +460,7 @@ def about_editor(request):
             for i in range(1,5):
                 vals.append({'icon':request.POST.get(f'value_icon_{i}',''),'title':request.POST.get(f'value_title_{i}',''),'text':request.POST.get(f'value_text_{i}','')})
             s.values_json=vals; s.save()
-            return done('⑤ 설립목적과 핵심가치가 바로 반영되었습니다.')
+            return done('⑥ 설립목적과 핵심가치가 바로 반영되었습니다.')
 
         if action=='save_6':
             try:s.history_radius=max(0,min(100,int(request.POST.get('history_radius') or 10)))
@@ -472,7 +472,7 @@ def about_editor(request):
                 try:h.sort_order=int(request.POST.get(f'history_order_{h.pk}',h.sort_order))
                 except ValueError:pass
                 h.save()
-            return done('⑥ 연혁이 바로 반영되었습니다.')
+            return done('⑦ 연혁이 바로 반영되었습니다.')
 
         if action=='save_7':
             try:s.org_radius=max(0,min(100,int(request.POST.get('org_radius') or 10)))
@@ -484,7 +484,7 @@ def about_editor(request):
                 try:o.count=max(0,int(request.POST.get(f'org_count_{o.pk}',o.count))); o.sort_order=int(request.POST.get(f'org_order_{o.pk}',o.sort_order))
                 except ValueError:pass
                 o.save()
-            return done('⑦ 조직구성이 바로 반영되었습니다.')
+            return done('⑧ 조직구성이 바로 반영되었습니다.')
 
         if action=='save_8':
             s.contact_eyebrow=(request.POST.get('contact_eyebrow') or '').strip() or 'CONTACT'
@@ -499,7 +499,7 @@ def about_editor(request):
                 except (TypeError,ValueError):
                     pass
                 item.save()
-            return done('⑧ 찾아오시는 길 항목이 바로 반영되었습니다.')
+            return done('⑨ 찾아오시는 길 항목이 바로 반영되었습니다.')
 
         if action=='save_9':
             for f in ['member_card_image','partner_sticker_image']:
@@ -507,7 +507,7 @@ def about_editor(request):
                 if request.FILES.get(f):
                     if getattr(s,f): _delete_file(getattr(s,f))
                     setattr(s,f,request.FILES[f])
-            s.save(); return done('⑨ 회원증과 제휴업체 스티커가 바로 반영되었습니다.')
+            s.save(); return done('⑩ 회원증과 제휴업체 스티커가 바로 반영되었습니다.')
 
     if not AboutHistoryItem.objects.exists():
         for i,(d,t) in enumerate([('2022.06','경상남도 반려견 협회 규약(정관) 제정 및 협회 설립'),('2022.06','고유번호증 발급 (고유번호 539-80-02508)'),('2023','제휴 동물병원 확대 및 반려견 등록 지원사업 개시'),('2024','반려견 교육·훈련 프로그램 정례화'),('2025','경남 전역 반려견 공원·시설 정보 안내 서비스 확대'),('2026','온라인 회원관리 시스템 구축 및 홈페이지 전면 개편')],1): AboutHistoryItem.objects.create(date=d,text=t,sort_order=i)
