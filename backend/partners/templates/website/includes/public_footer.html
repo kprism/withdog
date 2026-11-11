@@ -167,8 +167,9 @@
         type="button"
         aria-label="AI 문의 열기"
         data-authenticated="{% if request.user.is_authenticated %}1{% else %}0{% endif %}"
+        data-server-icon="{{ public_chatbot_icon_url }}"
         data-server-video="{{ public_chatbot_video_url }}"
-    >{% if public_chatbot_video_url %}<video src="{{ public_chatbot_video_url }}" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video>{% endif %}</button>
+    >{% if public_chatbot_icon_url %}<img src="{{ public_chatbot_icon_url }}" alt="" aria-hidden="true" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block">{% elif public_chatbot_video_url %}<video src="{{ public_chatbot_video_url }}" autoplay muted loop playsinline preload="auto" aria-hidden="true"></video>{% endif %}</button>
 
     <button
         type="button"
