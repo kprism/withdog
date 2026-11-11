@@ -122,10 +122,30 @@ async function boot(){
 
 
     /* --------------------------------------------------------
-       VIDEO BUTTON
+       FLOATING BUTTON MEDIA
     -------------------------------------------------------- */
 
-    if(config.video_url){
+    if(config.icon_url){
+
+        oldButton.innerHTML = '';
+        const img = document.createElement('img');
+        img.src = config.icon_url;
+        img.alt = '';
+        img.setAttribute('aria-hidden','true');
+        Object.assign(img.style,{
+            width:'100%',
+            height:'100%',
+            objectFit:'cover',
+            borderRadius:'50%',
+            display:'block',
+            pointerEvents:'none'
+        });
+        oldButton.appendChild(img);
+        oldButton.dataset.serverIcon = config.icon_url;
+        oldButton.dataset.serverIcon = '';
+        oldButton.dataset.serverVideo = '';
+
+    }else if(config.video_url){
 
         let video = oldButton.querySelector('video');
         const currentVideo = oldButton.dataset.serverVideo || '';
@@ -161,6 +181,7 @@ async function boot(){
             }
         );
 
+        oldButton.dataset.serverIcon = '';
         oldButton.dataset.serverVideo = config.video_url;
         video.play().catch(()=>{});
 
@@ -198,7 +219,7 @@ async function boot(){
     panel.innerHTML = `
         <header>
             <div class="chat-brand">
-                <span class="chat-brand-icon">🐶</span>
+                <span class="chat-brand-icon">${config.icon_url ? '<img src="'+escapeHtml(config.icon_url)+'" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block">' : '🐶'}</span>
 
                 <div>
                     <b>${escapeHtml(
