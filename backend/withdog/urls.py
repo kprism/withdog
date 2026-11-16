@@ -219,7 +219,14 @@ def public_home(request):
     # Default is popularity; users can switch to latest without leaving the homepage.
     from django.db.models import Count, ExpressionWrapper, F, IntegerField
     from django.template.loader import render_to_string
-    from partners.models import BoardPost
+    from partners.models import BoardCategory, BoardPost
+
+    # Match the active Dog Life category menu on /doglife/ exactly.
+    home_doglife_categories = list(
+        BoardCategory.objects.filter(
+            board_type='doglife', is_active=True
+        ).order_by('sort_order', 'id')
+    )
 
     doglife_sort=(request.GET.get('doglife_sort') or 'popular').strip().lower()
     if doglife_sort not in {'popular','latest'}:
@@ -255,6 +262,7 @@ def public_home(request):
         'website/includes/doglife_home_feed.html',
         {
             'doglife_sort':doglife_sort,
+            'home_doglife_categories':home_doglife_categories,
             'home_featured_posts':home_featured_posts,
             'home_feed_posts':home_feed_posts,
             'home_rank_posts':home_rank_posts,

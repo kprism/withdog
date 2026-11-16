@@ -59,9 +59,14 @@
 
   <div class="doglife-portal-body">
     <div class="doglife-feed-panel">
-      <div class="doglife-panel-title">
+      <div class="doglife-panel-title doglife-panel-title--categories">
         <h3>{% if doglife_sort == 'latest' %}최신 견생{% else %}지금 인기 있는 견생{% endif %}</h3>
-        <span>{% if doglife_sort == 'latest' %}새로 올라온 이야기부터 보여줍니다.{% else %}조회와 공감을 반영한 인기 이야기입니다.{% endif %}</span>
+        <nav class="doglife-category-links" aria-label="견생 하위 카테고리 바로가기">
+          <a href="/doglife/">전체</a>
+          {% for category in home_doglife_categories %}
+          <a href="/doglife/?category={{ category.slug|urlencode }}">{{ category.name }}</a>
+          {% endfor %}
+        </nav>
       </div>
 
       <div class="doglife-feed-grid">
