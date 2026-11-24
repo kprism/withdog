@@ -991,8 +991,27 @@ def dashboard_home(request):
 def partner_list(request):
     q=request.GET.get('q','').strip()
     status=request.GET.get('status','all').strip()
-    base_qs=Partner.objects.select_related('category').filter(source='public_partner_application')
+
+    # 현재 공개 제휴업체 신청 API는 source='public_partner_application'을 남긴다.
+    # 다만 이 source 필드가 추가되기 전에 접수된 과거 신청건은 표식이 없을 수 있다.
+    # 과거 신청 복원 조건은 신청서에서만 받는 대표자명+이메일이 모두 있는 업체로 한정한다.
+    direct_application_filter=(
+        Q(source='public_partner_application') |
+        (
+            ~Q(representative_name='') &
+            ~Q(contact_email='') &
+            Q(is_affiliated=True)
+        )
+    )
+
+    base_qs=(
+        Partner.objects
+        .select_related('category')
+        .filter(direct_application_filter)
+        .distinct()
+    )
     qs=base_qs
+
     if q:
         qs=qs.filter(
             Q(name__icontains=q) |
@@ -1002,19 +1021,24 @@ def partner_list(request):
             Q(address__icontains=q) |
             Q(category__name__icontains=q)
         )
+
     if status in {'pending','approved','rejected'}:
         qs=qs.filter(application_status=status)
     else:
         status='all'
+
     qs=qs.order_by('-created_at','-pk')
+
     counts={
-        'all':Partner.objects.filter(source='public_partner_application').count(),
-        'pending':Partner.objects.filter(source='public_partner_application',application_status='pending').count(),
-        'approved':Partner.objects.filter(source='public_partner_application',application_status='approved').count(),
-        'rejected':Partner.objects.filter(source='public_partner_application',application_status='rejected').count(),
+        'all':base_qs.count(),
+        'pending':base_qs.filter(application_status='pending').count(),
+        'approved':base_qs.filter(application_status='approved').count(),
+        'rejected':base_qs.filter(application_status='rejected').count(),
     }
+
     paginator=Paginator(qs,50)
     page_obj=paginator.get_page(request.GET.get('page'))
+
     return render(request,'dashboard/partner_application_list.html',{
         'page_obj':page_obj,
         'rows':page_obj.object_list,
