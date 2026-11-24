@@ -989,7 +989,39 @@ def dashboard_home(request):
 
 @staff_member_required
 def partner_list(request):
-    return redirect('operator_dashboard:partner_page_editor')
+    q=request.GET.get('q','').strip()
+    status=request.GET.get('status','all').strip()
+    base_qs=Partner.objects.select_related('category').filter(source='public_partner_application')
+    qs=base_qs
+    if q:
+        qs=qs.filter(
+            Q(name__icontains=q) |
+            Q(representative_name__icontains=q) |
+            Q(phone__icontains=q) |
+            Q(contact_email__icontains=q) |
+            Q(address__icontains=q) |
+            Q(category__name__icontains=q)
+        )
+    if status in {'pending','approved','rejected'}:
+        qs=qs.filter(application_status=status)
+    else:
+        status='all'
+    qs=qs.order_by('-created_at','-pk')
+    counts={
+        'all':Partner.objects.filter(source='public_partner_application').count(),
+        'pending':Partner.objects.filter(source='public_partner_application',application_status='pending').count(),
+        'approved':Partner.objects.filter(source='public_partner_application',application_status='approved').count(),
+        'rejected':Partner.objects.filter(source='public_partner_application',application_status='rejected').count(),
+    }
+    paginator=Paginator(qs,50)
+    page_obj=paginator.get_page(request.GET.get('page'))
+    return render(request,'dashboard/partner_application_list.html',{
+        'page_obj':page_obj,
+        'rows':page_obj.object_list,
+        'q':q,
+        'status':status,
+        'counts':counts,
+    })
 
 @staff_member_required
 def partner_edit(request,pk=None):
