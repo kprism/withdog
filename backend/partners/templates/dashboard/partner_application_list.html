@@ -1,0 +1,86 @@
+{% extends "dashboard/base.html" %}
+{% block title %}제휴업체 신청 DB{% endblock %}
+{% block header %}제휴업체 신청 DB{% endblock %}
+{% block content %}
+<div class="hero">
+  <div>
+    <div class="eyebrow">PARTNER APPLICATIONS</div>
+    <h2>제휴업체 신청 DB</h2>
+    <div class="muted">홈페이지에서 업체가 직접 ‘제휴업체 등록’으로 신청한 내역만 표시합니다.</div>
+  </div>
+</div>
+
+<div class="cards" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+  <a class="card" href="?status=all{% if q %}&q={{ q|urlencode }}{% endif %}">
+    <div class="desc">전체 신청</div><div class="num">{{ counts.all }}</div>
+  </a>
+  <a class="card" href="?status=pending{% if q %}&q={{ q|urlencode }}{% endif %}">
+    <div class="desc">승인대기</div><div class="num">{{ counts.pending }}</div>
+  </a>
+  <a class="card" href="?status=approved{% if q %}&q={{ q|urlencode }}{% endif %}">
+    <div class="desc">승인</div><div class="num">{{ counts.approved }}</div>
+  </a>
+  <a class="card" href="?status=rejected{% if q %}&q={{ q|urlencode }}{% endif %}">
+    <div class="desc">반려</div><div class="num">{{ counts.rejected }}</div>
+  </a>
+</div>
+
+<div class="panel">
+  <form method="get" class="searchbar" style="grid-template-columns:minmax(260px,2fr) 180px auto">
+    <input type="text" name="q" value="{{ q }}" placeholder="업체명 · 대표자 · 연락처 · 이메일 · 주소 · 업종 검색" style="padding:12px;border:1px solid #dcdcdc;border-radius:8px">
+    <select name="status" style="padding:12px;border:1px solid #dcdcdc;border-radius:8px;background:#fff">
+      <option value="all" {% if status == 'all' %}selected{% endif %}>전체 상태</option>
+      <option value="pending" {% if status == 'pending' %}selected{% endif %}>승인대기</option>
+      <option value="approved" {% if status == 'approved' %}selected{% endif %}>승인</option>
+      <option value="rejected" {% if status == 'rejected' %}selected{% endif %}>반려</option>
+    </select>
+    <button class="btn" type="submit">검색</button>
+  </form>
+</div>
+
+<div class="panel" style="overflow-x:auto">
+  <table class="table" style="min-width:1180px">
+    <thead>
+      <tr>
+        <th>신청일</th><th>업체명</th><th>업종</th><th>대표자</th><th>연락처</th><th>이메일</th>
+        <th>주소</th><th>할인율</th><th>상태</th><th>노출</th><th></th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for p in rows %}
+      <tr>
+        <td style="white-space:nowrap">{{ p.created_at|date:"Y.m.d H:i" }}</td>
+        <td><strong>{{ p.name }}</strong>{% if p.application_note %}<div class="muted" style="max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.application_note }}</div>{% endif %}</td>
+        <td>{{ p.category.name }}</td>
+        <td>{{ p.representative_name|default:"-" }}</td>
+        <td style="white-space:nowrap">{{ p.phone|default:"-" }}</td>
+        <td>{{ p.contact_email|default:"-" }}</td>
+        <td style="max-width:270px">{{ p.address }}</td>
+        <td style="white-space:nowrap">{{ p.discount_min_percent }}% ~ {{ p.discount_percent }}%</td>
+        <td>
+          {% if p.application_status == 'pending' %}<span class="badge">승인대기</span>
+          {% elif p.application_status == 'approved' %}<span class="badge green">승인</span>
+          {% else %}<span class="badge" style="background:#f1f1f1;color:#666">반려</span>{% endif %}
+        </td>
+        <td>{% if p.is_active %}<span class="badge green">노출중</span>{% else %}<span class="muted">미노출</span>{% endif %}</td>
+        <td style="white-space:nowrap"><a class="btn ghost" style="padding:8px 11px" href="{% url 'operator_dashboard:partner_edit' p.pk %}">상세/처리</a></td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="11" class="muted" style="text-align:center;padding:36px">조건에 맞는 제휴업체 직접 신청 내역이 없습니다.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+  {% if page_obj.paginator.num_pages > 1 %}
+  <div style="display:flex;gap:8px;justify-content:center;align-items:center;margin-top:20px">
+    {% if page_obj.has_previous %}
+      <a class="btn ghost" href="?page={{ page_obj.previous_page_number }}&status={{ status }}&q={{ q|urlencode }}">이전</a>
+    {% endif %}
+    <span class="muted">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+      <a class="btn ghost" href="?page={{ page_obj.next_page_number }}&status={{ status }}&q={{ q|urlencode }}">다음</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,389 @@
+{% extends "dashboard/base.html" %}
+
+{% block content %}
+
+<div class="report-detail-page">
+
+    <a
+        class="report-back"
+        href="{% url 'operator_dashboard:board_report_admin_list' %}"
+    >
+        ← 신고 목록
+    </a>
+
+    <h1>신고 상세</h1>
+
+
+    <section class="report-card">
+
+        <h2>신고 정보</h2>
+
+        <div class="report-info">
+
+            <div>
+                <span>신고 번호</span>
+                <strong>#{{ report.pk }}</strong>
+            </div>
+
+            <div>
+                <span>신고자</span>
+                <strong>{{ report.reporter.username }}</strong>
+            </div>
+
+            <div>
+                <span>접수일</span>
+                <strong>
+                    {{ report.created_at|date:"Y.m.d H:i" }}
+                </strong>
+            </div>
+
+            <div>
+                <span>처리 상태</span>
+
+                <strong>
+                    {% if report.status == 'pending' %}
+                        접수
+                    {% elif report.status == 'reviewed' %}
+                        검토완료
+                    {% elif report.status == 'dismissed' %}
+                        문제없음
+                    {% elif report.status == 'actioned' %}
+                        조치완료
+                    {% else %}
+                        {{ report.status }}
+                    {% endif %}
+                </strong>
+
+            </div>
+
+            <div>
+                <span>신고 사유</span>
+                <strong>{{ report.reason }}</strong>
+            </div>
+
+        </div>
+
+
+        <div class="report-detail-content">
+
+            <b>상세 내용</b>
+
+            <div>
+                {{ report.detail|default:"상세 내용 없음"|linebreaksbr }}
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <section class="report-card">
+
+        <h2>신고된 게시글</h2>
+
+        <div class="reported-post-info">
+
+            <div>
+                <span>제목</span>
+                <strong>{{ report.post.title }}</strong>
+            </div>
+
+            <div>
+                <span>작성자</span>
+                <strong>
+                    {{ report.post.author.username }}
+                </strong>
+            </div>
+
+            <div>
+                <span>조회수</span>
+                <strong>
+                    {{ report.post.view_count }}
+                </strong>
+            </div>
+
+            <div>
+                <span>게시글 상태</span>
+
+                {% if report.post.is_hidden %}
+
+                    <strong class="post-hidden">
+                        숨김
+                    </strong>
+
+                {% else %}
+
+                    <strong class="post-public">
+                        공개
+                    </strong>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+
+        {% if report.post.board_type == 'community' %}
+
+        <a
+            href="{% url 'public_community_detail' report.post.pk %}"
+            target="_blank"
+            class="open-post-btn"
+        >
+            사용자 게시글 열기 ↗
+        </a>
+
+        {% endif %}
+
+    </section>
+
+
+    <section class="report-card">
+
+        <h2>신고 처리</h2>
+
+
+        <form
+            method="post"
+            class="report-status-form"
+        >
+
+            {% csrf_token %}
+
+            <input
+                type="hidden"
+                name="action"
+                value="status"
+            >
+
+            <select name="status">
+
+                {% for value, label in status_choices %}
+
+                <option
+                    value="{{ value }}"
+                    {% if report.status == value %}
+                        selected
+                    {% endif %}
+                >
+                    {{ label }}
+                </option>
+
+                {% endfor %}
+
+            </select>
+
+            <button type="submit">
+                처리 상태 저장
+            </button>
+
+        </form>
+
+
+        <div class="report-post-actions">
+
+            {% if report.post.is_hidden %}
+
+            <form method="post">
+
+                {% csrf_token %}
+
+                <input
+                    type="hidden"
+                    name="action"
+                    value="restore_post"
+                >
+
+                <button
+                    type="submit"
+                    class="restore-post-btn"
+                >
+                    게시글 숨김 해제
+                </button>
+
+            </form>
+
+            {% else %}
+
+            <form
+                method="post"
+                onsubmit="return confirm('신고된 게시글을 숨김 처리하시겠습니까?');"
+            >
+
+                {% csrf_token %}
+
+                <input
+                    type="hidden"
+                    name="action"
+                    value="hide_post"
+                >
+
+                <button
+                    type="submit"
+                    class="hide-post-btn"
+                >
+                    신고 게시글 숨김 처리
+                </button>
+
+            </form>
+
+            {% endif %}
+
+        </div>
+
+    </section>
+
+</div>
+
+
+<style>
+
+.report-detail-page{
+    max-width:1000px;
+}
+
+.report-back{
+    display:inline-block;
+    margin-bottom:8px;
+    color:#777;
+    text-decoration:none;
+    font-size:14px;
+}
+
+.report-detail-page > h1{
+    margin:0 0 24px;
+    font-size:28px;
+}
+
+.report-card{
+    margin-bottom:18px;
+    padding:24px;
+    border:1px solid #e4e4e4;
+    border-radius:12px;
+    background:#fff;
+}
+
+.report-card h2{
+    margin:0 0 18px;
+    font-size:18px;
+}
+
+.report-info > div,
+.reported-post-info > div{
+    display:grid;
+    grid-template-columns:120px 1fr;
+    gap:12px;
+    padding:10px 0;
+    border-bottom:1px solid #eee;
+}
+
+.report-info span,
+.reported-post-info span{
+    color:#777;
+}
+
+.report-detail-content{
+    margin-top:22px;
+}
+
+.report-detail-content > div{
+    margin-top:10px;
+    padding:16px;
+    border-radius:8px;
+    background:#f7f7f7;
+    line-height:1.7;
+}
+
+.post-public{
+    color:#168447;
+}
+
+.post-hidden{
+    color:#d2292d;
+}
+
+.open-post-btn{
+    display:inline-block;
+    margin-top:18px;
+    padding:9px 13px;
+    border:1px solid #ddd;
+    border-radius:8px;
+    color:#222;
+    text-decoration:none;
+    font-weight:700;
+}
+
+.report-status-form{
+    display:flex;
+    gap:8px;
+}
+
+.report-status-form select{
+    min-width:220px;
+    height:42px;
+    padding:0 10px;
+    border:1px solid #ddd;
+    border-radius:8px;
+    background:#fff;
+}
+
+.report-status-form button{
+    border:0;
+    border-radius:8px;
+    padding:0 18px;
+    background:#222;
+    color:#fff;
+    font-weight:700;
+    cursor:pointer;
+}
+
+.report-post-actions{
+    margin-top:20px;
+    padding-top:20px;
+    border-top:1px solid #eee;
+}
+
+.hide-post-btn,
+.restore-post-btn{
+    border:0;
+    border-radius:8px;
+    padding:11px 16px;
+    font-weight:700;
+    cursor:pointer;
+}
+
+.hide-post-btn{
+    background:#d2292d;
+    color:#fff;
+}
+
+.restore-post-btn{
+    background:#eee;
+    color:#222;
+}
+
+@media(max-width:600px){
+
+    .report-info > div,
+    .reported-post-info > div{
+        grid-template-columns:90px 1fr;
+    }
+
+    .report-status-form{
+        display:grid;
+    }
+
+    .report-status-form select{
+        width:100%;
+    }
+
+    .report-status-form button{
+        height:42px;
+    }
+
+}
+
+</style>
+
+{% endblock %}

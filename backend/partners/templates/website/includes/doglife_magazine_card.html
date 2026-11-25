@@ -1,0 +1,50 @@
+{% with media=post.attachments.all.0 %}
+<article class="dl-card dl-card--{{ variant }} dl-card--{{ post.display_type }} {% if media %}has-media{% else %}is-text{% endif %}">
+  <a href="{% url 'public_doglife_detail' post.pk %}">
+    {% if media %}
+    <div class="dl-media">
+      {% if media.external_provider == 'youtube' %}
+        <img src="{{ media.external_thumbnail_url }}" alt="{{ post.title }}" loading="lazy">
+        <span class="dl-format">YouTube</span>
+        <span class="dl-play">▶</span>
+      {% elif media.external_provider == 'vimeo' %}
+        <div class="dl-external-placeholder"><div><span>▶</span><small>Vimeo 영상</small></div></div>
+        <span class="dl-format">Vimeo</span>
+      {% elif media.external_provider == 'video' %}
+        <video src="{{ media.external_url }}" muted playsinline preload="metadata"></video>
+        <span class="dl-format">링크 영상</span>
+        <span class="dl-play">▶</span>
+      {% elif media.external_provider == 'link' %}
+        <div class="dl-external-placeholder"><div><span>🔗</span><small>외부 링크</small></div></div>
+      {% elif media.is_image %}
+        <img src="{{ media.file.url }}" alt="{{ post.title }}" loading="lazy">
+      {% else %}
+        <video src="{{ media.file.url }}" muted playsinline preload="metadata"></video>
+        <span class="dl-format">{% if post.display_type == 'video_vertical' %}세로영상{% else %}영상{% endif %}</span>
+        <span class="dl-play">▶</span>
+      {% endif %}
+    </div>
+    {% else %}
+    <div class="dl-text-visual">
+      <span>{{ post.category.name|default:"DOG LIFE" }}</span>
+      <small>{{ post.body|striptags|truncatechars:80 }}</small>
+    </div>
+    {% endif %}
+
+    <div class="dl-card-copy">
+      <div class="dl-category">{{ post.category.name }}</div>
+      <h3>{{ post.title }}</h3>
+      {% if variant == 'lead' %}
+      <p>{{ post.body|striptags|truncatechars:150 }}</p>
+      {% elif variant == 'side' %}
+      <p>{{ post.body|striptags|truncatechars:90 }}</p>
+      {% endif %}
+      <div class="dl-meta">
+        <span>{{ post.created_at|date:"m.d" }}</span>
+        <span>조회 {{ post.view_count }}</span>
+        <span>♥ {{ post.like_count }}</span>
+      </div>
+    </div>
+  </a>
+</article>
+{% endwith %}

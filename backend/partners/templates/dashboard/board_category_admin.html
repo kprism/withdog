@@ -1,0 +1,321 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}{{ board_label }} 카테고리 관리{% endblock %}
+
+{% block content %}
+
+<div class="category-admin">
+
+    <div class="category-head">
+
+        <div>
+
+            <h1>
+                {{ board_label }} 카테고리
+            </h1>
+
+            <p>
+                게시판의 분류를 추가하고 노출 순서를 관리합니다.
+            </p>
+
+        </div>
+
+        <a
+            href="{% url 'operator_dashboard:board_admin_list' board_type %}"
+            class="category-btn"
+        >
+            게시판 관리
+        </a>
+
+    </div>
+
+
+    <form
+        method="post"
+        class="category-create"
+    >
+
+        {% csrf_token %}
+
+        <input
+            type="text"
+            name="name"
+            placeholder="카테고리명"
+            required
+        >
+
+        <input
+            type="text"
+            name="slug"
+            placeholder="식별자"
+        >
+
+        <input
+            type="number"
+            name="sort_order"
+            value="0"
+            title="정렬 순서"
+        >
+
+        <button type="submit">
+            + 카테고리 추가
+        </button>
+
+    </form>
+
+
+    <div class="category-table">
+
+        <div class="category-table-head">
+
+            <span>카테고리명</span>
+            <span>식별자</span>
+            <span>순서</span>
+            <span>사용</span>
+            <span>관리</span>
+
+        </div>
+
+
+        {% for category in categories %}
+
+        <div class="category-item">
+
+            <form
+                method="post"
+                action="{% url 'operator_dashboard:board_category_update' board_type category.pk %}"
+                class="category-update"
+            >
+
+                {% csrf_token %}
+
+                <input
+                    name="name"
+                    value="{{ category.name }}"
+                    required
+                >
+
+                <input
+                    name="slug"
+                    value="{{ category.slug }}"
+                >
+
+                <input
+                    type="number"
+                    name="sort_order"
+                    value="{{ category.sort_order }}"
+                >
+
+                <label class="category-active">
+
+                    <input
+                        type="checkbox"
+                        name="is_active"
+                        {% if category.is_active %}
+                            checked
+                        {% endif %}
+                    >
+
+                    사용
+
+                </label>
+
+                <button
+                    type="submit"
+                    class="category-save"
+                >
+                    저장
+                </button>
+
+            </form>
+
+
+            <form
+                method="post"
+                action="{% url 'operator_dashboard:board_category_delete' board_type category.pk %}"
+                class="category-delete"
+            >
+
+                {% csrf_token %}
+
+                <button
+                    type="submit"
+                    onclick="return confirm('이 카테고리를 삭제하시겠습니까?');"
+                >
+                    삭제
+                </button>
+
+            </form>
+
+        </div>
+
+        {% empty %}
+
+        <div class="category-empty">
+            등록된 카테고리가 없습니다.
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+
+<style>
+
+.category-admin{
+    max-width:1100px;
+    margin:0 auto;
+}
+
+.category-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:22px;
+}
+
+.category-head h1{
+    margin:0 0 6px;
+    font-size:25px;
+}
+
+.category-head p{
+    margin:0;
+    color:#777;
+    font-size:13px;
+}
+
+.category-btn{
+    display:inline-flex;
+    height:40px;
+    padding:0 14px;
+    align-items:center;
+    border:1px solid #ddd;
+    border-radius:9px;
+    background:#fff;
+    color:#222;
+    text-decoration:none;
+    font-size:13px;
+    font-weight:700;
+}
+
+.category-create{
+    display:grid;
+    grid-template-columns:
+        minmax(180px,1.5fr)
+        minmax(180px,1.5fr)
+        100px
+        140px;
+    gap:8px;
+    margin-bottom:15px;
+}
+
+.category-create input{
+    height:42px;
+    padding:0 11px;
+    border:1px solid #ddd;
+    border-radius:9px;
+}
+
+.category-create button{
+    border:0;
+    border-radius:9px;
+    background:#d9232e;
+    color:#fff;
+    font-weight:700;
+    cursor:pointer;
+}
+
+.category-table{
+    overflow:hidden;
+    border:1px solid #e5e5e5;
+    border-radius:12px;
+    background:#fff;
+}
+
+.category-table-head{
+    display:grid;
+    grid-template-columns:
+        1.5fr
+        1.5fr
+        100px
+        90px
+        120px;
+    gap:8px;
+    padding:12px;
+    background:#fafafa;
+    color:#777;
+    font-size:12px;
+    font-weight:700;
+}
+
+.category-item{
+    position:relative;
+    border-top:1px solid #eee;
+}
+
+.category-update{
+    display:grid;
+    grid-template-columns:
+        1.5fr
+        1.5fr
+        100px
+        90px
+        58px;
+    gap:8px;
+    align-items:center;
+    padding:10px 72px 10px 10px;
+}
+
+.category-update input[type="text"],
+.category-update input[type="number"],
+.category-update input:not([type]){
+    width:100%;
+    height:38px;
+    padding:0 9px;
+    border:1px solid #ddd;
+    border-radius:7px;
+    box-sizing:border-box;
+}
+
+.category-active{
+    font-size:12px;
+    white-space:nowrap;
+}
+
+.category-save{
+    height:34px;
+    border:1px solid #ddd;
+    border-radius:7px;
+    background:#fff;
+    font-weight:700;
+    cursor:pointer;
+}
+
+.category-delete{
+    position:absolute;
+    right:10px;
+    top:50%;
+    transform:translateY(-50%);
+}
+
+.category-delete button{
+    border:0;
+    background:transparent;
+    color:#c9232c;
+    font-size:12px;
+    font-weight:700;
+    cursor:pointer;
+}
+
+.category-empty{
+    padding:50px;
+    text-align:center;
+    color:#888;
+}
+
+</style>
+
+{% endblock %}

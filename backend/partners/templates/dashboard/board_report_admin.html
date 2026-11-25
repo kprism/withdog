@@ -1,0 +1,387 @@
+{% extends "dashboard/base.html" %}
+
+{% block content %}
+
+<div class="report-admin-page">
+
+    <div class="report-page-head">
+
+        <div>
+            <h1>신고 관리</h1>
+            <p>
+                자유게시판에서 접수된 신고를 확인하고
+                처리할 수 있습니다.
+            </p>
+        </div>
+
+    </div>
+
+
+    <form
+        method="get"
+        class="report-search-form"
+    >
+
+        <input
+            type="search"
+            name="q"
+            value="{{ keyword }}"
+            placeholder="게시글 제목, 신고사유, 신고자 검색"
+        >
+
+        <select name="status">
+
+            <option value="">
+                전체 상태
+            </option>
+
+            {% for value, label in status_choices %}
+
+            <option
+                value="{{ value }}"
+                {% if selected_status == value %}
+                    selected
+                {% endif %}
+            >
+                {{ label }}
+            </option>
+
+            {% endfor %}
+
+        </select>
+
+        <button type="submit">
+            검색
+        </button>
+
+    </form>
+
+
+    <div class="report-total">
+        총 <strong>{{ total_count }}</strong>건
+    </div>
+
+
+    <div class="report-table-wrap">
+
+        <table class="report-table">
+
+            <thead>
+
+                <tr>
+                    <th class="num">번호</th>
+                    <th>게시글</th>
+                    <th>신고 사유</th>
+                    <th class="user">신고자</th>
+                    <th class="status">상태</th>
+                    <th class="date">접수일</th>
+                    <th class="manage">관리</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+            {% for report in page_obj %}
+
+                <tr>
+
+                    <td>
+                        {{ report.pk }}
+                    </td>
+
+                    <td class="report-post-title">
+                        {{ report.post.title }}
+                    </td>
+
+                    <td>
+                        {{ report.reason }}
+                    </td>
+
+                    <td>
+                        {{ report.reporter.username }}
+                    </td>
+
+                    <td>
+
+                        <span class="report-status status-{{ report.status }}">
+
+                            {% if report.status == 'pending' %}
+                                접수
+                            {% elif report.status == 'reviewed' %}
+                                검토완료
+                            {% elif report.status == 'dismissed' %}
+                                문제없음
+                            {% elif report.status == 'actioned' %}
+                                조치완료
+                            {% else %}
+                                {{ report.status }}
+                            {% endif %}
+
+                        </span>
+
+                    </td>
+
+                    <td>
+                        {{ report.created_at|date:"Y.m.d H:i" }}
+                    </td>
+
+                    <td>
+
+                        <a
+                            class="report-view-btn"
+                            href="{% url 'operator_dashboard:board_report_admin_detail' report.pk %}"
+                        >
+                            확인
+                        </a>
+
+                    </td>
+
+                </tr>
+
+            {% empty %}
+
+                <tr>
+
+                    <td
+                        colspan="7"
+                        class="report-empty"
+                    >
+                        접수된 신고가 없습니다.
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    {% if page_obj.paginator.num_pages > 1 %}
+
+    <div class="report-pagination">
+
+        {% if page_obj.has_previous %}
+
+        <a href="?q={{ keyword|urlencode }}&status={{ selected_status|urlencode }}&page={{ page_obj.previous_page_number }}">
+            ‹ 이전
+        </a>
+
+        {% endif %}
+
+        <strong>
+            {{ page_obj.number }}
+            /
+            {{ page_obj.paginator.num_pages }}
+        </strong>
+
+        {% if page_obj.has_next %}
+
+        <a href="?q={{ keyword|urlencode }}&status={{ selected_status|urlencode }}&page={{ page_obj.next_page_number }}">
+            다음 ›
+        </a>
+
+        {% endif %}
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+
+<style>
+
+.report-admin-page{
+    max-width:1200px;
+}
+
+.report-page-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    margin-bottom:24px;
+}
+
+.report-page-head h1{
+    margin:0 0 7px;
+    font-size:27px;
+}
+
+.report-page-head p{
+    margin:0;
+    color:#777;
+    line-height:1.6;
+}
+
+.report-search-form{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 180px 80px;
+    gap:8px;
+    margin-bottom:18px;
+}
+
+.report-search-form input,
+.report-search-form select{
+    height:42px;
+    padding:0 12px;
+    border:1px solid #ddd;
+    border-radius:9px;
+    background:#fff;
+    outline:none;
+}
+
+.report-search-form button{
+    border:0;
+    border-radius:9px;
+    background:#222;
+    color:#fff;
+    font-weight:700;
+    cursor:pointer;
+}
+
+.report-total{
+    margin-bottom:10px;
+    color:#666;
+    font-size:13px;
+}
+
+.report-table-wrap{
+    overflow:auto;
+    border:1px solid #e5e5e5;
+    border-radius:12px;
+    background:#fff;
+}
+
+.report-table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.report-table th{
+    padding:13px 12px;
+    border-bottom:1px solid #e5e5e5;
+    background:#fafafa;
+    color:#666;
+    font-size:13px;
+    text-align:left;
+    white-space:nowrap;
+}
+
+.report-table td{
+    padding:14px 12px;
+    border-bottom:1px solid #eee;
+    font-size:14px;
+    vertical-align:middle;
+}
+
+.report-table tbody tr:last-child td{
+    border-bottom:0;
+}
+
+.report-table .num{
+    width:70px;
+}
+
+.report-table .user{
+    width:110px;
+}
+
+.report-table .status{
+    width:100px;
+}
+
+.report-table .date{
+    width:150px;
+}
+
+.report-table .manage{
+    width:80px;
+}
+
+.report-post-title{
+    font-weight:700;
+}
+
+.report-status{
+    display:inline-block;
+    padding:5px 10px;
+    border-radius:20px;
+    background:#f1f1f1;
+    font-size:12px;
+    white-space:nowrap;
+}
+
+.status-pending{
+    background:#fff3cd;
+    color:#795d00;
+}
+
+.status-reviewed{
+    background:#e7f1ff;
+    color:#1859a9;
+}
+
+.status-dismissed{
+    background:#f1f1f1;
+    color:#666;
+}
+
+.status-actioned{
+    background:#e5f6eb;
+    color:#16733a;
+}
+
+.report-view-btn{
+    display:inline-block;
+    padding:7px 11px;
+    border:1px solid #ddd;
+    border-radius:7px;
+    color:#222;
+    text-decoration:none;
+    font-weight:700;
+    white-space:nowrap;
+}
+
+.report-view-btn:hover{
+    background:#f7f7f7;
+}
+
+.report-empty{
+    height:150px;
+    color:#999;
+    text-align:center !important;
+}
+
+.report-pagination{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:18px;
+    margin-top:22px;
+}
+
+.report-pagination a{
+    color:#333;
+    text-decoration:none;
+}
+
+@media(max-width:800px){
+
+    .report-search-form{
+        grid-template-columns:1fr;
+    }
+
+    .report-table{
+        min-width:900px;
+    }
+
+}
+
+</style>
+
+{% endblock %}
