@@ -64,22 +64,40 @@ function popupBodyMarkup(x){
 fetch('/api/content/?kind=popup').then(r=>r.json()).then(d=>{
  const x=d.results[0];if(!x)return;
  const isContact=x.label==='contact-notice';
+ const todayKey='thepet_content_popup_hide_today_'+String(x.id||x.label||'default');
+ const now=new Date();
+ const today=[now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-');
+ if(localStorage.getItem(todayKey)===today)return;
+
  const wrap=document.createElement('div');
  wrap.style.cssText='position:fixed;inset:0;background:#0009;z-index:99999;display:grid;place-items:center;padding:20px';
  const mediaMarkup=media(x,'popup-media');
  wrap.innerHTML=`<div style="position:relative;width:min(520px,94vw);background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 25px 80px #0006">
    ${mediaMarkup?`<div>${mediaMarkup}</div>`:''}
    <button data-close aria-label="팝업 닫기" style="position:absolute;right:12px;top:12px;z-index:2;border:1px solid #e5e5e5;background:#fff;color:#333;border-radius:50%;width:38px;height:38px;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 3px 12px #0002">×</button>
-   <div style="padding:${isContact?'30px 26px 26px':'24px'}">
+   <div style="padding:${isContact?'30px 26px 20px':'24px'}">
      ${isContact?'<div style="display:inline-flex;padding:6px 10px;border-radius:999px;background:#fff0f0;color:#b51217;font-size:11px;font-weight:900;margin-bottom:10px">경상남도 반려견 협회</div>':''}
      <h2 style="margin:0 42px 12px 0;font-size:${isContact?'24px':'22px'};line-height:1.35">${esc(x.title)}</h2>
      <div>${popupBodyMarkup(x)}</div>
      ${x.link?`<a href="${esc(x.link)}" style="display:flex;align-items:center;justify-content:center;margin-top:18px;background:#c91f26;color:#fff;padding:13px 16px;border-radius:10px;text-decoration:none;font-weight:800">${isContact?'공지사항 자세히 보기':'자세히 보기'}</a>`:''}
+     <div style="display:flex;justify-content:flex-end;margin-top:14px;padding-top:12px;border-top:1px solid #eee">
+       <label style="display:inline-flex;align-items:center;gap:7px;color:#555;font-size:13px;cursor:pointer;user-select:none">
+         <input type="checkbox" data-hide-today style="width:16px;height:16px;accent-color:#c91f26;cursor:pointer">
+         <span>오늘 그만 보기</span>
+       </label>
+     </div>
    </div>
  </div>`;
  document.body.appendChild(wrap);
- wrap.querySelector('[data-close]').onclick=()=>wrap.remove();
- wrap.onclick=e=>{if(e.target===wrap)wrap.remove()};
+
+ const closePopup=()=>{
+   if(wrap.querySelector('[data-hide-today]')?.checked){
+     localStorage.setItem(todayKey,today);
+   }
+   wrap.remove();
+ };
+ wrap.querySelector('[data-close]').onclick=closePopup;
+ wrap.onclick=e=>{if(e.target===wrap)closePopup()};
 }).catch(()=>{})})();
 
 
