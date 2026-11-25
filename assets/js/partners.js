@@ -395,10 +395,78 @@
                 >
                     길찾기
                 </a>
+
+                ${
+                    (p.application_note || '').trim()
+                        ? `
+                <button
+                    type="button"
+                    class="partner-action partner-action-intro"
+                    data-partner-intro
+                >
+                    업체소개
+                </button>
+                `
+                        : `
+                <span
+                    class="partner-action partner-action-intro partner-action-disabled"
+                    aria-disabled="true"
+                    title="등록된 업체소개가 없습니다"
+                >
+                    업체소개
+                </span>
+                `
+                }
             </div>
         `;
 
+        const introButton=card.querySelector('[data-partner-intro]');
+        if(introButton){
+            introButton.addEventListener('click',function(){
+                openPartnerIntroModal(p);
+            });
+        }
+
         cards.appendChild(card);
+    });
+}
+
+function openPartnerIntroModal(partner){
+    const old=document.getElementById('partnerIntroModal');
+    if(old) old.remove();
+
+    const note=String(partner.application_note||'').trim();
+    if(!note) return;
+
+    const modal=document.createElement('div');
+    modal.id='partnerIntroModal';
+    modal.className='partner-intro-modal';
+    modal.innerHTML=`
+        <div class="partner-intro-backdrop" data-intro-close></div>
+        <div class="partner-intro-dialog" role="dialog" aria-modal="true" aria-labelledby="partnerIntroTitle">
+            <button type="button" class="partner-intro-close" data-intro-close aria-label="닫기">×</button>
+            <div class="partner-intro-eyebrow">PARTNER STORY</div>
+            <h3 id="partnerIntroTitle">${escapeHtml(partner.name||'업체소개')}</h3>
+            <div class="partner-intro-meta">
+                ${escapeHtml((partner.category&&partner.category.name)||'')}
+                ${partner.city_unit||partner.city ? ' · '+escapeHtml(partner.city_unit||partner.city) : ''}
+            </div>
+            <div class="partner-intro-content">${escapeHtml(note).replace(/\n/g,'<br>')}</div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    document.body.classList.add('partner-intro-open');
+
+    const close=()=>{
+        modal.remove();
+        document.body.classList.remove('partner-intro-open');
+    };
+    modal.querySelectorAll('[data-intro-close]').forEach(el=>el.addEventListener('click',close));
+    document.addEventListener('keydown',function escHandler(e){
+        if(e.key==='Escape'){
+            close();
+            document.removeEventListener('keydown',escHandler);
+        }
     });
 }
 
