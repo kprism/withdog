@@ -743,6 +743,7 @@ def public_partner_map_api(request):
             'phone': partner.phone or '',
             'city': partner.city or '',
             'city_unit': city_unit,
+            'application_note': (partner.application_note or '').strip(),
             'discount_min_percent': max(
                 0,
                 min(
