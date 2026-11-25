@@ -122,6 +122,10 @@
                     {% if ad.media_type == 'video' %}<video src="{{ ad.media_file.url }}" autoplay muted loop playsinline controls></video>{% else %}<img src="{{ ad.media_file.url }}" alt="{{ ad.alt_text|default:ad.title|default:ad.advertiser_name }}">{% endif %}
                     {% if ad.title %}<div class="public-ad-caption">{{ ad.title }}</div>{% endif %}
                 </div>
+                <label class="public-ad-popup__today-hide" style="display:flex;justify-content:flex-end;align-items:center;gap:7px;margin-top:10px;font-size:13px;color:#555;cursor:pointer;user-select:none">
+                    <input type="checkbox" data-ad-hide-today style="width:16px;height:16px;accent-color:#cf252a">
+                    <span>오늘 그만 보기</span>
+                </label>
             </div>
         </div>
         {% endwith %}
@@ -147,7 +151,21 @@
  if(middle){const now=targets(),at=now[Math.max(1,Math.floor(now.length/2))];if(at)at.before(middle);else contentRoot.appendChild(middle)}
  if(bottom){const now=targets(),last=now[now.length-1];if(last)last.after(bottom);else contentRoot.appendChild(bottom)}
  document.addEventListener('click',e=>{const card=e.target.closest('.public-ad-card[data-ad-link]');if(!card)return;const href=(card.dataset.adLink||'').trim();if(href)window.open(href,'_blank','noopener')});
- const popup=document.getElementById('publicAdPopup');if(popup){const key='thepet_ad_popup_'+popup.dataset.adId;if(!sessionStorage.getItem(key))setTimeout(()=>{popup.hidden=false;document.body.classList.add('public-ad-popup-open')},700);popup.querySelectorAll('[data-ad-close]').forEach(btn=>btn.addEventListener('click',()=>{popup.hidden=true;document.body.classList.remove('public-ad-popup-open');sessionStorage.setItem(key,'1')}))}
+ const popup=document.getElementById('publicAdPopup');if(popup){
+   const sessionKey='thepet_ad_popup_'+popup.dataset.adId;
+   const todayKey='thepet_ad_popup_hide_today_'+popup.dataset.adId;
+   const now=new Date();
+   const today=[now.getFullYear(),String(now.getMonth()+1).padStart(2,'0'),String(now.getDate()).padStart(2,'0')].join('-');
+   const hiddenToday=localStorage.getItem(todayKey)===today;
+   if(!hiddenToday&&!sessionStorage.getItem(sessionKey))setTimeout(()=>{popup.hidden=false;document.body.classList.add('public-ad-popup-open')},700);
+   popup.querySelectorAll('[data-ad-close]').forEach(btn=>btn.addEventListener('click',()=>{
+     const hideToday=popup.querySelector('[data-ad-hide-today]')?.checked;
+     popup.hidden=true;
+     document.body.classList.remove('public-ad-popup-open');
+     sessionStorage.setItem(sessionKey,'1');
+     if(hideToday)localStorage.setItem(todayKey,today);
+   }))
+ }
 })();
 </script>
 {% endif %}
